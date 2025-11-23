@@ -2497,7 +2497,20 @@ i<!DOCTYPE html>
         let isCloudEnabled = false;
 
         // ===== FIREBASE CONFIGURATION =====
-        // Firebase configured for cloud sync
+        // 🔒 SECURITY NOTE: This API key is SAFE to be public!
+        //
+        // Firebase API keys are designed to be included in client-side code.
+        // According to Google's official documentation:
+        // "Unlike how API keys are typically used, API keys for Firebase services
+        // are not used to control access to backend resources."
+        //
+        // Actual security is provided by:
+        // 1. Firebase Security Rules (configured in Firebase Console)
+        // 2. Client-side encryption (all data encrypted with user password)
+        // 3. Password hashing (SHA-256, stored securely)
+        //
+        // See FIREBASE_SECURITY_SETUP_GUIDE.md for complete security details.
+        // ===================================
         const firebaseConfig = {
             apiKey: "AIzaSyCci_5AhIKW3VPnFu8LFBDJQxYQvPbOUlE",
             authDomain: "flashcard-sync-15835.firebaseapp.com",
