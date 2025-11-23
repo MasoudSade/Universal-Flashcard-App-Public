@@ -3,7 +3,7 @@ i<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal Language Flashcards v3.0 - Multi-Language Support</title>
+    <title>Universal Language Flashcards v3.1 - Cloud Sync</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=2.4.1">
     <link rel="alternate icon" href="favicon.ico?v=2.4.1">
     <link rel="shortcut icon" href="favicon.ico?v=2.4.1">
@@ -1636,9 +1636,236 @@ i<!DOCTYPE html>
                 font-size: 1.2em;
             }
         }
+
+        /* Cloud Sync Login Modal */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .login-box h2 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .login-box p {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 30px;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .login-btn:hover {
+            opacity: 0.9;
+        }
+
+        .skip-btn {
+            width: 100%;
+            padding: 10px;
+            background: #94a3b8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+
+        .skip-btn:hover {
+            background: #64748b;
+        }
+
+        .login-info {
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.85em;
+            color: #555;
+        }
+
+        .sync-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            font-size: 0.9em;
+            z-index: 1000;
+        }
+
+        .sync-status.synced {
+            color: #10b981;
+            border-left: 4px solid #10b981;
+        }
+
+        .account-button {
+            position: fixed;
+            top: 20px;
+            right: 180px;
+            z-index: 1000;
+        }
+
+        .account-button button:hover {
+            background: #5568d3 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4) !important;
+        }
+
+        .sync-status.syncing {
+            color: #f59e0b;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .sync-status.error {
+            color: #ef4444;
+            border-left: 4px solid #ef4444;
+        }
     </style>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <!-- CryptoJS for encryption -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
+    <!-- Cloud Sync Login Modal -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <h2 id="loginTitle">☁️ Cloud Sync Login</h2>
+            <p id="loginSubtitle">Access your categories from any device</p>
+
+            <div class="login-info">
+                <strong>🔐 Secure & Private:</strong><br>
+                • Your data is encrypted with your password<br>
+                • Categories sync across all your devices<br>
+                • No email required, just username + password
+            </div>
+
+            <input type="text" id="username" class="login-input" placeholder="Username" autocomplete="username">
+            <input type="password" id="password" class="login-input" placeholder="Password" autocomplete="current-password">
+            <input type="password" id="confirmPassword" class="login-input" placeholder="Confirm Password" autocomplete="new-password" style="display: none;">
+
+            <button class="login-btn" id="loginBtn" onclick="window.cloudLogin()">🔓 Login</button>
+            <button class="login-btn" id="signupBtn" onclick="window.cloudSignup()" style="display: none;">📝 Sign Up</button>
+
+            <div style="text-align: center; margin: 10px 0; color: #666; font-size: 0.9em;">
+                <span id="toggleText">Don't have an account? <a href="#" onclick="window.toggleLoginMode(); return false;" style="color: #667eea; text-decoration: none; font-weight: bold;">Sign Up</a></span>
+            </div>
+
+            <button class="skip-btn" onclick="window.skipLogin()">Skip (Use Local Only)</button>
+        </div>
+    </div>
+
+    <!-- Sync Status Indicator -->
+    <div class="sync-status" id="syncStatus" style="display: none;">
+        <span id="syncStatusText">☁️ Synced</span>
+    </div>
+
+    <!-- Account Button (Shows when logged in) -->
+    <div class="account-button" id="accountButton" style="display: none;">
+        <button onclick="window.openAccountSettings()" style="background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
+            👤 Account
+        </button>
+    </div>
+
+    <!-- Account Management Modal -->
+    <div class="login-overlay" id="accountModal" style="display: none;">
+        <div class="login-box" style="max-width: 500px;">
+            <h2 style="color: #667eea; margin-bottom: 20px;">👤 Account Management</h2>
+
+            <div style="background: #f0f9ff; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <p style="margin: 5px 0;"><strong>Username:</strong> <span id="accountUsername">-</span></p>
+                <p style="margin: 5px 0;"><strong>Status:</strong> <span id="accountStatus" style="color: #10b981;">✅ Connected</span></p>
+                <p style="margin: 5px 0;"><strong>Sync:</strong> <span id="accountSyncStatus">☁️ Synced</span></p>
+            </div>
+
+            <div style="margin: 20px 0;">
+                <button onclick="window.showChangePassword()" style="width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin: 5px 0; font-weight: 600;">
+                    🔑 Change Password
+                </button>
+                <button onclick="window.logoutAccount()" style="width: 100%; padding: 12px; background: #f59e0b; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin: 5px 0; font-weight: 600;">
+                    🚪 Logout
+                </button>
+                <button onclick="window.showDeleteAccount()" style="width: 100%; padding: 12px; background: #ef4444; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin: 5px 0; font-weight: 600;">
+                    🗑️ Delete Account
+                </button>
+            </div>
+
+            <div id="changePasswordSection" style="display: none; background: #fef3c7; padding: 15px; border-radius: 10px; margin: 15px 0;">
+                <h3 style="color: #92400e; margin-bottom: 10px;">Change Password</h3>
+                <input type="password" id="currentPassword" placeholder="Current Password" style="width: 100%; padding: 10px; margin: 5px 0; border: 2px solid #fbbf24; border-radius: 5px;">
+                <input type="password" id="newPassword" placeholder="New Password" style="width: 100%; padding: 10px; margin: 5px 0; border: 2px solid #fbbf24; border-radius: 5px;">
+                <input type="password" id="confirmNewPassword" placeholder="Confirm New Password" style="width: 100%; padding: 10px; margin: 5px 0; border: 2px solid #fbbf24; border-radius: 5px;">
+                <button onclick="window.changePassword()" style="width: 100%; padding: 10px; background: #10b981; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight: 600;">
+                    ✅ Confirm Change
+                </button>
+                <button onclick="window.cancelChangePassword()" style="width: 100%; padding: 10px; background: #6b7280; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 5px;">
+                    Cancel
+                </button>
+            </div>
+
+            <div id="deleteAccountSection" style="display: none; background: #fee2e2; padding: 15px; border-radius: 10px; margin: 15px 0;">
+                <h3 style="color: #991b1b; margin-bottom: 10px;">⚠️ Delete Account</h3>
+                <p style="color: #991b1b; margin-bottom: 10px;">This will permanently delete all your data from the cloud. This action cannot be undone!</p>
+                <input type="password" id="deletePassword" placeholder="Enter Password to Confirm" style="width: 100%; padding: 10px; margin: 5px 0; border: 2px solid #ef4444; border-radius: 5px;">
+                <button onclick="window.confirmDeleteAccount()" style="width: 100%; padding: 10px; background: #ef4444; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight: 600;">
+                    🗑️ Yes, Delete My Account
+                </button>
+                <button onclick="window.cancelDeleteAccount()" style="width: 100%; padding: 10px; background: #6b7280; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 5px;">
+                    Cancel
+                </button>
+            </div>
+
+            <button onclick="window.closeAccountSettings()" style="width: 100%; padding: 12px; background: #6b7280; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin-top: 10px; font-weight: 600;">
+                Close
+            </button>
+        </div>
+    </div>
+
     <div class="container">
         <h1>🌍 Universal Language Flashcards <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 3px 12px; border-radius: 15px; font-size: 0.7em; vertical-align: middle;">v3.0</span></h1>
 
@@ -2264,6 +2491,24 @@ i<!DOCTYPE html>
     </div>
 
     <script>
+        // Cloud Sync Variables
+        let cloudUser = null; // {username, passwordHash}
+        let firebaseDB = null;
+        let isCloudEnabled = false;
+
+        // ===== FIREBASE CONFIGURATION =====
+        // Firebase configured for cloud sync
+        const firebaseConfig = {
+            apiKey: "AIzaSyCci_5AhIKW3VPnFu8LFBDJQxYQvPbOUlE",
+            authDomain: "flashcard-sync-15835.firebaseapp.com",
+            databaseURL: "https://flashcard-sync-15835-default-rtdb.firebaseio.com",
+            projectId: "flashcard-sync-15835",
+            storageBucket: "flashcard-sync-15835.firebasestorage.app",
+            messagingSenderId: "220998447564",
+            appId: "1:220998447564:web:d258c84f0cbfb882da2d69"
+        };
+        // ===================================
+
         let flashcards = [];
         let currentIndex = 0;
         let showOnlyUnlearned = false;
@@ -2462,16 +2707,696 @@ i<!DOCTYPE html>
         }
         loadVoices();
 
+        // ===== CLOUD SYNC FUNCTIONS =====
+
+        // Simple hash function for password
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Encrypt data with password (AES-GCM)
+        async function encryptData(data, password) {
+            try {
+                const encoder = new TextEncoder();
+                const dataStr = JSON.stringify(data);
+
+                // Generate key from password
+                const passwordKey = await crypto.subtle.importKey(
+                    'raw',
+                    encoder.encode(password.padEnd(32, '0').slice(0, 32)),
+                    'AES-GCM',
+                    false,
+                    ['encrypt']
+                );
+
+                // Generate random IV
+                const iv = crypto.getRandomValues(new Uint8Array(12));
+
+                // Encrypt
+                const encrypted = await crypto.subtle.encrypt(
+                    { name: 'AES-GCM', iv: iv },
+                    passwordKey,
+                    encoder.encode(dataStr)
+                );
+
+                // Combine IV and encrypted data
+                const combined = new Uint8Array(iv.length + encrypted.byteLength);
+                combined.set(iv, 0);
+                combined.set(new Uint8Array(encrypted), iv.length);
+
+                // Convert to base64
+                return btoa(String.fromCharCode(...combined));
+            } catch (error) {
+                console.error('Encryption error:', error);
+                throw error;
+            }
+        }
+
+        // Decrypt data with password
+        async function decryptData(encryptedBase64, password) {
+            try {
+                // Decode base64
+                const combined = new Uint8Array(atob(encryptedBase64).split('').map(c => c.charCodeAt(0)));
+
+                // Extract IV and encrypted data
+                const iv = combined.slice(0, 12);
+                const encrypted = combined.slice(12);
+
+                // Generate key from password
+                const encoder = new TextEncoder();
+                const passwordKey = await crypto.subtle.importKey(
+                    'raw',
+                    encoder.encode(password.padEnd(32, '0').slice(0, 32)),
+                    'AES-GCM',
+                    false,
+                    ['decrypt']
+                );
+
+                // Decrypt
+                const decrypted = await crypto.subtle.decrypt(
+                    { name: 'AES-GCM', iv: iv },
+                    passwordKey,
+                    encrypted
+                );
+
+                const decoder = new TextDecoder();
+                const dataStr = decoder.decode(decrypted);
+                return JSON.parse(dataStr);
+            } catch (error) {
+                console.error('Decryption error:', error);
+                throw error;
+            }
+        }
+
+        // Initialize Firebase
+        function initializeFirebase() {
+            if (firebaseConfig.apiKey === "YOUR_API_KEY_HERE") {
+                console.log('Firebase not configured yet');
+                return false;
+            }
+
+            try {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                firebaseDB = firebase.database();
+                console.log('Firebase initialized successfully');
+                return true;
+            } catch (error) {
+                console.error('Firebase initialization error:', error);
+                return false;
+            }
+        }
+
+        // Cloud Login
+        async function cloudLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                alert('Please enter username and password');
+                return;
+            }
+
+            if (username.length < 3) {
+                alert('Username must be at least 3 characters');
+                return;
+            }
+
+            if (password.length < 6) {
+                alert('Password must be at least 6 characters');
+                return;
+            }
+
+            // Initialize Firebase
+            if (!initializeFirebase()) {
+                alert('⚠️ Cloud sync not configured yet.\n\nPlease follow the setup instructions to enable cloud sync.\n\nFor now, using local storage only.');
+                skipLogin();
+                return;
+            }
+
+            try {
+                // Hash password for storage
+                const passwordHash = await hashPassword(password);
+
+                cloudUser = {
+                    username: username,
+                    password: password, // Keep for encryption
+                    passwordHash: passwordHash
+                };
+
+                // Save login info (encrypted)
+                safeStorage.setItem('cloud_user', JSON.stringify({
+                    username: username,
+                    passwordHash: passwordHash
+                }));
+
+                isCloudEnabled = true;
+
+                // Hide login modal
+                document.getElementById('loginOverlay').style.display = 'none';
+
+                // Show account button and sync status
+                document.getElementById('accountButton').style.display = 'block';
+                document.getElementById('syncStatus').style.display = 'block';
+                updateSyncStatus('syncing', 'Syncing...');
+
+                // Try to download existing data from cloud
+                await downloadFromCloud();
+
+                // Load categories (will use cloud data if available)
+                loadCategories();
+
+                // Refresh category browser to display downloaded categories
+                renderCategoryBrowser();
+
+                updateSyncStatus('synced', '☁️ Synced');
+
+                console.log('Cloud login successful');
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Login failed. Please try again.');
+            }
+        }
+
+        // Cloud Signup
+        async function cloudSignup() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!username || !password || !confirmPassword) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            if (username.length < 3) {
+                alert('Username must be at least 3 characters');
+                return;
+            }
+
+            if (password.length < 6) {
+                alert('Password must be at least 6 characters');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return;
+            }
+
+            // Initialize Firebase
+            if (!initializeFirebase()) {
+                alert('⚠️ Cloud sync not configured yet.\n\nPlease follow the setup instructions to enable cloud sync.\n\nFor now, using local storage only.');
+                skipLogin();
+                return;
+            }
+
+            try {
+                // Check if username already exists
+                const userPath = `users-universal/${username}`;
+                const snapshot = await firebaseDB.ref(userPath).once('value');
+
+                if (snapshot.exists()) {
+                    alert('❌ Username already taken!\n\nPlease choose a different username or login if this is your account.');
+                    return;
+                }
+
+                // Hash password for storage
+                const passwordHash = await hashPassword(password);
+
+                cloudUser = {
+                    username: username,
+                    password: password, // Keep for encryption
+                    passwordHash: passwordHash
+                };
+
+                // Save login info
+                safeStorage.setItem('cloud_user', JSON.stringify({
+                    username: username,
+                    passwordHash: passwordHash
+                }));
+
+                isCloudEnabled = true;
+
+                // Hide login modal
+                document.getElementById('loginOverlay').style.display = 'none';
+
+                // Show account button and sync status
+                document.getElementById('accountButton').style.display = 'block';
+                document.getElementById('syncStatus').style.display = 'block';
+
+                // Load categories (will be empty for new user)
+                loadCategories();
+
+                // Refresh category browser
+                renderCategoryBrowser();
+
+                // Upload initial empty categories to claim the username
+                await uploadToCloud();
+
+                updateSyncStatus('synced', '✅ Account Created!');
+
+                alert('✅ Account created successfully!\n\nYour categories will now sync across all devices.');
+
+                console.log('Cloud signup successful');
+            } catch (error) {
+                console.error('Signup error:', error);
+                alert('Signup failed. Please try again.');
+            }
+        }
+
+        // Safe localStorage wrapper (handles tracking prevention)
+        const safeStorage = {
+            getItem: function(key) {
+                try {
+                    return localStorage.getItem(key);
+                } catch (e) {
+                    console.warn('localStorage blocked by browser:', e);
+                    return null;
+                }
+            },
+            setItem: function(key, value) {
+                try {
+                    localStorage.setItem(key, value);
+                } catch (e) {
+                    console.warn('localStorage blocked by browser:', e);
+                }
+            },
+            removeItem: function(key) {
+                try {
+                    localStorage.removeItem(key);
+                } catch (e) {
+                    console.warn('localStorage blocked by browser:', e);
+                }
+            }
+        };
+
+        // Toggle between Login and Signup modes
+        function toggleLoginMode() {
+            const title = document.getElementById('loginTitle');
+            const subtitle = document.getElementById('loginSubtitle');
+            const loginBtn = document.getElementById('loginBtn');
+            const signupBtn = document.getElementById('signupBtn');
+            const confirmPassword = document.getElementById('confirmPassword');
+            const toggleText = document.getElementById('toggleText');
+
+            if (loginBtn.style.display !== 'none') {
+                // Switch to Signup mode
+                title.textContent = '📝 Create Account';
+                subtitle.textContent = 'Sync your categories across all devices';
+                loginBtn.style.display = 'none';
+                signupBtn.style.display = 'block';
+                confirmPassword.style.display = 'block';
+                toggleText.innerHTML = 'Already have an account? <a href="#" onclick="window.toggleLoginMode(); return false;" style="color: #667eea; text-decoration: none; font-weight: bold;">Login</a>';
+            } else {
+                // Switch to Login mode
+                title.textContent = '☁️ Cloud Sync Login';
+                subtitle.textContent = 'Access your categories from any device';
+                loginBtn.style.display = 'block';
+                signupBtn.style.display = 'none';
+                confirmPassword.style.display = 'none';
+                confirmPassword.value = '';
+                toggleText.innerHTML = 'Don\'t have an account? <a href="#" onclick="window.toggleLoginMode(); return false;" style="color: #667eea; text-decoration: none; font-weight: bold;">Sign Up</a>';
+            }
+        }
+
+        // Make functions globally accessible (fixes tracking prevention issues)
+        window.toggleLoginMode = toggleLoginMode;
+        window.cloudLogin = cloudLogin;
+        window.cloudSignup = cloudSignup;
+        window.skipLogin = skipLogin;
+
+        // Skip Login (Local Only)
+        function skipLogin() {
+            isCloudEnabled = false;
+            document.getElementById('loginOverlay').style.display = 'none';
+            loadCategories();
+            renderCategoryBrowser();
+            console.log('Using local storage only');
+        }
+
+        // ===== ACCOUNT MANAGEMENT FUNCTIONS =====
+
+        // Open Account Settings
+        function openAccountSettings() {
+            document.getElementById('accountModal').style.display = 'flex';
+            document.getElementById('accountUsername').textContent = cloudUser ? cloudUser.username : '-';
+            document.getElementById('accountStatus').textContent = isCloudEnabled ? '✅ Connected' : '❌ Offline';
+            const syncText = document.getElementById('syncStatusText').textContent;
+            document.getElementById('accountSyncStatus').textContent = syncText;
+        }
+
+        // Close Account Settings
+        function closeAccountSettings() {
+            document.getElementById('accountModal').style.display = 'none';
+            document.getElementById('changePasswordSection').style.display = 'none';
+            document.getElementById('deleteAccountSection').style.display = 'none';
+        }
+
+        // Show Change Password Section
+        function showChangePassword() {
+            document.getElementById('changePasswordSection').style.display = 'block';
+            document.getElementById('deleteAccountSection').style.display = 'none';
+        }
+
+        // Cancel Change Password
+        function cancelChangePassword() {
+            document.getElementById('changePasswordSection').style.display = 'none';
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
+        }
+
+        // Change Password
+        async function changePassword() {
+            const currentPwd = document.getElementById('currentPassword').value;
+            const newPwd = document.getElementById('newPassword').value;
+            const confirmPwd = document.getElementById('confirmNewPassword').value;
+
+            if (!currentPwd || !newPwd || !confirmPwd) {
+                alert('Please fill in all password fields');
+                return;
+            }
+
+            if (newPwd !== confirmPwd) {
+                alert('New passwords do not match');
+                return;
+            }
+
+            if (newPwd.length < 6) {
+                alert('New password must be at least 6 characters');
+                return;
+            }
+
+            if (!cloudUser || !firebaseDB) {
+                alert('Not connected to cloud');
+                return;
+            }
+
+            try {
+                // Verify current password
+                const currentHash = await hashPassword(currentPwd);
+                if (currentHash !== cloudUser.passwordHash) {
+                    alert('Current password is incorrect');
+                    return;
+                }
+
+                updateSyncStatus('syncing', 'Changing password...');
+
+                // Download and decrypt current data with old password
+                const userPath = `users-universal/${cloudUser.username}`;
+                const snapshot = await firebaseDB.ref(userPath).once('value');
+                const cloudData = snapshot.val();
+
+                if (!cloudData || !cloudData.data) {
+                    alert('No data found to re-encrypt');
+                    return;
+                }
+
+                // Decrypt with old password
+                const decrypted = await decryptData(cloudData.data, currentPwd);
+                if (!decrypted) {
+                    alert('Failed to decrypt existing data');
+                    return;
+                }
+
+                // Re-encrypt with new password
+                const encrypted = await encryptData(decrypted, newPwd);
+
+                // Generate new password hash
+                const newHash = await hashPassword(newPwd);
+
+                // Update in Firebase
+                await firebaseDB.ref(userPath).update({
+                    passwordHash: newHash,
+                    data: encrypted,
+                    lastModified: Date.now()
+                });
+
+                // Update local cloudUser object
+                cloudUser.password = newPwd;
+                cloudUser.passwordHash = newHash;
+
+                // Update local storage
+                safeStorage.setItem('cloud_user', JSON.stringify({
+                    username: cloudUser.username,
+                    passwordHash: newHash
+                }));
+
+                updateSyncStatus('synced', 'Synced');
+                alert('✅ Password changed successfully!\n\nYour data has been re-encrypted with the new password.');
+                cancelChangePassword();
+
+            } catch (error) {
+                console.error('Password change error:', error);
+                alert('Failed to change password: ' + error.message);
+                updateSyncStatus('error', 'Error');
+            }
+        }
+
+        // Show Delete Account Section
+        function showDeleteAccount() {
+            document.getElementById('deleteAccountSection').style.display = 'block';
+            document.getElementById('changePasswordSection').style.display = 'none';
+        }
+
+        // Cancel Delete Account
+        function cancelDeleteAccount() {
+            document.getElementById('deleteAccountSection').style.display = 'none';
+            document.getElementById('deletePassword').value = '';
+        }
+
+        // Confirm Delete Account
+        async function confirmDeleteAccount() {
+            const password = document.getElementById('deletePassword').value;
+
+            if (!password) {
+                alert('Please enter your password to confirm deletion');
+                return;
+            }
+
+            if (!cloudUser || !firebaseDB) {
+                alert('Not connected to cloud');
+                return;
+            }
+
+            try {
+                // Verify password
+                const passwordHash = await hashPassword(password);
+                if (passwordHash !== cloudUser.passwordHash) {
+                    alert('Incorrect password');
+                    return;
+                }
+
+                const confirmDelete = confirm(
+                    '⚠️ FINAL WARNING ⚠️\n\n' +
+                    'This will permanently delete:\n' +
+                    '• All your categories\n' +
+                    '• All your vocabulary data\n' +
+                    '• Your account from the cloud\n\n' +
+                    'This action CANNOT be undone!\n\n' +
+                    'Are you absolutely sure?'
+                );
+
+                if (!confirmDelete) {
+                    return;
+                }
+
+                updateSyncStatus('syncing', 'Deleting account...');
+
+                // Delete from Firebase
+                const userPath = `users-universal/${cloudUser.username}`;
+                await firebaseDB.ref(userPath).remove();
+
+                // Clear local data
+                safeStorage.removeItem('cloud_user');
+                safeStorage.removeItem('flashcard_categories');
+                safeStorage.removeItem('flashcard_file_categories');
+
+                // Reset app state
+                cloudUser = null;
+                isCloudEnabled = false;
+                categories = { 'Default': [] };
+                fileCategories = {};
+
+                alert('✅ Account deleted successfully.\n\nYou will be logged out now.');
+
+                // Reload page
+                window.location.reload();
+
+            } catch (error) {
+                console.error('Delete account error:', error);
+                alert('Failed to delete account: ' + error.message);
+                updateSyncStatus('error', 'Error');
+            }
+        }
+
+        // Logout
+        function logoutAccount() {
+            const confirmLogout = confirm(
+                'Are you sure you want to logout?\n\n' +
+                'Your data is synced to the cloud and will be available when you login again.'
+            );
+
+            if (!confirmLogout) {
+                return;
+            }
+
+            // Clear local session
+            safeStorage.removeItem('cloud_user');
+
+            // Reset app state
+            cloudUser = null;
+            isCloudEnabled = false;
+
+            alert('✅ Logged out successfully.\n\nYou can login again anytime to access your data.');
+
+            // Reload page
+            window.location.reload();
+        }
+
+        // Make account functions globally accessible
+        window.openAccountSettings = openAccountSettings;
+        window.closeAccountSettings = closeAccountSettings;
+        window.showChangePassword = showChangePassword;
+        window.cancelChangePassword = cancelChangePassword;
+        window.changePassword = changePassword;
+        window.showDeleteAccount = showDeleteAccount;
+        window.cancelDeleteAccount = cancelDeleteAccount;
+        window.confirmDeleteAccount = confirmDeleteAccount;
+        window.logoutAccount = logoutAccount;
+
+        // ===== END ACCOUNT MANAGEMENT FUNCTIONS =====
+
+        // Upload to Cloud
+        async function uploadToCloud() {
+            if (!isCloudEnabled || !cloudUser || !firebaseDB) {
+                return;
+            }
+
+            try {
+                updateSyncStatus('syncing', 'Uploading...');
+
+                // Prepare data (ONLY categories, no personal info)
+                const dataToSync = {
+                    categories: categories,
+                    fileCategories: fileCategories,
+                    lastSync: Date.now()
+                };
+
+                // Encrypt data
+                const encrypted = await encryptData(dataToSync, cloudUser.password);
+
+                // Upload to Firebase
+                const userPath = `users-universal/${cloudUser.username}`;
+                await firebaseDB.ref(userPath).set({
+                    data: encrypted,
+                    passwordHash: cloudUser.passwordHash,
+                    lastModified: Date.now()
+                });
+
+                updateSyncStatus('synced', '☁️ Synced');
+                console.log('Data uploaded to cloud');
+            } catch (error) {
+                console.error('Upload error:', error);
+                updateSyncStatus('error', '❌ Sync Failed');
+            }
+        }
+
+        // Download from Cloud
+        async function downloadFromCloud() {
+            if (!isCloudEnabled || !cloudUser || !firebaseDB) {
+                return;
+            }
+
+            try {
+                updateSyncStatus('syncing', 'Downloading...');
+
+                const userPath = `users-universal/${cloudUser.username}`;
+                const snapshot = await firebaseDB.ref(userPath).once('value');
+                const cloudData = snapshot.val();
+
+                if (!cloudData) {
+                    console.log('No cloud data found');
+                    return;
+                }
+
+                // Verify password
+                if (cloudData.passwordHash !== cloudUser.passwordHash) {
+                    throw new Error('Invalid password');
+                }
+
+                // Decrypt data
+                const decrypted = await decryptData(cloudData.data, cloudUser.password);
+
+                // Update local data
+                categories = decrypted.categories || {};
+                fileCategories = decrypted.fileCategories || {};
+
+                // Save to local storage
+                safeStorage.setItem('flashcard_categories', JSON.stringify(categories));
+                safeStorage.setItem('flashcard_file_categories', JSON.stringify(fileCategories));
+
+                console.log('Data downloaded from cloud');
+            } catch (error) {
+                console.error('Download error:', error);
+                if (error.message === 'Invalid password') {
+                    alert('❌ Invalid password');
+                    cloudUser = null;
+                    isCloudEnabled = false;
+                    document.getElementById('loginOverlay').style.display = 'flex';
+                }
+            }
+        }
+
+        // Update sync status indicator
+        function updateSyncStatus(status, text) {
+            const statusEl = document.getElementById('syncStatus');
+            const textEl = document.getElementById('syncStatusText');
+
+            statusEl.className = 'sync-status ' + status;
+            textEl.textContent = text;
+            statusEl.style.display = 'block';
+
+            // Hide after 3 seconds if synced
+            if (status === 'synced') {
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // Check if user is already logged in
+        function checkExistingLogin() {
+            const savedUser = safeStorage.getItem('cloud_user');
+            if (savedUser) {
+                // Show login modal to re-enter password
+                // (We don't store password locally for security)
+                document.getElementById('loginOverlay').style.display = 'flex';
+                const userData = JSON.parse(savedUser);
+                document.getElementById('username').value = userData.username;
+            } else {
+                document.getElementById('loginOverlay').style.display = 'flex';
+            }
+        }
+
+        // ===== END CLOUD SYNC FUNCTIONS =====
+
         // Category Management Functions
         function loadCategories() {
-            const saved = localStorage.getItem('flashcard_categories');
+            const saved = safeStorage.getItem('flashcard_categories');
             if (saved) {
                 categories = JSON.parse(saved);
             } else {
                 categories = { 'Default': [] };
             }
 
-            const savedFiles = localStorage.getItem('flashcard_file_categories');
+            const savedFiles = safeStorage.getItem('flashcard_file_categories');
             if (savedFiles) {
                 fileCategories = JSON.parse(savedFiles);
             }
@@ -2481,8 +3406,13 @@ i<!DOCTYPE html>
         }
 
         function saveCategories() {
-            localStorage.setItem('flashcard_categories', JSON.stringify(categories));
-            localStorage.setItem('flashcard_file_categories', JSON.stringify(fileCategories));
+            safeStorage.setItem('flashcard_categories', JSON.stringify(categories));
+            safeStorage.setItem('flashcard_file_categories', JSON.stringify(fileCategories));
+
+            // Auto-sync to cloud if enabled
+            if (isCloudEnabled) {
+                uploadToCloud();
+            }
         }
 
         function createCategory() {
@@ -5154,6 +6084,11 @@ i<!DOCTYPE html>
                 toggle.textContent = '▶';
             }
         }
+
+        // Initialize app on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            checkExistingLogin();
+        });
     </script>
 
     <!-- Focus Mode Overlay -->
