@@ -1,6 +1,11 @@
-# 🌍 Universal Language Flashcards v3.0
+# 🌍 Universal Language Flashcards v3.1
 
-**A powerful, multi-language flashcard application with intelligent auto-detection, speech synthesis, and advanced learning features.**
+**A powerful, multi-language flashcard application with cloud synchronization, intelligent auto-detection, speech synthesis, and advanced learning features.**
+
+[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://masoudsade.github.io/Universal-Flashcard-App-Public/flashcard.html)
+[![Version](https://img.shields.io/badge/version-3.1-blue)](https://github.com/MasoudSade/Universal-Flashcard-App-Public)
+
+**NEW in v3.1:** ☁️ Cloud synchronization with end-to-end encryption, multi-device support, and automatic backup!
 
 ---
 
@@ -8,8 +13,10 @@
 
 - [Overview](#overview)
 - [Key Features](#key-features)
+- [New in v3.1](#new-in-v31---cloud-sync)
 - [New in v3.0](#new-in-v30)
 - [Getting Started](#getting-started)
+- [Cloud Sync Setup](#-cloud-sync-setup-v31)
 - [CSV File Format](#csv-file-format)
 - [Language Auto-Detection](#language-auto-detection)
 - [Advanced Features](#advanced-features)
@@ -73,6 +80,46 @@ Three loading methods:
 
 ---
 
+## 🆕 New in v3.1 - Cloud Sync
+
+### ☁️ Cloud Synchronization Features
+- **Multi-Device Access**: Login from any device and access your flashcards
+- **Automatic Backup**: Every change automatically synced to cloud
+- **End-to-End Encryption**: AES-256-GCM encryption before upload
+- **Username/Password Auth**: Simple, secure authentication (no email required)
+- **Account Management**: Change password, logout, delete account
+- **Offline Mode**: Optional "Skip Login" for local-only usage
+- **Sync Status Indicators**: Visual feedback (Synced, Syncing, Error)
+
+### 🔒 Security & Privacy
+- **Password Hashing**: SHA-256, never stored in plaintext
+- **Client-Side Encryption**: Data encrypted before leaving your device
+- **No Personal Data**: Only encrypted vocabulary stored
+- **Database Separation**: `users-universal/` path (separate from German app)
+- **Privacy First**: No tracking, no analytics, no third-party sharing
+
+### 📱 Account Features
+- **Login/Signup Modal**: Appears on first load
+- **Account Button**: Top-right corner when logged in
+- **Change Password**: Re-encrypts all data with new password
+- **Delete Account**: Permanent deletion with confirmation
+- **Logout**: Clears session, keeps cloud data
+
+### 🔄 Database Structure
+```
+Firebase Project: flashcard-sync-15835
+├── users/              ← German Flashcard App
+└── users-universal/    ← Universal Flashcard App (this app)
+    └── username/
+        ├── data: "encrypted_vocabulary"
+        ├── passwordHash: "sha256_hash"
+        └── lastModified: timestamp
+```
+
+See [FIREBASE_DATABASE_STRUCTURE.md](FIREBASE_DATABASE_STRUCTURE.md) for complete database documentation.
+
+---
+
 ## 🆕 New in v3.0
 
 ### Language Auto-Detection System
@@ -94,6 +141,81 @@ Three loading methods:
 - Scoring system for accurate detection
 - Improved column mapping with modal popup
 - Better error handling and user feedback
+
+---
+
+## ☁️ Cloud Sync Setup (v3.1)
+
+### Getting Started with Cloud Sync
+
+#### First Time Users
+
+1. **Launch the App**
+   - Open `flashcard.html` in your browser
+   - Login/Signup modal appears automatically
+
+2. **Create Account**
+   - Enter a username (letters, numbers, underscore, hyphen only)
+   - Create a secure password (8+ characters)
+   - Click "Sign Up"
+
+3. **Start Using**
+   - Upload your CSV files
+   - All changes automatically sync to cloud
+   - Watch for sync status: ✅ Synced | ⏳ Syncing | ❌ Error
+
+#### Existing Users
+
+1. **Login**
+   - Enter your username and password
+   - Click "Login"
+   - Your vocabulary loads automatically
+
+2. **Multi-Device Access**
+   - Login from any device with same credentials
+   - Data stays synchronized across all devices
+   - Most recent changes always take priority
+
+#### Offline Mode
+
+- Click "Skip Login" to use app without cloud sync
+- All data stored locally in browser
+- No account required
+- Switch to cloud sync anytime by logging in
+
+### Account Management
+
+Access account features via the Account button (👤) in top-right corner:
+
+- **Change Password**: Enter current password, then new password
+  - All data automatically re-encrypted with new password
+  - Requires logout and login with new password
+
+- **Logout**: Sign out of current session
+  - Local data cleared
+  - Cloud data preserved
+
+- **Delete Account**: Permanently remove account and all data
+  - Requires password confirmation
+  - Cannot be undone
+  - All data erased from cloud
+
+### Security Features
+
+- **Password Protection**: SHA-256 hashing, never stored in plaintext
+- **End-to-End Encryption**: AES-256-GCM encryption before upload
+- **Secure Transport**: HTTPS connection to Firebase
+- **Privacy First**: Only encrypted vocabulary stored, no personal info
+- **Separate Database**: `users-universal/` path isolates from other apps
+
+### Sync Status Indicators
+
+| Icon | Status | Meaning |
+|------|--------|---------|
+| ✅ | Synced | All changes saved to cloud |
+| ⏳ | Syncing | Upload in progress |
+| ❌ | Error | Sync failed (check connection) |
+| 🔒 | Encrypted | Data encrypted before upload |
 
 ---
 
@@ -380,7 +502,34 @@ All data is stored locally in your browser:
 
 ## 📝 Changelog
 
-### Version 3.0 (Current) - Language Auto-Detection Update
+### Version 3.1 (Current) - Cloud Synchronization Update
+
+**Release Date**: January 2025
+
+#### ☁️ Major Features
+- **Cloud Synchronization**: Multi-device access with automatic backup
+- **End-to-End Encryption**: AES-256-GCM encryption before data upload
+- **Username/Password Authentication**: Simple, secure login (no email required)
+- **Account Management**: Change password, logout, delete account
+- **Sync Status Indicators**: Real-time visual feedback (✅ Synced, ⏳ Syncing, ❌ Error)
+- **Offline Mode**: Optional "Skip Login" for local-only usage
+
+#### 🔒 Security Features
+- SHA-256 password hashing (never stored in plaintext)
+- Client-side encryption (data encrypted on your device)
+- Separate database path (`users-universal/`)
+- Privacy-first approach (no tracking, no analytics)
+
+#### 🐛 Bug Fixes
+- Fixed localStorage wrapper to prevent infinite recursion
+- Improved error handling for network failures
+- Better session management across page reloads
+
+---
+
+### Version 3.0 - Language Auto-Detection Update
+
+**Release Date**: December 2024
 
 #### ✨ New Features
 - **Intelligent Language Auto-Detection**: Automatically detects source and target languages from CSV content
