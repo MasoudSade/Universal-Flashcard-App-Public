@@ -6843,16 +6843,16 @@ i<!DOCTYPE html>
                         <div style="font-size: 1.2em; margin-bottom: 5px;">Column ${i + 1}</div>
                         <div class="column-type-selector" id="type-selector-${i}">
                             <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang1')" style="color: #10b981;">
-                                <span style="font-size: 1.5em;">🇩🇪</span>
-                                <span>German Word<br><small style="font-weight: normal; opacity: 0.8;">Main vocab (visible)</small></span>
+                                <span style="font-size: 1.5em;">📖</span>
+                                <span>Source Language<br><small style="font-weight: normal; opacity: 0.8;">Main vocab (visible)</small></span>
                             </div>
                             <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang1Extended')" style="color: #f59e0b;">
                                 <span style="font-size: 1.5em;">📝</span>
                                 <span>Source Example<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
                             </div>
                             <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang2')" style="color: #3b82f6;">
-                                <span style="font-size: 1.5em;">🇬🇧</span>
-                                <span>English Word<br><small style="font-weight: normal; opacity: 0.8;">Main translation (visible)</small></span>
+                                <span style="font-size: 1.5em;">🎯</span>
+                                <span>Target Language<br><small style="font-weight: normal; opacity: 0.8;">Main translation (visible)</small></span>
                             </div>
                             <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang2Extended')" style="color: #ec4899;">
                                 <span style="font-size: 1.5em;">📖</span>
@@ -6947,16 +6947,16 @@ i<!DOCTYPE html>
                         <div style="font-size: 1.2em; margin-bottom: 5px;">Column ${i + 1}</div>
                         <div class="column-type-selector" id="type-selector-${i}">
                             <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang1')" style="color: #10b981;">
-                                <span style="font-size: 1.5em;">🇩🇪</span>
-                                <span>German Word<br><small style="font-weight: normal; opacity: 0.8;">Main vocab (visible)</small></span>
+                                <span style="font-size: 1.5em;">📖</span>
+                                <span>Source Language<br><small style="font-weight: normal; opacity: 0.8;">Main vocab (visible)</small></span>
                             </div>
                             <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang1Extended')" style="color: #f59e0b;">
                                 <span style="font-size: 1.5em;">📝</span>
                                 <span>Source Example<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
                             </div>
                             <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang2')" style="color: #3b82f6;">
-                                <span style="font-size: 1.5em;">🇬🇧</span>
-                                <span>English Word<br><small style="font-weight: normal; opacity: 0.8;">Main translation (visible)</small></span>
+                                <span style="font-size: 1.5em;">🎯</span>
+                                <span>Target Language<br><small style="font-weight: normal; opacity: 0.8;">Main translation (visible)</small></span>
                             </div>
                             <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang2Extended')" style="color: #ec4899;">
                                 <span style="font-size: 1.5em;">📖</span>
@@ -7023,9 +7023,9 @@ i<!DOCTYPE html>
 
             // Update header text and visual appearance
             const typeInfo = {
-                'lang1': { icon: '🇩🇪', name: 'German Word', desc: 'Main vocab (visible)' },
+                'lang1': { icon: '📖', name: 'Source Language', desc: 'Main vocab (visible)' },
                 'lang1Extended': { icon: '📝', name: 'Source Example', desc: 'Extended (hidden)' },
-                'lang2': { icon: '🇬🇧', name: 'English Word', desc: 'Main translation (visible)' },
+                'lang2': { icon: '🎯', name: 'Target Language', desc: 'Main translation (visible)' },
                 'lang2Extended': { icon: '📖', name: 'Target Example', desc: 'Extended (hidden)' },
                 'ignore': { icon: '🚫', name: 'Ignored', desc: 'Will be skipped' }
             };
@@ -7088,7 +7088,7 @@ i<!DOCTYPE html>
             const hasEnglish = Object.values(columnMapping).includes('lang2');
 
             if (!hasGerman || !hasEnglish) {
-                alert('Please assign at least one German Word column and one English Word column!');
+                alert('Please assign at least one Source Language column and one Target Language column!');
                 return;
             }
 
