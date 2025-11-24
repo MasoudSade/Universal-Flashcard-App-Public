@@ -3,7 +3,7 @@ i<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>German-English Flashcards v2.5 - Cloud Sync</title>
+    <title>Universal Flashcards v2.5 - Cloud Sync</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=2.4.1">
     <link rel="alternate icon" href="favicon.ico?v=2.4.1">
     <link rel="shortcut icon" href="favicon.ico?v=2.4.1">
@@ -2471,7 +2471,7 @@ i<!DOCTYPE html>
     </div>
 
     <div class="container">
-        <h1>🇩🇪 German-English Flashcards <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 3px 12px; border-radius: 15px; font-size: 0.7em; vertical-align: middle;">v2.5</span> 🇬🇧</h1>
+        <h1>📚 Universal Flashcards <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 3px 12px; border-radius: 15px; font-size: 0.7em; vertical-align: middle;">v2.5</span> 🌍</h1>
 
         <!-- Category Browser (Always Visible) - Practice existing vocabulary -->
         <div class="category-browser" id="categoryBrowser" style="background: #f0f9ff; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 3px solid #667eea;">
@@ -2561,7 +2561,7 @@ i<!DOCTYPE html>
                 <div class="category-section">
                     <strong>Create New Category:</strong>
                     <div class="category-input-group">
-                        <input type="text" id="newCategoryName" placeholder="e.g., German" style="flex: 1;">
+                        <input type="text" id="newCategoryName" placeholder="e.g., Spanish Basics" style="flex: 1;">
                         <button onclick="createCategory()">+ Add Category</button>
                     </div>
                 </div>
@@ -2633,11 +2633,11 @@ i<!DOCTYPE html>
                                 <h5 style="color: #78350f; margin-bottom: 15px;">➕ Add New Flashcard</h5>
                                 <div class="form-group">
                                     <label>Source Language Word/Phrase:</label>
-                                    <input type="text" id="newGerman" placeholder="e.g., Hallo">
+                                    <input type="text" id="newGerman" placeholder="e.g., Hola">
                                 </div>
                                 <div class="form-group">
                                     <label>Source Example (Optional):</label>
-                                    <input type="text" id="newGermanExample" placeholder="e.g., Hallo, wie geht es dir?">
+                                    <input type="text" id="newGermanExample" placeholder="e.g., Hola, ¿cómo estás?">
                                 </div>
                                 <div class="form-group">
                                     <label>Target Language Translation:</label>
@@ -2655,7 +2655,7 @@ i<!DOCTYPE html>
 
                             <!-- Search Bar -->
                             <div class="search-bar">
-                                <input type="text" id="flashcardSearch" class="search-input" placeholder="🔍 Search flashcards... (German or English)">
+                                <input type="text" id="flashcardSearch" class="search-input" placeholder="🔍 Search flashcards... (Source or Target)">
                                 <button class="file-editor-btn" onclick="clearSearch()" style="background: #6b7280;">Clear</button>
                             </div>
 
@@ -2688,19 +2688,19 @@ i<!DOCTYPE html>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" id="predefinedFormats">
                     <button class="format-preset-btn" data-format="3col-standard">
                         <strong>📌 3-Column Standard</strong><br>
-                        <span style="font-size: 0.85em;">German, Source Example, English</span>
+                        <span style="font-size: 0.85em;">Source, Source Example, Target</span>
                     </button>
                     <button class="format-preset-btn" data-format="3col-reverse">
                         <strong>📌 3-Column Reverse</strong><br>
-                        <span style="font-size: 0.85em;">English, Target Example, German</span>
+                        <span style="font-size: 0.85em;">Target, Target Example, Source</span>
                     </button>
                     <button class="format-preset-btn" data-format="4col-full">
                         <strong>📌 4-Column Full</strong><br>
-                        <span style="font-size: 0.85em;">German, German Ex., English, English Ex.</span>
+                        <span style="font-size: 0.85em;">Source, Source Ex., Target, Target Ex.</span>
                     </button>
                     <button class="format-preset-btn" data-format="2col-simple">
                         <strong>📌 2-Column Simple</strong><br>
-                        <span style="font-size: 0.85em;">German, English (no examples)</span>
+                        <span style="font-size: 0.85em;">Source, Target (no examples)</span>
                     </button>
                 </div>
             </div>
@@ -2750,7 +2750,7 @@ i<!DOCTYPE html>
                                 <div style="font-size: 0.8em; color: #666; margin-top: 3px;">Hidden until revealed</div>
                             </div>
                             <div style="padding: 10px; background: white; border-radius: 6px; border: 2px solid #10b981;">
-                                <strong style="color: #10b981;">🇬🇧 English Word</strong>
+                                <strong style="color: #10b981;">🎯 Target Language</strong>
                                 <div style="font-size: 0.8em; color: #666; margin-top: 3px;">Main translation shown immediately</div>
                             </div>
                             <div style="padding: 10px; background: white; border-radius: 6px; border: 2px solid #f59e0b;">
@@ -2784,12 +2784,12 @@ i<!DOCTYPE html>
             <p style="margin-top: 10px;"><strong>Supported Separators:</strong></p>
             <p>✅ Comma (,) | ✅ Semicolon (;) | ✅ Pipe (|) | ✅ Tab - All auto-detected!</p>
             <p style="margin-top: 10px;"><strong>Supported Formats:</strong></p>
-            <p><strong>Basic:</strong> <code>German,English</code> or <code>English,German</code></p>
-            <p><strong>Extended (NEW!):</strong> <code>German,Long German Text,English,Long English Text</code></p>
+            <p><strong>Basic:</strong> <code>Source,Target</code> or <code>Target,Source</code></p>
+            <p><strong>Extended (NEW!):</strong> <code>Source,Long Source Text,Target,Long Target Text</code></p>
             <p style="margin-top: 10px;"><strong>Examples:</strong></p>
-            <code>Hallo,Hello</code> (comma)<br>
-            <code>Hallo;Hello</code> (semicolon - auto-detected!)<br>
-            <code>Hallo|Ich sage hallo|Hello|I say hello</code> (pipe + extended)<br>
+            <code>Hola,Hello</code> (comma)<br>
+            <code>Hola;Hello</code> (semicolon - auto-detected!)<br>
+            <code>Hola|¿Cómo estás?|Hello|How are you?</code> (pipe + extended)<br>
             <p style="margin-top: 10px;">✅ Any separator | ✅ Any column order | ✅ Extended text supported</p>
         </div>
 
@@ -2844,14 +2844,14 @@ i<!DOCTYPE html>
                     <div style="background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #e0e0e0;">
                         <div style="font-weight: 600; margin-bottom: 10px; color: #667eea;">👤 Quick Voice Selection:</div>
                         <label style="margin-bottom: 10px;">
-                            <span style="display: block; margin-bottom: 5px;"><strong>German Narrator:</strong></span>
+                            <span style="display: block; margin-bottom: 5px;"><strong>Source Language Narrator:</strong></span>
                             <select id="germanGenderSelect" style="width: 100%; padding: 10px; border: 2px solid #667eea; border-radius: 5px; font-size: 14px; background: white;">
                                 <option value="female">👩 Female Voice (Recommended)</option>
                                 <option value="male">👨 Male Voice</option>
                             </select>
                         </label>
                         <label style="margin-top: 10px;">
-                            <span style="display: block; margin-bottom: 5px;"><strong>English Narrator:</strong></span>
+                            <span style="display: block; margin-bottom: 5px;"><strong>Target Language Narrator:</strong></span>
                             <select id="englishGenderSelect" style="width: 100%; padding: 10px; border: 2px solid #667eea; border-radius: 5px; font-size: 14px; background: white;">
                                 <option value="male">👨 Male Voice (Recommended)</option>
                                 <option value="female">👩 Female Voice</option>
@@ -2897,10 +2897,10 @@ i<!DOCTYPE html>
                 <div class="accordion-content">
                     <label>
                         <input type="checkbox" id="autoplayEnglish">
-                        <span>Pronounce English translation (after German)</span>
+                        <span>Pronounce Target translation (after Source)</span>
                     </label>
                     <label>
-                        <span>Delay between German & English:</span>
+                        <span>Delay between Source & Target:</span>
                         <input type="range" id="delayBetween" min="500" max="3000" step="100" value="1500">
                         <span class="delay-value" id="delayBetweenValue">1.5s</span>
                     </label>
@@ -2995,7 +2995,7 @@ i<!DOCTYPE html>
                 <div class="accordion-content">
                     <label style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
                         <input type="checkbox" id="alwaysShowMeanings">
-                        <span>Always show English meanings</span>
+                        <span>Always show Target meanings</span>
                     </label>
                     <label style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
                         <input type="checkbox" id="readExtendedContent">
@@ -3061,22 +3061,22 @@ i<!DOCTYPE html>
         <div class="flashcard-container" id="flashcardContainer">
             <div class="flashcard" id="flashcard">
                 <div class="card-lang1-section">
-                    <button class="audio-btn" id="audioBtn" title="Pronounce German word">🔊</button>
+                    <button class="audio-btn" id="audioBtn" title="Pronounce Source word">🔊</button>
                     <div class="learned-badge" id="learnedBadge" style="display: none;">✓ Learned</div>
-                    <div class="card-label">German (Deutsch) 🇩🇪</div>
+                    <div class="card-label">📖 Source Language</div>
                     <div class="card-content" id="germanWord"></div>
                     <div class="review-info" id="reviewInfo"></div>
                     <hr class="card-divider">
-                    <button class="reveal-btn" id="revealBtn">👁 Show English Meaning</button>
+                    <button class="reveal-btn" id="revealBtn">👁 Show Target Meaning</button>
                 </div>
                 <div class="card-lang2-section" id="englishSection">
-                    <div class="card-label">Target Language Translation 🇬🇧</div>
+                    <div class="card-label">🎯 Target Language Translation</div>
                     <div class="card-content" id="englishWord"></div>
                     <div class="card-detail" id="detailBack"></div>
-                    <button class="audio-btn-lang2" id="audioBtnEnglish" title="Pronounce English word">🔊</button>
+                    <button class="audio-btn-lang2" id="audioBtnEnglish" title="Pronounce Target word">🔊</button>
                 </div>
             </div>
-            <div class="hint">👆 Click "Show English Meaning" or Space to reveal | 🔊 P for German | E for English pronunciation</div>
+            <div class="hint">👆 Click "Show Target Meaning" or Space to reveal | 🔊 P for Source | E for Target pronunciation</div>
         </div>
 
         <div class="navigation" id="navigation">
@@ -3870,11 +3870,11 @@ i<!DOCTYPE html>
                     <h5 style="color: #78350f; margin-bottom: 15px;">➕ Add New Flashcard</h5>
                     <div class="form-group">
                         <label>Source Language Word/Phrase:</label>
-                        <input type="text" id="modalNewGerman" placeholder="e.g., Hallo">
+                        <input type="text" id="modalNewGerman" placeholder="e.g., Hola">
                     </div>
                     <div class="form-group">
                         <label>Source Example (Optional):</label>
-                        <input type="text" id="modalNewGermanExample" placeholder="e.g., Hallo, wie geht es dir?">
+                        <input type="text" id="modalNewGermanExample" placeholder="e.g., Hola, ¿cómo estás?">
                     </div>
                     <div class="form-group">
                         <label>Target Language Translation:</label>
@@ -4400,9 +4400,9 @@ i<!DOCTYPE html>
                         <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
                     </th>
                     <th class="line-number-cell">#</th>
-                    <th class="content-cell">German</th>
+                    <th class="content-cell">📖 Source</th>
                     <th class="content-cell">Source Example</th>
-                    <th class="content-cell">English</th>
+                    <th class="content-cell">🎯 Target</th>
                     <th class="content-cell">Target Example</th>
                     <th class="actions-cell">Actions</th>
                 </tr>
@@ -4655,7 +4655,7 @@ i<!DOCTYPE html>
             const englishExample = document.getElementById('newEnglishExample').value.trim();
 
             if (!lang1 || !lang2) {
-                alert('Please enter at least German and English text');
+                alert('Please enter at least Source and Target language text');
                 return;
             }
 
@@ -4742,14 +4742,14 @@ i<!DOCTYPE html>
             const card = flashcards.find(c => c.id === cardId);
             if (!card) return;
 
-            const lang1 = prompt('German word/phrase:', card.lang1);
+            const lang1 = prompt('Source language word/phrase:', card.lang1);
             if (lang1 === null) return;
 
-            const germanExample = prompt('German example (optional):', card.lang1Extended || '');
-            const lang2 = prompt('English translation:', card.lang2);
+            const germanExample = prompt('Source example (optional):', card.lang1Extended || '');
+            const lang2 = prompt('Target language translation:', card.lang2);
             if (lang2 === null) return;
 
-            const englishExample = prompt('English example (optional):', card.lang2Extended || '');
+            const englishExample = prompt('Target example (optional):', card.lang2Extended || '');
 
             // Update card
             card.lang1 = lang1.trim();
@@ -4776,7 +4776,7 @@ i<!DOCTYPE html>
             const card = flashcards.find(c => c.id === cardId);
             if (!card) return;
 
-            if (!confirm(`Delete this flashcard?\n\nGerman: ${card.lang1}\nEnglish: ${card.lang2}`)) {
+            if (!confirm(`Delete this flashcard?\n\nSource: ${card.lang1}\nTarget: ${card.lang2}`)) {
                 return;
             }
 
@@ -4824,7 +4824,7 @@ i<!DOCTYPE html>
             }
 
             // Create CSV content
-            let csv = 'German,Source Example,English,Target Example\n';
+            let csv = 'Source,Source Example,Target,Target Example\n';
             filteredCards.forEach(card => {
                 const row = [
                     card.lang1 || '',
