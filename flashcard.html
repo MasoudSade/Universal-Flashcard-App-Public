@@ -5282,8 +5282,14 @@ i<!DOCTYPE html>
                 combined.set(iv, 0);
                 combined.set(new Uint8Array(encrypted), iv.length);
 
-                // Convert to base64
-                return btoa(String.fromCharCode(...combined));
+                // Convert to base64 (process in chunks to avoid call stack overflow)
+                let binary = '';
+                const chunkSize = 8192; // Process 8KB at a time
+                for (let i = 0; i < combined.length; i += chunkSize) {
+                    const chunk = combined.slice(i, Math.min(i + chunkSize, combined.length));
+                    binary += String.fromCharCode(...chunk);
+                }
+                return btoa(binary);
             } catch (error) {
                 console.error('Encryption error:', error);
                 throw error;
