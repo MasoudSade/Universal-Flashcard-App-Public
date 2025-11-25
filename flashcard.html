@@ -3727,6 +3727,16 @@ i<!DOCTYPE html>
                     fileInfo.innerHTML = `<strong>✅ Auto-loaded ${loadedCount} files</strong><br>📚 Total: ${flashcards.length} flashcards across all categories`;
                 }
             }
+
+            // CRITICAL FIX: Auto-upload to cloud after loading local data
+            // This ensures that local flashcards are synced to cloud after login
+            if (isCloudEnabled && loadedCount > 0) {
+                console.log('☁️ Triggering cloud upload after auto-load...');
+                // Use setTimeout to avoid blocking the UI
+                setTimeout(() => {
+                    uploadToCloud();
+                }, 1000);
+            }
         }
 
         // Open table modal
@@ -5479,7 +5489,7 @@ i<!DOCTYPE html>
 
             try {
                 // Check if username already exists
-                const userPath = `users/${username}`;
+                const userPath = `users-universal/${username}`;
                 const snapshot = await firebaseDB.ref(userPath).once('value');
 
                 if (snapshot.exists()) {
@@ -5670,7 +5680,7 @@ i<!DOCTYPE html>
                 updateSyncStatus('syncing', 'Changing password...');
 
                 // Download and decrypt current data with old password
-                const userPath = `users/${cloudUser.username}`;
+                const userPath = `users-universal/${cloudUser.username}`;
                 const snapshot = await firebaseDB.ref(userPath).once('value');
                 const cloudData = snapshot.val();
 
@@ -5771,7 +5781,7 @@ i<!DOCTYPE html>
                 updateSyncStatus('syncing', 'Deleting account...');
 
                 // Delete from Firebase
-                const userPath = `users/${cloudUser.username}`;
+                const userPath = `users-universal/${cloudUser.username}`;
                 await firebaseDB.ref(userPath).remove();
 
                 // Clear local data
@@ -5852,6 +5862,9 @@ i<!DOCTYPE html>
                     }
                 });
 
+                console.log(`📤 Uploading ${Object.keys(allFlashcardData).length} files to cloud`);
+                console.log(`📦 Categories: ${Object.keys(categories).length}, File mappings: ${Object.keys(fileCategories).length}`);
+
                 // Prepare data (categories + actual flashcard data)
                 const dataToSync = {
                     categories: categories,
@@ -5860,11 +5873,25 @@ i<!DOCTYPE html>
                     lastSync: Date.now()
                 };
 
+                // Check data size before encryption
+                const dataSize = JSON.stringify(dataToSync).length;
+                console.log(`📊 Data size before encryption: ${(dataSize / 1024).toFixed(2)} KB`);
+
+                if (dataSize > 5 * 1024 * 1024) { // 5MB warning
+                    console.warn('⚠️ Data size is large, may hit Firebase limits');
+                }
+
                 // Encrypt data
                 const encrypted = await encryptData(dataToSync, cloudUser.password);
+                console.log(`🔐 Encrypted data size: ${(encrypted.length / 1024).toFixed(2)} KB`);
+
+                // Check Firebase limits (10MB per node)
+                if (encrypted.length > 10 * 1024 * 1024) {
+                    throw new Error('Data exceeds Firebase size limit (10MB)');
+                }
 
                 // Upload to Firebase
-                const userPath = `users/${cloudUser.username}`;
+                const userPath = `users-universal/${cloudUser.username}`;
                 await firebaseDB.ref(userPath).set({
                     data: encrypted,
                     passwordHash: cloudUser.passwordHash,
@@ -5872,30 +5899,42 @@ i<!DOCTYPE html>
                 });
 
                 updateSyncStatus('synced', '☁️ Synced');
-                console.log('Data uploaded to cloud');
+                console.log('✅ Data uploaded to cloud successfully');
             } catch (error) {
-                console.error('Upload error:', error);
+                console.error('❌ Upload error:', error);
                 updateSyncStatus('error', '❌ Sync Failed');
+
+                // Show user-friendly error message
+                if (error.message.includes('size limit')) {
+                    alert('⚠️ Your flashcard data is too large to sync. Please contact support or reduce the number of flashcards.');
+                }
             }
         }
 
         // Download from Cloud
         async function downloadFromCloud() {
             if (!isCloudEnabled || !cloudUser || !firebaseDB) {
+                console.log('⚠️ Download skipped: cloud not enabled or not logged in');
                 return;
             }
 
             try {
                 updateSyncStatus('syncing', 'Downloading...');
 
-                const userPath = `users/${cloudUser.username}`;
+                const userPath = `users-universal/${cloudUser.username}`;
+                console.log(`🔍 Fetching data for user: ${cloudUser.username}`);
+
                 const snapshot = await firebaseDB.ref(userPath).once('value');
                 const cloudData = snapshot.val();
 
                 if (!cloudData) {
-                    console.log('No cloud data found');
+                    console.log('📭 No cloud data found for this user');
+                    updateSyncStatus('synced', '☁️ No Data');
                     return;
                 }
+
+                console.log(`📦 Cloud data received, size: ${JSON.stringify(cloudData).length} bytes`);
+                console.log(`🔐 Encrypted data length: ${cloudData.data ? cloudData.data.length : 0} bytes`);
 
                 // Verify password
                 if (cloudData.passwordHash !== cloudUser.passwordHash) {
@@ -5903,7 +5942,17 @@ i<!DOCTYPE html>
                 }
 
                 // Decrypt data
+                console.log('🔓 Decrypting data...');
                 const decrypted = await decryptData(cloudData.data, cloudUser.password);
+                console.log('✅ Decryption successful');
+                console.log(`📊 Decrypted data structure:`, {
+                    hasCategories: !!decrypted.categories,
+                    categoriesCount: decrypted.categories ? Object.keys(decrypted.categories).length : 0,
+                    hasFileCategories: !!decrypted.fileCategories,
+                    fileCategoriesCount: decrypted.fileCategories ? Object.keys(decrypted.fileCategories).length : 0,
+                    hasFlashcardData: !!decrypted.flashcardData,
+                    flashcardDataCount: decrypted.flashcardData ? Object.keys(decrypted.flashcardData).length : 0
+                });
 
                 // Update local data
                 categories = decrypted.categories || {};
@@ -5911,23 +5960,44 @@ i<!DOCTYPE html>
 
                 // Restore flashcard data
                 const flashcardData = decrypted.flashcardData || {};
+
+                if (Object.keys(flashcardData).length === 0) {
+                    console.warn('⚠️ WARNING: flashcardData is empty! This may indicate:');
+                    console.warn('  1. No data was uploaded to cloud yet');
+                    console.warn('  2. Upload failed silently');
+                    console.warn('  3. Data was corrupted during upload/download');
+                }
+
                 Object.keys(flashcardData).forEach(fileName => {
-                    safeStorage.setItem(`flashcards_${fileName}`, flashcardData[fileName]);
+                    const data = flashcardData[fileName];
+                    console.log(`  💾 Restoring ${fileName}: ${data ? data.length : 0} bytes`);
+                    safeStorage.setItem(`flashcards_${fileName}`, data);
                 });
 
                 // Save to local storage
                 safeStorage.setItem('flashcard_categories', JSON.stringify(categories));
                 safeStorage.setItem('flashcard_file_categories', JSON.stringify(fileCategories));
 
-                console.log('Data downloaded from cloud');
+                console.log('✅ Data downloaded from cloud');
                 console.log(`📥 Restored ${Object.keys(flashcardData).length} files from cloud`);
+
+                if (Object.keys(flashcardData).length > 0) {
+                    updateSyncStatus('synced', '☁️ Synced');
+                } else {
+                    updateSyncStatus('synced', '☁️ No Files');
+                }
             } catch (error) {
-                console.error('Download error:', error);
+                console.error('❌ Download error:', error);
+                console.error('Error stack:', error.stack);
+                updateSyncStatus('error', '❌ Sync Failed');
+
                 if (error.message === 'Invalid password') {
                     alert('❌ Invalid password');
                     cloudUser = null;
                     isCloudEnabled = false;
                     document.getElementById('loginOverlay').style.display = 'flex';
+                } else {
+                    alert(`❌ Download failed: ${error.message}`);
                 }
             }
         }
