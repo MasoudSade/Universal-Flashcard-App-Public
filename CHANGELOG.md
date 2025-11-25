@@ -418,8 +418,8 @@ Complete redesign of language selection with intelligent auto-detection capabili
 
 This project is open source and available for personal and educational use.
 
-**Author**: Masoud Sadeghi
-**Repository**: [Universal-Flashcard-App-Public](https://github.com/MasoudSade/Universal-Flashcard-App-Public)
+**Author**: {Author Name}
+**Repository**: [Universal-Flashcard-App-Public](https://github.com/{username}/Universal-Flashcard-App-Public)
 
 ---
 

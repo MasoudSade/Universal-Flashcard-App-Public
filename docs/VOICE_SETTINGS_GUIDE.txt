@@ -1,0 +1,405 @@
+==================================================
+  VOICE & SPEECH SETTINGS - USER GUIDE
+==================================================
+
+🎙️ NEW FEATURE: Voice Customization
+==================================================
+
+Say goodbye to robotic voices! Now you can choose
+different voices and adjust speech quality for
+more natural pronunciation.
+
+==================================================
+🎛️ AVAILABLE SETTINGS:
+==================================================
+
+The Voice & Speech Settings panel appears after
+you load your CSV file:
+
+┌─────────────────────────────────────┐
+│ 🎙️ Voice & Speech Settings        │
+├─────────────────────────────────────┤
+│ German Voice: [Dropdown Menu]       │
+│ English Voice: [Dropdown Menu]      │
+│ Speech Rate: [Slider] 0.8x          │
+│ Pitch: [Slider] 1.0                 │
+└─────────────────────────────────────┘
+
+==================================================
+1️⃣ GERMAN VOICE SELECTION:
+==================================================
+
+Choose from all available German voices on your
+device/browser.
+
+Dropdown shows:
+- Voice name (e.g., "Google Deutsch")
+- Language code (e.g., "de-DE")
+
+Common German voices:
+✓ Google Deutsch (de-DE) - Clear, natural
+✓ Microsoft Katja (de-DE) - Female, professional
+✓ Microsoft Stefan (de-DE) - Male, deep
+✓ Anna (de-DE) - Female, warm
+✓ More voices depending on your system
+
+TIP: Try different voices to find the clearest
+pronunciation for your learning style.
+
+==================================================
+2️⃣ ENGLISH VOICE SELECTION:
+==================================================
+
+Choose from all available English voices on your
+device/browser.
+
+Dropdown shows:
+- Voice name (e.g., "Google US English")
+- Language code (e.g., "en-US", "en-GB")
+
+Common English voices:
+✓ Google US English (en-US) - American accent
+✓ Google UK English (en-GB) - British accent
+✓ Microsoft David (en-US) - Male, clear
+✓ Microsoft Zira (en-US) - Female, friendly
+✓ Samantha (en-US) - macOS/iOS default
+✓ More voices depending on your system
+
+TIP: Choose en-US for American English or en-GB
+for British English based on your preference.
+
+==================================================
+3️⃣ SPEECH RATE CONTROL:
+==================================================
+
+Adjust how fast or slow the voice speaks.
+
+Range: 0.5x to 1.5x
+Default: 0.8x (slightly slower)
+
+┌─────────────────────────────────────┐
+│ Speech Rate: [====•===] 0.8x        │
+└─────────────────────────────────────┘
+
+RECOMMENDATIONS:
+
+0.5x - Very Slow (Absolute Beginners)
+├─ Perfect for: First-time learners
+├─ Use when: Learning difficult words
+└─ Allows time to: Hear every syllable
+
+0.7x-0.8x - Slow (Beginners) ⭐ DEFAULT
+├─ Perfect for: Most learners
+├─ Use when: Regular studying
+└─ Clear pronunciation, easy to follow
+
+0.9x-1.0x - Normal Speed (Intermediate)
+├─ Perfect for: Comfortable learners
+├─ Use when: Quick reviews
+└─ Natural conversational pace
+
+1.1x-1.3x - Fast (Advanced)
+├─ Perfect for: Fluent speakers
+├─ Use when: Rapid practice
+└─ Challenge your listening skills
+
+1.4x-1.5x - Very Fast (Expert)
+├─ Perfect for: Native-level practice
+├─ Use when: Speed drills
+└─ Maximum efficiency
+
+TIP: Start at 0.8x, then gradually increase
+as you become more comfortable!
+
+==================================================
+4️⃣ PITCH CONTROL:
+==================================================
+
+Adjust the voice pitch for more natural sound.
+
+Range: 0.5 to 2.0
+Default: 1.0 (natural pitch)
+
+┌─────────────────────────────────────┐
+│ Pitch: [======•======] 1.0          │
+└─────────────────────────────────────┘
+
+PITCH GUIDE:
+
+0.5-0.7 - Very Low
+├─ Sound: Deep, bass-like
+├─ Use: Male voices sound more masculine
+└─ Warning: May sound unnatural
+
+0.8-0.9 - Low
+├─ Sound: Slightly deeper
+├─ Use: Make female voices sound male-like
+└─ Good for: Personal preference
+
+1.0 - Normal ⭐ DEFAULT
+├─ Sound: Natural, as intended
+├─ Use: Most situations
+└─ Best: Leave at default for best quality
+
+1.1-1.3 - High
+├─ Sound: Slightly higher
+├─ Use: Make voices sound friendlier
+└─ Good for: Personal preference
+
+1.4-2.0 - Very High
+├─ Sound: High-pitched, cartoon-like
+├─ Use: Fun/experimental
+└─ Warning: May sound unnatural
+
+TIP: Most users should leave pitch at 1.0
+for the most natural pronunciation!
+
+==================================================
+🎯 RECOMMENDED COMBINATIONS:
+==================================================
+
+FOR BEGINNERS (Best Quality):
+├─ Voice: Google/Microsoft (premium voices)
+├─ Rate: 0.7x (slow, clear)
+├─ Pitch: 1.0 (natural)
+└─ Result: Crystal clear pronunciation
+
+FOR INTERMEDIATE (Balanced):
+├─ Voice: Any clear voice
+├─ Rate: 0.9x (near-normal speed)
+├─ Pitch: 1.0 (natural)
+└─ Result: Natural, comfortable learning
+
+FOR ADVANCED (Native-Like):
+├─ Voice: Native speaker voice
+├─ Rate: 1.0x-1.1x (normal to fast)
+├─ Pitch: 1.0 (natural)
+└─ Result: Real-world speed practice
+
+FOR AUTO-PLAY (Passive Listening):
+├─ Voice: Most natural-sounding
+├─ Rate: 0.8x-0.9x (comfortable)
+├─ Pitch: 1.0 (natural)
+└─ Result: Easy background listening
+
+==================================================
+🔧 HOW TO CHANGE VOICES:
+==================================================
+
+1. LOAD YOUR FLASHCARDS:
+   - Upload CSV file
+   - Voice Settings panel appears
+
+2. SELECT GERMAN VOICE:
+   - Click "German Voice" dropdown
+   - Browse available voices
+   - Listen to each by clicking audio button
+   - Select your favorite
+
+3. SELECT ENGLISH VOICE:
+   - Click "English Voice" dropdown
+   - Browse available voices
+   - Test with English audio button
+   - Select your favorite
+
+4. ADJUST RATE & PITCH:
+   - Move sliders to desired position
+   - Values update in real-time
+   - Test with audio buttons immediately
+
+5. TEST YOUR SETTINGS:
+   - Click German 🔊 button (press P)
+   - Click English 🔊 button (press E)
+   - Adjust if needed
+   - Settings apply immediately!
+
+==================================================
+📱 DEVICE-SPECIFIC VOICES:
+==================================================
+
+CHROME / EDGE (Windows):
+✓ Google Deutsch (de-DE) - Excellent quality
+✓ Microsoft Katja/Stefan - Built-in
+✓ Google US/UK English - Excellent quality
+✓ Microsoft David/Zira - Built-in
+
+SAFARI (macOS / iOS):
+✓ Anna (de-DE) - German
+✓ Samantha (en-US) - English
+✓ Daniel (en-GB) - British English
+✓ High-quality Apple voices
+
+FIREFOX:
+✓ Uses system voices
+✓ Quality depends on OS
+✓ May be more limited
+
+ANDROID:
+✓ Google voices (if installed)
+✓ Samsung voices (Samsung devices)
+✓ Download languages in Settings
+
+==================================================
+💡 PRO TIPS FOR BEST QUALITY:
+==================================================
+
+1. INSTALL PREMIUM VOICES:
+   - Go to your device Language Settings
+   - Download high-quality voice packs
+   - German (de-DE) and English (en-US/GB)
+   - Offline voices = better quality
+
+2. USE GOOGLE VOICES:
+   - Generally highest quality
+   - Available in Chrome/Edge
+   - More natural pronunciation
+   - Better word emphasis
+
+3. TEST MULTIPLE VOICES:
+   - Try 3-4 different voices
+   - Choose the clearest one
+   - Some voices handle certain words better
+   - Personal preference matters!
+
+4. ADJUST FOR ACCENT:
+   - German: Choose native de-DE voices
+   - English: Choose your preferred accent
+   - en-US = American
+   - en-GB = British
+
+5. EXPERIMENT WITH RATE:
+   - Start slower (0.7x-0.8x)
+   - Gradually increase as you learn
+   - Don't go too fast too soon
+   - Slower = better retention
+
+6. KEEP PITCH NATURAL:
+   - Leave at 1.0 for most cases
+   - Only adjust if voice sounds odd
+   - Extreme values sound robotic
+   - Natural = best learning
+
+==================================================
+⚠️ TROUBLESHOOTING:
+==================================================
+
+Q: No voices in dropdown?
+A: Your browser/device may not have voices
+   Install language packs in system settings
+   Try Chrome or Edge for best support
+
+Q: Voice sounds robotic/bad quality?
+A: Try different voices in dropdown
+   Install premium voices from system settings
+   Adjust speech rate to 0.8x or lower
+   Some voices are just lower quality
+
+Q: German/English accent wrong?
+A: Check voice language code (de-DE, en-US)
+   Select voice from correct region
+   Download native voices for your device
+
+Q: Voice changes don't apply?
+A: Settings apply immediately on next play
+   Click audio button to test
+   Refresh page if issue persists
+
+Q: Settings reset after closing app?
+A: Voice settings don't persist (by design)
+   Select your preferred voice each session
+   Future update may save preferences
+
+Q: Want to download better voices?
+A: Windows: Settings → Time & Language → Speech
+   macOS: System Preferences → Accessibility → Speech
+   iOS: Settings → Accessibility → Spoken Content
+   Android: Settings → Language & Input → Text-to-Speech
+
+==================================================
+🌍 BETTER PRONUNCIATION SOURCES:
+==================================================
+
+If built-in voices aren't satisfactory:
+
+ALTERNATIVE OPTIONS:
+
+1. FORVO.COM:
+   - Real native speaker recordings
+   - Free pronunciation dictionary
+   - German and English
+   - Can supplement your learning
+
+2. GOOGLE TRANSLATE:
+   - Good quality voices
+   - Free, web-based
+   - Copy/paste words
+   - Not integrated but helpful
+
+3. RHINOSPIKE:
+   - Request native speakers
+   - Free community service
+   - Custom recordings
+
+4. PREMIUM TTS SERVICES:
+   - Amazon Polly
+   - Google Cloud Text-to-Speech
+   - Microsoft Azure
+   - (Requires API integration)
+
+OUR RECOMMENDATION:
+Use our built-in voices for convenience,
+supplement with Forvo for difficult words!
+
+==================================================
+📊 VOICE QUALITY COMPARISON:
+==================================================
+
+QUALITY TIERS:
+
+⭐⭐⭐⭐⭐ EXCELLENT
+- Google Deutsch/English (Chrome)
+- Microsoft Neural voices (Windows 11)
+- Apple Anna/Samantha (macOS/iOS)
+
+⭐⭐⭐⭐ GOOD
+- Microsoft Katja/Stefan (Windows 10)
+- Google voices (Android)
+- Most built-in voices
+
+⭐⭐⭐ ACCEPTABLE
+- Generic system voices
+- Older voice engines
+- Basic TTS
+
+⭐⭐ POOR
+- Very robotic voices
+- Limited prosody
+- Monotone delivery
+
+TIP: Aim for 4-5 star voices for best
+learning experience!
+
+==================================================
+🎓 LEARNING EFFECTIVENESS:
+==================================================
+
+Studies show that CLEAR PRONUNCIATION is more
+important than PERFECT ACCENT for language learning.
+
+PRIORITY ORDER:
+1. Clarity (most important)
+2. Consistent speed (0.7-0.9x)
+3. Natural pitch (1.0)
+4. Accent accuracy (less important)
+
+Even "robotic" voices help if they're CLEAR!
+
+Don't worry too much about perfection - the
+important thing is CONSISTENT PRACTICE! 📚
+
+==================================================
+
+Enjoy your improved pronunciation experience! 🎙️
+Try different voices to find your favorite! 🎧
+
+==================================================

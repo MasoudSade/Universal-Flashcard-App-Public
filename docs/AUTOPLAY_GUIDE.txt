@@ -1,0 +1,318 @@
+==================================================
+  AUTO-PLAY FEATURE - USER GUIDE
+==================================================
+
+✨ NEW FEATURE: Auto-Play Mode
+==================================================
+
+Automatically go through all your flashcards with
+audio pronunciation - perfect for passive learning!
+
+==================================================
+🎮 HOW TO USE AUTO-PLAY:
+==================================================
+
+1. LOAD YOUR FLASHCARDS:
+   - Upload your CSV file first
+   - Cards will appear
+
+2. CLICK "▶ AUTO-PLAY" BUTTON:
+   - Button turns red and starts pulsing
+   - Settings panel appears below
+   - Auto-play begins from current card
+
+3. AUTO-PLAY RUNS:
+   - Shows German word
+   - Reveals English meaning automatically
+   - Pronounces German word (always)
+   - Optional: Pronounces English word
+   - Automatically moves to next card
+   - Continues until last card
+
+4. STOP ANY TIME:
+   - Click "⏸ Stop Auto-Play" button
+   - OR press Left/Right arrow keys
+   - OR click Next/Previous buttons
+
+==================================================
+⚙️ AUTO-PLAY SETTINGS:
+==================================================
+
+The settings panel appears when auto-play starts:
+
+┌─────────────────────────────────────┐
+│ ⚙️ Auto-Play Settings              │
+├─────────────────────────────────────┤
+│ ☑ Pronounce English translation    │
+│   (after German)                    │
+│                                     │
+│ Delay between German & English:     │
+│ [========•====] 1.5s                │
+│                                     │
+│ Delay before next card:             │
+│ [==========•==] 2.5s                │
+└─────────────────────────────────────┘
+
+SETTING 1: Pronounce English Translation
+- ☐ Unchecked (default): German only
+- ☑ Checked: German, then English
+
+SETTING 2: Delay Between German & English
+- Range: 0.5s to 3.0s
+- Default: 1.5s
+- Controls pause between German and English audio
+
+SETTING 3: Delay Before Next Card
+- Range: 1.0s to 5.0s
+- Default: 2.5s
+- Controls pause before moving to next card
+
+==================================================
+🎯 AUTO-PLAY MODES:
+==================================================
+
+MODE 1: GERMAN ONLY (Default)
+- Checkbox: ☐ Unchecked
+- Flow per card:
+  1. Show German word
+  2. Pronounce German (immediately)
+  3. Reveal English meaning (visual only)
+  4. Wait 2.5 seconds
+  5. Move to next card
+
+MODE 2: GERMAN + ENGLISH
+- Checkbox: ☑ Checked
+- Flow per card:
+  1. Show German word
+  2. Pronounce German (immediately)
+  3. Wait 1.5 seconds
+  4. Pronounce English
+  5. Reveal English meaning
+  6. Wait 2.5 seconds
+  7. Move to next card
+
+==================================================
+⏱️ TIMING EXAMPLES:
+==================================================
+
+FAST MODE (Quick Review):
+- Delay between languages: 0.5s
+- Delay before next card: 1.0s
+- Time per card: ~3-4 seconds
+
+MEDIUM MODE (Default):
+- Delay between languages: 1.5s
+- Delay before next card: 2.5s
+- Time per card: ~5-6 seconds
+
+SLOW MODE (Deep Learning):
+- Delay between languages: 3.0s
+- Delay before next card: 5.0s
+- Time per card: ~10-12 seconds
+
+==================================================
+🎓 RECOMMENDED USAGE:
+==================================================
+
+FOR BEGINNERS:
+- Enable English pronunciation ☑
+- Delay between: 2.0-3.0s
+- Delay before next: 4.0-5.0s
+- Goal: Learn pronunciation of both languages
+- Time to hear and repeat
+
+FOR INTERMEDIATE:
+- English pronunciation: Your choice
+- Delay between: 1.5s
+- Delay before next: 2.5-3.0s
+- Goal: Practice recall with audio support
+
+FOR ADVANCED:
+- Disable English pronunciation ☐
+- Delay between: N/A
+- Delay before next: 1.5-2.0s
+- Goal: Quick review with German audio only
+
+PASSIVE LISTENING:
+- Enable English pronunciation ☑
+- Delay between: 1.0-1.5s
+- Delay before next: 2.0s
+- Goal: Listen while doing other activities
+- Good for commuting, exercising, etc.
+
+==================================================
+💡 PRO TIPS:
+==================================================
+
+1. START FROM FIRST CARD:
+   - Use "← Previous" to go to card #1
+   - Then click "▶ Auto-Play"
+   - Plays through entire deck
+
+2. RESUME FROM ANYWHERE:
+   - Auto-play starts from current card
+   - Navigate to any card first
+   - Click auto-play to continue from there
+
+3. ADJUST ON THE FLY:
+   - Settings update immediately
+   - Move sliders during playback
+   - Changes apply to next card
+
+4. LOOP THROUGH DECK:
+   - When auto-play finishes, it stops
+   - Click "▶ Auto-Play" again to replay
+   - Perfect for repetitive practice
+
+5. COMBINE WITH FILTERS:
+   - Use "Show Only Unlearned" first
+   - Then start auto-play
+   - Focus on difficult cards only
+
+6. USE WITH SHUFFLE:
+   - Click "🔀 Shuffle" first
+   - Then start auto-play
+   - Random order each time
+
+==================================================
+⌨️ KEYBOARD SHORTCUTS:
+==================================================
+
+Auto-play does NOT have dedicated keyboard shortcuts.
+
+To STOP auto-play, use:
+- Arrow keys (← →)
+- Click navigation buttons
+- Click "Stop Auto-Play" button
+
+Note: Space, Enter, P, E, L keys do NOT stop
+auto-play - use navigation keys instead.
+
+==================================================
+🎬 TYPICAL WORKFLOW:
+==================================================
+
+MORNING REVIEW ROUTINE:
+1. Open flashcard.html
+2. Load vocabulary.csv
+3. Click "🔀 Shuffle"
+4. Click "▶ Auto-Play"
+5. Enable English pronunciation ☑
+6. Set delays to Medium (1.5s / 2.5s)
+7. Listen through entire deck
+8. Mark difficult cards as needed
+9. "Show Only Unlearned"
+10. Auto-play again for review
+
+COMMUTE LISTENING:
+1. Open app on phone
+2. Load vocabulary
+3. Click "▶ Auto-Play"
+4. Enable English ☑
+5. Set to Fast mode (0.5s / 1.0s)
+6. Listen passively
+7. No need to look at screen
+
+INTENSIVE STUDY:
+1. Load vocabulary
+2. Click "👁 Show Only Unlearned"
+3. Click "▶ Auto-Play"
+4. Enable English ☑
+5. Set to Slow mode (3.0s / 5.0s)
+6. Repeat after each pronunciation
+7. Mark as learned when confident
+
+==================================================
+⚠️ IMPORTANT NOTES:
+==================================================
+
+1. AUTO-STOPS AT END:
+   - Plays until last card
+   - Shows completion alert
+   - Button returns to "▶ Auto-Play"
+
+2. MANUAL NAVIGATION STOPS:
+   - Any arrow key press stops auto-play
+   - Next/Previous button stops auto-play
+   - Must restart auto-play manually
+
+3. ENGLISH PRONUNCIATION:
+   - Only plays if checkbox is checked ☑
+   - Delay slider only active when checked
+   - Visual meaning always reveals
+
+4. SETTINGS PERSIST:
+   - Settings stay when you stop/start
+   - NOT saved between page reloads
+   - Adjust once per session
+
+5. BROWSER AUDIO:
+   - Uses Web Speech Synthesis API
+   - Requires German/English voice packs
+   - Quality varies by browser/device
+   - Works best on Chrome/Edge
+
+6. PROGRESS DURING AUTO-PLAY:
+   - Progress counter updates automatically
+   - Cards advance smoothly
+   - English reveals automatically
+   - Learned badges visible
+
+==================================================
+🔧 TROUBLESHOOTING:
+==================================================
+
+Q: Auto-play won't start?
+A: Make sure you have cards loaded from CSV file
+
+Q: No audio during auto-play?
+A: Check browser supports Web Speech API
+   Check device volume is up
+   Try clicking manual audio button first
+
+Q: Auto-play stops unexpectedly?
+A: Did you press arrow keys?
+   Did you click navigation buttons?
+   Check browser console for errors
+
+Q: Timing feels wrong?
+A: Adjust the delay sliders
+   Audio pronunciation adds ~1-2 seconds per word
+   Longer German/English words take more time
+
+Q: Can't change settings during auto-play?
+A: Settings panel should be visible when playing
+   Try stopping and restarting auto-play
+   Check if settings panel is scrolled off screen
+
+Q: Want to skip current card?
+A: Press Right arrow key
+   Auto-play will stop
+   Navigate manually
+   Restart auto-play if needed
+
+==================================================
+🎯 BEST PRACTICES:
+==================================================
+
+✓ Use headphones for better pronunciation clarity
+✓ Adjust speed based on your learning level
+✓ Enable English when learning new words
+✓ Disable English when testing yourself
+✓ Use with "Show Only Unlearned" for efficiency
+✓ Combine with shuffle for variety
+✓ Stop and manually review difficult cards
+✓ Take breaks every 20-30 cards
+
+✗ Don't set delays too short (under 1s)
+✗ Don't multitask with complex tasks
+✗ Don't rely only on auto-play
+✗ Don't forget to actively repeat words
+✗ Don't skip manual review practice
+
+==================================================
+
+Enjoy your auto-play learning experience! 🎧
+Perfect for passive vocabulary building! 📚
+
+==================================================

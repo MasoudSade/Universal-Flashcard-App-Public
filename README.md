@@ -2,8 +2,8 @@
 
 **A powerful, multi-language flashcard application with cloud synchronization, intelligent auto-detection, speech synthesis, and advanced learning features.**
 
-[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://masoudsade.github.io/Universal-Flashcard-App-Public/flashcard.html)
-[![Version](https://img.shields.io/badge/version-3.1-blue)](https://github.com/MasoudSade/Universal-Flashcard-App-Public)
+[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://{username}.github.io/Universal-Flashcard-App-Public/flashcard.html)
+[![Version](https://img.shields.io/badge/version-3.1-blue)](https://github.com/{username}/Universal-Flashcard-App-Public)
 
 **NEW in v3.1:** ☁️ Cloud synchronization with end-to-end encryption, multi-device support, and automatic backup!
 
@@ -665,9 +665,9 @@ Include:
 
 This project is open source and available for personal and educational use.
 
-**Author**: Masoud Sadeghi
-**Contact**: [GitHub - masoudsade](https://github.com/masoudsade) | [GitHub - masoudsadeghi-oss](https://github.com/masoudsadeghi-oss)
-**Repository**: [Telekom-Projects/Universal-Flashcard-App](https://github.com/masoudsade/Telekom-Projects)
+**Author**: {Author Name}
+**Contact**: [GitHub - {username}](https://github.com/{username}) | [GitHub - {username}ghi-oss](https://github.com/{username}ghi-oss)
+**Repository**: [Telekom-Projects/Universal-Flashcard-App](https://github.com/{username}/Telekom-Projects)
 
 ---
 
@@ -693,9 +693,9 @@ Perfect for:
 
 ## 📞 Contact
 
-- **GitHub (Personal)**: [masoudsade](https://github.com/masoudsade)
-- **GitHub (Telekom)**: [masoudsadeghi-oss](https://github.com/masoudsadeghi-oss)
-- **Repository**: [Telekom-Projects](https://github.com/masoudsade/Telekom-Projects)
+- **GitHub (Personal)**: [{username}](https://github.com/{username})
+- **GitHub (Telekom)**: [{username}ghi-oss](https://github.com/{username}ghi-oss)
+- **Repository**: [Telekom-Projects](https://github.com/{username}/Telekom-Projects)
 
 ---
 
