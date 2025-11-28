@@ -46,7 +46,7 @@ Universal Language Flashcards is a web-based application designed to help you le
 
 ### 1. **Intelligent Language Auto-Detection**
 - Analyzes your CSV content and automatically identifies languages
-- Supports 15+ languages: German, English, Spanish, French, Italian, Portuguese, Russian, Japanese, Korean, Chinese, Arabic, Hindi, Dutch, Polish, Turkish, Swedish, Danish, Norwegian, Finnish
+- Supports 15+ languages: German, English, Spanish, French, Italian, Portuguese, Russian, Japanese, Korean, Chinese, Arabic, Persian/Farsi, Hindi, Dutch, Polish, Turkish, Swedish, Danish, Norwegian, Finnish
 - Pre-selects detected languages in dropdowns
 - Visual indicators show auto-detected vs. manually selected languages
 - Easy manual override if detection is incorrect
