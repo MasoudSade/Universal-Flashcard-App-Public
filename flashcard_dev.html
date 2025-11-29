@@ -200,6 +200,7 @@ i<!DOCTYPE html>
             opacity: 0;
             overflow: hidden;
             transition: all 0.4s ease-in-out;
+            position: relative;
         }
 
         .card-lang2-section.revealed {
@@ -716,10 +717,9 @@ i<!DOCTYPE html>
         }
 
         .audio-btn-lang2 {
-            position: relative;
-            top: auto;
-            left: auto;
-            margin: 15px auto 0 auto;
+            position: absolute;
+            top: 10px;
+            left: 10px;
             background: rgba(255, 255, 255, 0.3);
             border: 2px solid rgba(255, 255, 255, 0.5);
             color: white;
@@ -729,6 +729,7 @@ i<!DOCTYPE html>
             font-size: 1.5em;
             cursor: pointer;
             transition: all 0.3s;
+            z-index: 10;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -8460,13 +8461,8 @@ i<!DOCTYPE html>
                         console.log('   ✅ Manage Categories shown');
                     }
 
-                    // Show File Manager section
-                    const fileManagerSection = document.getElementById('mainFileManager');
-                    if (fileManagerSection) {
-                        fileManagerSection.style.display = 'block';
-                        refreshFileTree();
-                        console.log('   ✅ File Manager shown');
-                    }
+                    // NOTE: File Manager is NOT auto-shown - user opens it manually from hamburger menu
+                    // Only Category Suggestion and Manage Categories auto-show on new file upload
 
                     return;
                 }
@@ -8617,15 +8613,10 @@ i<!DOCTYPE html>
                         console.log('   ✅ Manage Categories shown');
                     }
 
-                    // Show File Manager section
-                    const fileManagerSection = document.getElementById('mainFileManager');
-                    if (fileManagerSection) {
-                        fileManagerSection.style.display = 'block';
-                        refreshFileTree();
-                        console.log('   ✅ File Manager shown');
-                    }
+                    // NOTE: File Manager is NOT auto-shown - user opens it manually from hamburger menu
+                    // Only Category Suggestion auto-shows on new file upload
 
-                    // Show category suggestion AFTER all UI is visible (SIMPLIFIED - no auto-open needed!)
+                    // Show category suggestion AFTER all UI is visible
                     console.log('🔍 Checking pending suggestion. Value:', window.pendingCategorySuggestion);
                     console.log('🔍 File already categorized?', fileAlreadyCategorized);
                     console.log('🔍 Current fileName:', currentFileName);
@@ -8900,11 +8891,24 @@ i<!DOCTYPE html>
             nextBtn.disabled = currentIndex === filteredCards.length - 1;
         }
 
-        // Reveal English meaning
+        // Toggle English meaning visibility
+        function toggleEnglish() {
+            if (englishSection.classList.contains('revealed')) {
+                // Currently shown → Hide it
+                englishSection.classList.remove('revealed');
+                revealBtn.textContent = '👁 Show Target Meaning';
+                revealBtn.style.opacity = '1';
+            } else {
+                // Currently hidden → Show it
+                englishSection.classList.add('revealed');
+                revealBtn.textContent = '✓ Meaning Shown';
+                revealBtn.style.opacity = '0.7';
+            }
+        }
+
+        // Legacy function name for backward compatibility
         function revealEnglish() {
-            englishSection.classList.add('revealed');
-            revealBtn.textContent = '✓ Meaning Shown';
-            revealBtn.style.opacity = '0.7';
+            toggleEnglish();
         }
 
         // Auto-play functions
@@ -9310,10 +9314,10 @@ i<!DOCTYPE html>
             }
         });
 
-        // Reveal button click
+        // Reveal button click (now works as toggle)
         revealBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            revealEnglish();
+            toggleEnglish();
         });
 
         // Always show meanings checkbox
