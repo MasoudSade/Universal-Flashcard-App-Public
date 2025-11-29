@@ -2645,44 +2645,32 @@ i<!DOCTYPE html>
             <div id="categoryBrowserContent" style="overflow: hidden; transition: max-height 0.3s ease-out; max-height: 2000px;">
                 <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">Browse and practice your saved vocabulary organized by categories</p>
 
-                <!-- Smart Controls (visible when >6 categories) -->
-                <div id="categorySmartControls" style="display: none; background: white; padding: 12px; border-radius: 10px; margin-bottom: 15px; border: 2px solid #e0e7ff;">
-                    <!-- Search Box -->
-                    <div style="margin-bottom: 10px;">
-                        <input type="text" id="categorySearchBox" placeholder="🔍 Search categories..." style="width: 100%; padding: 10px; border: 2px solid #667eea; border-radius: 8px; font-size: 0.95em; outline: none;" onkeyup="filterCategories()">
-                    </div>
-
-                    <!-- Control Buttons -->
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <button onclick="expandAllCategories()" style="flex: 1; min-width: 120px; padding: 8px 12px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9em; transition: all 0.3s;">
-                            ▼ Expand All
-                        </button>
-                        <button onclick="collapseAllCategories()" style="flex: 1; min-width: 120px; padding: 8px 12px; background: #999; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9em; transition: all 0.3s;">
-                            ▶ Collapse All
-                        </button>
-                        <button id="viewModeToggle" onclick="toggleViewMode()" style="flex: 1; min-width: 120px; padding: 8px 12px; background: #764ba2; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9em; transition: all 0.3s;">
-                            📋 Compact View
-                        </button>
-                    </div>
+                <!-- Search Box -->
+                <div style="margin-bottom: 15px;">
+                    <input type="text" id="categorySearchBox" placeholder="🔍 Search categories..." style="width: 100%; padding: 12px; border: 2px solid #667eea; border-radius: 8px; font-size: 1em; outline: none;" onkeyup="filterCategories()">
                 </div>
 
-                <!-- Pagination Controls (visible when >6 categories) -->
-                <div id="categoryPagination" style="display: none; text-align: center; margin-bottom: 15px; padding: 10px; background: #f0f9ff; border-radius: 8px;">
-                    <span id="paginationInfo" style="color: #667eea; font-weight: 600; font-size: 0.9em; margin-right: 15px;"></span>
-                    <button onclick="previousPage()" id="prevPageBtn" style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 5px; font-size: 0.9em;">
-                        ◀ Previous
-                    </button>
-                    <span id="pageNumbers" style="margin: 0 10px; font-weight: 600; color: #667eea;"></span>
-                    <button onclick="nextPage()" id="nextPageBtn" style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 0 5px; font-size: 0.9em;">
-                        Next ▶
-                    </button>
+                <!-- Pagination Controls -->
+                <div id="categoryPagination" style="display: none; text-align: center; margin-bottom: 15px; padding: 12px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 8px; border: 2px solid #667eea;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                        <span id="paginationInfo" style="color: #667eea; font-weight: 600; font-size: 0.95em;"></span>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="previousPage()" id="prevPageBtn" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s;" onmouseenter="this.style.background='#5568d3'" onmouseleave="this.style.background='#667eea'">
+                                ◀ Previous
+                            </button>
+                            <span id="pageNumbers" style="padding: 8px 16px; font-weight: 600; color: #667eea; background: white; border-radius: 6px;"></span>
+                            <button onclick="nextPage()" id="nextPageBtn" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s;" onmouseenter="this.style.background='#5568d3'" onmouseleave="this.style.background='#667eea'">
+                                Next ▶
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Scrollable container -->
-                <div id="categoryBrowserListContainer" style="max-height: 500px; overflow-y: auto; overflow-x: hidden; padding-right: 5px;">
-                    <div id="categoryBrowserList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                <div id="categoryBrowserListContainer" style="max-height: 600px; overflow-y: auto; overflow-x: hidden;">
+                    <table id="categoryBrowserList" style="width: 100%; border-collapse: collapse;">
                         <!-- Will be populated dynamically -->
-                    </div>
+                    </table>
                 </div>
                 <div id="noCategoriesMessage" style="text-align: center; color: #999; padding: 20px; display: none;">
                     No categories yet. Upload a file to get started!
@@ -2903,6 +2891,12 @@ i<!DOCTYPE html>
                 <div style="margin-bottom: 15px;">
                     <button onclick="toggleMainSection('fileManager')" style="display: block; width: 100%; padding: 14px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em; transition: all 0.3s;">
                         📂 File Manager - Browse & Edit Categories
+                    </button>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <button onclick="remapLoadedFlashcards()" style="display: block; width: 100%; padding: 14px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em; transition: all 0.3s;">
+                        🎯 Remap Columns
                     </button>
                 </div>
 
@@ -6682,6 +6676,42 @@ i<!DOCTYPE html>
             }
         }
 
+        // ===== REMAP LOADED FLASHCARDS =====
+        // Open existing column mapper modal with currently loaded flashcards
+        function remapLoadedFlashcards() {
+            console.log('🎯 Remapping loaded flashcards...');
+
+            // Check if flashcards are loaded
+            if (!flashcards || flashcards.length === 0) {
+                alert('⚠️ No flashcards loaded!\n\nPlease load some flashcards first before remapping columns.');
+                return;
+            }
+
+            // Convert flashcards array back to CSV-like format for the mapper
+            const firstCard = flashcards[0];
+            const columns = Object.keys(firstCard).filter(key => key !== 'learned'); // Exclude learned status
+
+            // Create header row
+            const headerRow = columns.join(',');
+
+            // Create data rows
+            const dataRows = flashcards.map(card => {
+                return columns.map(col => card[col] || '').join(',');
+            });
+
+            // Combine into lines array
+            const lines = [headerRow, ...dataRows];
+
+            console.log(`📋 Prepared ${lines.length} lines for remapping`);
+            console.log(`📋 Columns: ${columns.join(', ')}`);
+
+            // Close hamburger menu
+            toggleManagementPanel();
+
+            // Open the existing column mapper modal
+            showColumnMapperModal(lines, ',');
+        }
+
         // Toggle category browser visibility
         function toggleCategoryBrowser() {
             const content = document.getElementById('categoryBrowserContent');
@@ -6869,6 +6899,29 @@ i<!DOCTYPE html>
             return '📚'; // Default icon
         }
 
+        // Get icon for category name
+        function getCategoryIcon(categoryName) {
+            const lower = categoryName.toLowerCase();
+            // Check for combinations first
+            if (lower.includes('german') && lower.includes('farsi')) return '🇩🇪🇮🇷';
+            if (lower.includes('german') && lower.includes('english')) return '🇩🇪🇬🇧';
+            if (lower.includes('english') && lower.includes('farsi')) return '🇬🇧🇮🇷';
+            // Then check individual languages
+            if (lower.includes('german') || lower.includes('deutsch')) return '🇩🇪';
+            if (lower.includes('english') || lower.includes('american')) return '🇬🇧';
+            if (lower.includes('farsi') || lower.includes('persian')) return '🇮🇷';
+            if (lower.includes('spanish') || lower.includes('español')) return '🇪🇸';
+            if (lower.includes('french') || lower.includes('français')) return '🇫🇷';
+            if (lower.includes('italian') || lower.includes('italiano')) return '🇮🇹';
+            if (lower.includes('chinese') || lower.includes('中文')) return '🇨🇳';
+            if (lower.includes('japanese') || lower.includes('日本語')) return '🇯🇵';
+            if (lower.includes('korean') || lower.includes('한국어')) return '🇰🇷';
+            if (lower.includes('arabic') || lower.includes('عربي')) return '🇸🇦';
+            // Default category
+            if (lower.includes('default')) return '📚';
+            return '📁'; // Generic folder icon
+        }
+
         function renderCategoryBrowser() {
             console.log('🔄 renderCategoryBrowser() called at:', new Date().toLocaleTimeString());
 
@@ -6896,6 +6949,8 @@ i<!DOCTYPE html>
                 const cat = fileCategories[fileName].category || 'Default';
                 const subcat = fileCategories[fileName].subcategory || '';
 
+                console.log(`    📄 File: ${fileName} -> Category: ${cat}, Subcategory: "${subcat}"`);
+
                 // Ensure category exists
                 if (!categoryFiles[cat]) {
                     categoryFiles[cat] = { '_root': [] };
@@ -6906,11 +6961,13 @@ i<!DOCTYPE html>
                         categoryFiles[cat][subcat] = [];
                     }
                     categoryFiles[cat][subcat].push(fileName);
+                    console.log(`      ✅ Added to ${cat} > ${subcat}`);
                 } else {
                     if (!categoryFiles[cat]['_root']) {
                         categoryFiles[cat]['_root'] = [];
                     }
                     categoryFiles[cat]['_root'].push(fileName);
+                    console.log(`      ✅ Added to ${cat} > _root`);
                 }
             });
 
@@ -6958,8 +7015,6 @@ i<!DOCTYPE html>
             if (!hasCategories) {
                 browserList.innerHTML = '';
                 noMessage.style.display = 'block';
-                document.getElementById('categorySmartControls').style.display = 'none';
-                document.getElementById('categoryPagination').style.display = 'none';
                 return;
             }
 
@@ -6974,207 +7029,242 @@ i<!DOCTYPE html>
                 categoryCountEl.textContent = `(${totalCategoryCount} ${totalCategoryCount === 1 ? 'category' : 'categories'})`;
             }
 
-            // Smart Controls: Always show (removed >6 condition per user request)
-            const smartControls = document.getElementById('categorySmartControls');
-            const paginationControls = document.getElementById('categoryPagination');
-            const shouldShowSmartFeatures = totalCategoryCount > 0; // Always show if any categories exist
-
-            if (shouldShowSmartFeatures) {
-                smartControls.style.display = 'block';
-                paginationControls.style.display = 'block';
-            } else {
-                smartControls.style.display = 'none';
-                paginationControls.style.display = 'none';
-                currentPage = 1; // Reset pagination
-            }
-
             // Pagination logic
-            const totalPages = Math.ceil(categoryCount / categoriesPerPage);
-            const startIndex = (currentPage - 1) * categoriesPerPage;
-            const endIndex = Math.min(startIndex + categoriesPerPage, categoryCount);
+            const paginationControls = document.getElementById('categoryPagination');
+            const shouldShowPagination = totalCategoryCount > 6; // Show pagination if more than 6 categories
 
-            // Update pagination info
-            if (shouldShowSmartFeatures) {
+            if (shouldShowPagination) {
+                paginationControls.style.display = 'block';
+
+                const totalPages = Math.ceil(categoryCount / categoriesPerPage);
+                const startIndex = (currentPage - 1) * categoriesPerPage;
+                const endIndex = Math.min(startIndex + categoriesPerPage, categoryCount);
+
+                // Update pagination info
                 document.getElementById('paginationInfo').textContent = `Showing ${startIndex + 1}-${endIndex} of ${categoryCount}`;
                 document.getElementById('pageNumbers').textContent = `Page ${currentPage} of ${totalPages}`;
                 document.getElementById('prevPageBtn').disabled = currentPage === 1;
                 document.getElementById('nextPageBtn').disabled = currentPage === totalPages;
-            }
 
-            // Get categories for current page
-            const categoriesToShow = Object.keys(filteredCategoryData).sort().slice(startIndex, endIndex);
-
-            // Auto-collapse flag: collapse all by default when smart features enabled
-            const shouldAutoCollapse = shouldShowSmartFeatures;
-
-            // Render based on view mode
-            if (currentViewMode === 'grouped') {
-                // GROUPED VIEW: Render by language groups
-                renderGroupedView(filteredCategoryData, shouldAutoCollapse);
+                // Get categories for current page
+                const categoriesToShow = Object.keys(filteredCategoryData).sort().slice(startIndex, endIndex);
+                renderListView(categoriesToShow, filteredCategoryData, false);
             } else {
-                // LIST VIEW: Render individual categories
-                renderListView(categoriesToShow, filteredCategoryData, shouldAutoCollapse);
+                paginationControls.style.display = 'none';
+                currentPage = 1; // Reset pagination
+
+                // Get all categories (no pagination)
+                const categoriesToShow = Object.keys(filteredCategoryData).sort();
+                renderListView(categoriesToShow, filteredCategoryData, false);
             }
         }
 
-        // Render List View (original view)
+        // Render List View (SIMPLE TABLE DESIGN)
         function renderListView(categoriesToShow, categoryData, shouldAutoCollapse) {
             const browserList = document.getElementById('categoryBrowserList');
+            browserList.innerHTML = ''; // Clear existing content
 
-            // Render each category (only those for current page)
+            // Render each category as a table row
             categoriesToShow.forEach(category => {
-                const categoryCard = document.createElement('div');
-                categoryCard.style.cssText = `
-                    background: white;
-                    border: 2px solid #667eea;
-                    border-radius: 10px;
-                    padding: 15px;
-                    cursor: pointer;
-                    transition: all 0.3s;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                `;
-
-                categoryCard.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-3px)';
-                    this.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
-                });
-
-                categoryCard.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0)';
-                    this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-                });
-
-                // Count total files in this category
+                // Count total files and cards in this category
                 let fileCount = 0;
+                let totalCards = 0;
                 Object.keys(categoryData[category]).forEach(subcat => {
                     fileCount += categoryData[category][subcat].length;
+                    // Count cards
+                    categoryData[category][subcat].forEach(fileName => {
+                        const savedData = safeStorage.getItem(`flashcards_${fileName}`);
+                        if (savedData) {
+                            try {
+                                const cardData = JSON.parse(savedData);
+                                totalCards += cardData.length;
+                            } catch (e) {}
+                        }
+                    });
                 });
 
-                // Generate unique ID for this category
-                const categoryId = `cat_${category.replace(/[^a-zA-Z0-9]/g, '_')}`;
+                // Get category icon
+                const categoryIcon = getCategoryIcon(category);
+                const isEmpty = fileCount === 0;
 
-                // Create file count display with visual indicator for empty categories
-                const fileCountDisplay = fileCount === 0
-                    ? '<span style="color: #ff9800; font-weight: 600;">📭 Empty - No files</span>'
-                    : `${fileCount} file${fileCount !== 1 ? 's' : ''}`;
+                // Get subcategories
+                const subcats = Object.keys(categoryData[category]).filter(s => s !== '_root').sort();
+                const hasSubcats = subcats.length > 0;
 
-                // Category header with collapse arrow (arrow direction based on auto-collapse)
-                const initialArrow = shouldAutoCollapse ? '▶' : '▼';
-                const header = document.createElement('div');
-                header.style.cssText = 'display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;';
-                header.innerHTML = `
-                    <div style="flex: 1;">
-                        <div style="font-size: 1.3em; font-weight: 600; color: #667eea;">📁 ${category}</div>
-                        <div style="font-size: 0.8em; color: #999; margin-top: 3px;">${fileCountDisplay}</div>
-                    </div>
-                    <button class="category-collapse-btn" id="${categoryId}_btn" style="background: transparent; border: none; font-size: 1.5em; cursor: pointer; color: #667eea; padding: 5px; transition: transform 0.3s; user-select: none; ${shouldAutoCollapse ? 'transform: rotate(-90deg);' : ''}" title="Show/Hide subcategories">
-                        ${initialArrow}
-                    </button>
+                // Skip completely empty categories (has subcategories defined but 0 files)
+                if (isEmpty && hasSubcats) {
+                    console.log(`⏭️ Skipping empty category with placeholder subcategories: ${category}`);
+                    return;
+                }
+
+                // Create main category row
+                const row = document.createElement('tr');
+                row.style.cssText = `
+                    border-bottom: 2px solid #e5e7eb;
+                    ${isEmpty ? 'opacity: 0.5; background: #f9fafb;' : 'background: white;'}
                 `;
 
-                categoryCard.appendChild(header);
+                row.innerHTML = `
+                    <td style="padding: 16px; width: 60px; text-align: center; font-size: 2em;">
+                        ${categoryIcon}
+                    </td>
+                    <td style="padding: 16px;">
+                        <div style="font-weight: 700; font-size: 1.1em; color: #667eea; margin-bottom: 4px;">
+                            ${category}
+                        </div>
+                        <div style="font-size: 0.9em; color: #6b7280;">
+                            ${!isEmpty ? `📄 ${fileCount} files • 🃏 ${totalCards.toLocaleString()} cards` : hasSubcats ? `📂 ${subcats.length} groups` : '📭 No files'}
+                            ${!isEmpty && hasSubcats ? ` • 📂 ${subcats.length} groups` : ''}
+                        </div>
+                    </td>
+                    <td style="padding: 16px; text-align: right; width: 200px;">
+                        ${hasSubcats ? `
+                            <button onclick="toggleCategoryGroups('${category.replace(/'/g, "\\'")}')" id="toggle_${category.replace(/[^a-zA-Z0-9]/g, '_')}" style="
+                                padding: 10px 20px;
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                color: white;
+                                border: none;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-weight: 600;
+                                font-size: 0.95em;
+                                transition: all 0.2s;
+                            " onmouseenter="this.style.transform='scale(1.05)'" onmouseleave="this.style.transform='scale(1)'">
+                                ▼ Show ${subcats.length}
+                            </button>
+                        ` : !isEmpty ? `
+                            <button onclick="loadCategoryVocabulary('${category.replace(/'/g, "\\'")}')" style="
+                                padding: 10px 20px;
+                                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                                color: white;
+                                border: none;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-weight: 600;
+                                font-size: 0.95em;
+                                transition: all 0.2s;
+                            " onmouseenter="this.style.transform='scale(1.05)'" onmouseleave="this.style.transform='scale(1)'">
+                                ▶️ Practice
+                            </button>
+                        ` : '<span style="color: #9ca3af; font-size: 0.9em;">Empty</span>'}
+                    </td>
+                `;
 
-                // Subcategories list (collapsible) - auto-collapsed if >6 categories
-                const subcatList = document.createElement('div');
-                subcatList.id = categoryId;
-                const initialMaxHeight = shouldAutoCollapse ? '0px' : '2000px';
-                const initialOpacity = shouldAutoCollapse ? '0' : '1';
-                const initialMargin = shouldAutoCollapse ? '0px' : '10px';
-                const initialPadding = shouldAutoCollapse ? '0px' : '10px';
-                const initialBorder = shouldAutoCollapse ? 'none' : '1px solid #e0e0e0';
-                subcatList.style.cssText = `margin-top: ${initialMargin}; padding-top: ${initialPadding}; border-top: ${initialBorder}; font-size: 0.85em; overflow: hidden; transition: all 0.3s ease-out; max-height: ${initialMaxHeight}; opacity: ${initialOpacity};`;
+                browserList.appendChild(row);
 
-                const subcats = Object.keys(categoryData[category]).filter(s => s !== '_root').sort();
-                if (subcats.length > 0) {
+                // Create subcategories row (hidden by default)
+                if (hasSubcats) {
+                    console.log(`📂 Rendering subcategories for ${category}:`, subcats);
+
+                    const subcatRow = document.createElement('tr');
+                    subcatRow.id = `subcat_${category.replace(/[^a-zA-Z0-9]/g, '_')}`;
+                    subcatRow.style.cssText = 'display: none; background: #f8f9fa;';
+
+                    const subcatCell = document.createElement('td');
+                    subcatCell.colSpan = 3;
+                    subcatCell.style.padding = '0px 16px 16px 76px';
+
                     subcats.forEach(subcat => {
-                        const subcatItem = document.createElement('div');
-                        subcatItem.style.cssText = 'padding: 6px 8px; margin: 2px 0; color: #555; cursor: pointer; border-radius: 6px; transition: all 0.2s; background: #f8f9fa;';
+                        console.log(`  - Processing subcat: ${subcat}`);
+                        console.log(`    Files in this subcat:`, categoryData[category][subcat]);
 
-                        // Count cards in this subcategory from saved files
-                        let totalCards = 0;
-                        categoryData[category][subcat].forEach(fileName => {
+                        // Count cards in this subcategory
+                        let subcatCards = 0;
+                        const fileList = categoryData[category][subcat] || [];
+                        console.log(`    File list length: ${fileList.length}`);
+
+                        fileList.forEach(fileName => {
+                            console.log(`    Checking file: ${fileName}`);
                             const savedData = safeStorage.getItem(`flashcards_${fileName}`);
                             if (savedData) {
                                 try {
                                     const cardData = JSON.parse(savedData);
-                                    totalCards += cardData.length;
+                                    subcatCards += cardData.length;
+                                    console.log(`      Found ${cardData.length} cards`);
                                 } catch (e) {
-                                    console.error(`Error parsing ${fileName}:`, e);
+                                    console.log(`      Error parsing: ${e}`);
                                 }
+                            } else {
+                                console.log(`      No saved data found for ${fileName}`);
                             }
                         });
 
-                        subcatItem.innerHTML = `└ <strong>${subcat}</strong> <span style="color: #999;">(${categoryData[category][subcat].length} file${categoryData[category][subcat].length !== 1 ? 's' : ''}, ${totalCards} cards)</span>`;
+                        const subcatDiv = document.createElement('div');
+                        subcatDiv.style.cssText = `
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            padding: 12px;
+                            margin: 8px 0;
+                            background: white;
+                            border: 1px solid #e5e7eb;
+                            border-radius: 8px;
+                            transition: all 0.2s;
+                        `;
 
-                        // Hover effect
-                        subcatItem.addEventListener('mouseenter', function() {
-                            this.style.background = '#667eea';
-                            this.style.color = 'white';
-                            const span = this.querySelector('span');
-                            if (span) span.style.color = '#e0e7ff';
-                        });
+                        subcatDiv.onmouseenter = function() {
+                            this.style.background = '#eff6ff';
+                            this.style.borderColor = '#667eea';
+                            this.style.transform = 'translateX(4px)';
+                        };
+                        subcatDiv.onmouseleave = function() {
+                            this.style.background = 'white';
+                            this.style.borderColor = '#e5e7eb';
+                            this.style.transform = 'translateX(0)';
+                        };
 
-                        subcatItem.addEventListener('mouseleave', function() {
-                            this.style.background = '#f8f9fa';
-                            this.style.color = '#555';
-                            const span = this.querySelector('span');
-                            if (span) span.style.color = '#999';
-                        });
+                        const fileCount = fileList.length;
+                        console.log(`    Final count: ${fileCount} files, ${subcatCards} cards`);
 
-                        // Click handler for subcategory - load specific subcategory only
-                        subcatItem.addEventListener('click', (e) => {
-                            e.stopPropagation(); // Prevent triggering parent category click
-                            loadSubcategoryVocabulary(category, subcat);
-                        });
+                        subcatDiv.innerHTML = `
+                            <div>
+                                <div style="font-weight: 600; color: #374151;">📄 ${subcat}</div>
+                                <div style="font-size: 0.85em; color: #9ca3af; margin-top: 2px;">
+                                    ${fileCount} files • ${subcatCards.toLocaleString()} cards
+                                </div>
+                            </div>
+                            <button onclick="loadSubcategoryVocabulary('${category.replace(/'/g, "\\'")}', '${subcat.replace(/'/g, "\\'")}')" style="
+                                padding: 8px 16px;
+                                background: #667eea;
+                                color: white;
+                                border: none;
+                                border-radius: 6px;
+                                cursor: pointer;
+                                font-weight: 600;
+                                font-size: 0.9em;
+                                transition: all 0.2s;
+                            " onmouseenter="this.style.background='#5568d3'" onmouseleave="this.style.background='#667eea'">
+                                ▶️ Practice
+                            </button>
+                        `;
 
-                        subcatList.appendChild(subcatItem);
+                        subcatCell.appendChild(subcatDiv);
                     });
-                    categoryCard.appendChild(subcatList);
 
-                    // Add collapse/expand functionality for subcategories
-                    const collapseBtn = header.querySelector(`#${categoryId}_btn`);
-                    if (collapseBtn) {
-                        collapseBtn.addEventListener('click', (e) => {
-                            e.stopPropagation(); // Prevent triggering category click
-
-                            const subcatContainer = document.getElementById(categoryId);
-                            if (subcatContainer) {
-                                if (subcatContainer.style.maxHeight === '0px') {
-                                    // Expand
-                                    subcatContainer.style.maxHeight = '2000px';
-                                    subcatContainer.style.opacity = '1';
-                                    subcatContainer.style.marginTop = '10px';
-                                    subcatContainer.style.paddingTop = '10px';
-                                    subcatContainer.style.borderTop = '1px solid #e0e0e0';
-                                    collapseBtn.textContent = '▼';
-                                    collapseBtn.style.transform = 'rotate(0deg)';
-                                } else {
-                                    // Collapse
-                                    subcatContainer.style.maxHeight = '0px';
-                                    subcatContainer.style.opacity = '0';
-                                    subcatContainer.style.marginTop = '0px';
-                                    subcatContainer.style.paddingTop = '0px';
-                                    subcatContainer.style.borderTop = 'none';
-                                    collapseBtn.textContent = '▶';
-                                    collapseBtn.style.transform = 'rotate(-90deg)';
-                                }
-                            }
-                        });
-                    }
+                    subcatRow.appendChild(subcatCell);
+                    browserList.appendChild(subcatRow);
                 }
-
-                // Click handler to load category vocabulary (all files in category)
-                categoryCard.addEventListener('click', (e) => {
-                    // Only trigger if clicked directly on card, not on subcategory or collapse button
-                    if (e.target === categoryCard || e.target.closest('.category-card-header')) {
-                        if (!e.target.classList.contains('category-collapse-btn')) {
-                            loadCategoryVocabulary(category);
-                        }
-                    }
-                });
-
-                browserList.appendChild(categoryCard);
             });
+        }
+
+        // Toggle category groups visibility
+        function toggleCategoryGroups(category) {
+            const safeCategoryId = category.replace(/[^a-zA-Z0-9]/g, '_');
+            const subcatRow = document.getElementById(`subcat_${safeCategoryId}`);
+            const toggleBtn = document.getElementById(`toggle_${safeCategoryId}`);
+
+            if (subcatRow && toggleBtn) {
+                if (subcatRow.style.display === 'none') {
+                    // Show groups
+                    subcatRow.style.display = 'table-row';
+                    toggleBtn.innerHTML = '▲ Hide';
+                } else {
+                    // Hide groups
+                    subcatRow.style.display = 'none';
+                    const subcats = Object.keys(filteredCategoryData[category]).filter(s => s !== '_root').length;
+                    toggleBtn.innerHTML = `▼ Show ${subcats}`;
+                }
+            }
         }
 
         // Render Grouped View (by language)
