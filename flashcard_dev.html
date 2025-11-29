@@ -2131,7 +2131,7 @@ i<!DOCTYPE html>
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 10000;
+            z-index: 11000;
             padding: 20px;
         }
 
@@ -2728,6 +2728,151 @@ i<!DOCTYPE html>
             </div>
         </div>
 
+        <!-- Main Area Management Sections (Hidden by default, toggled from sidebar) -->
+
+        <!-- Manage Categories Section (in main area) -->
+        <div id="mainManageCategories" style="display: none; margin-bottom: 20px;">
+            <div style="background: white; padding: 20px; border-radius: 15px; border: 3px solid #f59e0b;">
+                <h3 style="color: #d97706; margin-bottom: 15px;">📚 Manage Categories</h3>
+
+                <div class="category-manager" id="categoryManagerSection" style="display: block;">
+                    <h4 style="color: #d97706;">Category Management</h4>
+
+                    <div class="category-section">
+                        <strong>Current File:</strong>
+                        <span id="currentFileDisplay">No file loaded</span>
+                        <span class="category-badge" id="currentCategoryBadge">Default</span>
+                    </div>
+                    <div class="category-section">
+                        <label style="display: block; margin-bottom: 5px;">Assign to Category:</label>
+                        <div class="category-input-group">
+                            <select id="categorySelect" style="flex: 1;">
+                                <option value="Default">Default</option>
+                            </select>
+                            <select id="subcategorySelect" style="flex: 1;">
+                                <option value="">No Subcategory</option>
+                            </select>
+                            <button onclick="assignCategory()">Assign</button>
+                        </div>
+                    </div>
+                    <hr style="border: 1px solid #e2e8f0; margin: 15px 0;">
+                    <div class="category-section">
+                        <strong>Create New Category:</strong>
+                        <div class="category-input-group">
+                            <input type="text" id="newCategoryName" placeholder="e.g., Spanish Basics" style="flex: 1;">
+                            <button onclick="createCategory()">+ Add Category</button>
+                        </div>
+                    </div>
+                    <div class="category-section">
+                        <strong>Add Subcategory:</strong>
+                        <div class="category-input-group">
+                            <select id="parentCategorySelect" style="flex: 1;">
+                                <option value="Default">Default</option>
+                            </select>
+                            <input type="text" id="newSubcategoryName" placeholder="e.g., A1 Vocabulary" style="flex: 1;">
+                            <button onclick="createSubcategory()">+ Add Sub</button>
+                        </div>
+                    </div>
+                    <div class="category-section">
+                        <strong>All Categories:</strong>
+                        <div class="category-list" id="categoryList">
+                            <div class="category-item">
+                                <span>📁 Default</span>
+                                <span style="font-size: 0.8em; color: #78350f;">Built-in</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- File Manager Modal Popup -->
+        <div class="modal-overlay" id="mainFileManager" style="display: none;" onclick="if(event.target === this) toggleMainSection('fileManager')">
+            <div class="modal-content" style="max-width: 900px; width: 95%;" onclick="event.stopPropagation();">
+                <div class="modal-header">
+                    <h3>📂 File Manager - Browse & Edit Categories</h3>
+                    <button class="modal-close" onclick="toggleMainSection('fileManager')">✕</button>
+                </div>
+
+                <div class="modal-body" style="padding-bottom: 20px;">
+                    <div class="file-manager">
+                    <div class="file-manager-layout">
+                        <!-- Left: Category Tree Browser -->
+                        <div class="file-tree">
+                            <h5 style="color: #0284c7; margin-bottom: 15px; font-size: 1em;">📁 Categories</h5>
+                            <div id="fileTreeContent">
+                                <!-- Will be populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Right: File Editor -->
+                        <div class="file-editor">
+                            <div id="fileEditorContent">
+                                <div class="file-editor-header">
+                                    <div class="file-editor-title" id="editorTitle">Default</div>
+                                    <div class="file-editor-actions">
+                                        <button class="file-editor-btn" onclick="manualLoadData()" style="background: #10b981; font-size: 1.1em;">
+                                            🔄 Load Data
+                                        </button>
+                                        <button class="file-editor-btn btn-add" onclick="showAddFlashcardForm()">
+                                            ➕ Add Flashcard
+                                        </button>
+                                        <button class="file-editor-btn btn-export" onclick="exportCategoryToCSV()">
+                                            💾 Export CSV
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Add Flashcard Form (Hidden by default) -->
+                                <div class="add-flashcard-form" id="addFlashcardForm">
+                                    <h5 style="color: #78350f; margin-bottom: 15px;">➕ Add New Flashcard</h5>
+                                    <div class="form-group">
+                                        <label>Source Language Word/Phrase:</label>
+                                        <input type="text" id="newGerman" placeholder="e.g., Hola">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Source Example (Optional):</label>
+                                        <input type="text" id="newGermanExample" placeholder="e.g., Hola, ¿cómo estás?">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Target Language Translation:</label>
+                                        <input type="text" id="newEnglish" placeholder="e.g., Hello">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Target Example (Optional):</label>
+                                        <input type="text" id="newEnglishExample" placeholder="e.g., Hello, how are you?">
+                                    </div>
+                                    <div class="form-actions">
+                                        <button class="btn-save" onclick="saveNewFlashcard()">💾 Save</button>
+                                        <button class="btn-cancel" onclick="hideAddFlashcardForm()">❌ Cancel</button>
+                                    </div>
+                                </div>
+
+                                <!-- Search Bar -->
+                                <div class="search-bar">
+                                    <input type="text" id="flashcardSearch" class="search-input" placeholder="🔍 Search flashcards... (Source or Target)">
+                                    <button class="file-editor-btn" onclick="clearSearch()" style="background: #6b7280;">Clear</button>
+                                </div>
+
+                                <!-- Bulk Actions Bar (Hidden by default) -->
+                                <div class="bulk-actions hidden" id="bulkActionsBar">
+                                    <span class="selection-count" id="selectionCount">0 selected</span>
+                                    <button class="file-editor-btn" style="background: #ef4444;" onclick="deleteSelected()">🗑️ Delete Selected</button>
+                                    <button class="file-editor-btn" style="background: #6b7280;" onclick="deselectAll()">Clear Selection</button>
+                                </div>
+
+                                <!-- Flashcard List (Excel-like Table) -->
+                                <div class="flashcard-list" id="flashcardListContainer">
+                                    <!-- Will be populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div><!-- End file-manager -->
+                </div><!-- End modal-body -->
+            </div><!-- End modal-content -->
+        </div><!-- End File Manager Modal -->
+
         <!-- Management Panel Overlay -->
         <div class="management-panel-overlay" id="managementPanelOverlay" onclick="toggleManagementPanel()"></div>
 
@@ -2741,157 +2886,25 @@ i<!DOCTYPE html>
 
             <!-- Panel Content -->
             <div class="management-panel-content">
-                <!-- Manual Suggestion Display Button -->
-                <div style="margin-bottom: 20px;">
-                    <button onclick="testAutoOpen()" style="display: block; width: 100%; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em;" id="testAutoOpenBtn">
+                <!-- Menu Buttons -->
+                <div style="margin-bottom: 15px;">
+                    <button onclick="toggleMainSection('categorySuggestion')" style="display: block; width: 100%; padding: 14px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em; margin-bottom: 10px; transition: all 0.3s;">
                         💡 Show Category Suggestion
                     </button>
                 </div>
 
-                <!-- Category Management (Always Visible, Collapsible) -->
-        <div style="margin-bottom: 20px;">
-            <button class="settings-toggle-btn" id="categoryMgmtToggleBtn" style="display: flex; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                <span>📚 Manage Categories</span>
-                <span class="toggle-icon">▼</span>
-            </button>
-            <div class="category-manager" id="categoryManagerSection" style="display: none; margin-top: 10px;">
-                <h4 style="color: #d97706;">Category Management</h4>
-
-                <div class="category-section">
-                    <strong>Current File:</strong>
-                    <span id="currentFileDisplay">No file loaded</span>
-                    <span class="category-badge" id="currentCategoryBadge">Default</span>
+                <div style="margin-bottom: 15px;">
+                    <button onclick="toggleMainSection('manageCategories')" style="display: block; width: 100%; padding: 14px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em; margin-bottom: 10px; transition: all 0.3s;">
+                        📚 Manage Categories
+                    </button>
                 </div>
-                <div class="category-section">
-                    <label style="display: block; margin-bottom: 5px;">Assign to Category:</label>
-                    <div class="category-input-group">
-                        <select id="categorySelect" style="flex: 1;">
-                            <option value="Default">Default</option>
-                        </select>
-                        <select id="subcategorySelect" style="flex: 1;">
-                            <option value="">No Subcategory</option>
-                        </select>
-                        <button onclick="assignCategory()">Assign</button>
-                    </div>
+
+                <div style="margin-bottom: 15px;">
+                    <button onclick="toggleMainSection('fileManager')" style="display: block; width: 100%; padding: 14px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em; transition: all 0.3s;">
+                        📂 File Manager - Browse & Edit Categories
+                    </button>
                 </div>
-                <hr style="border: 1px solid #e2e8f0; margin: 15px 0;">
-                <div class="category-section">
-                    <strong>Create New Category:</strong>
-                    <div class="category-input-group">
-                        <input type="text" id="newCategoryName" placeholder="e.g., Spanish Basics" style="flex: 1;">
-                        <button onclick="createCategory()">+ Add Category</button>
-                    </div>
-                </div>
-                <div class="category-section">
-                    <strong>Add Subcategory:</strong>
-                    <div class="category-input-group">
-                        <select id="parentCategorySelect" style="flex: 1;">
-                            <option value="Default">Default</option>
-                        </select>
-                        <input type="text" id="newSubcategoryName" placeholder="e.g., A1 Vocabulary" style="flex: 1;">
-                        <button onclick="createSubcategory()">+ Add Sub</button>
-                    </div>
-                </div>
-                <div class="category-section">
-                    <strong>All Categories:</strong>
-                    <div class="category-list" id="categoryList">
-                        <div class="category-item">
-                            <span>📁 Default</span>
-                            <span style="font-size: 0.8em; color: #78350f;">Built-in</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- File Manager (Collapsible) -->
-        <div style="margin-bottom: 20px;">
-            <button class="settings-toggle-btn" id="fileManagerToggleBtn" style="display: flex; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);">
-                <span>📂 File Manager - Browse & Edit Categories</span>
-                <span class="toggle-icon">▼</span>
-            </button>
-            <div class="file-manager" id="fileManagerSection" style="display: none;">
-                <h4 class="file-manager-header">📂 Browse and Edit Your Flashcard Files</h4>
-
-                <div class="file-manager-layout">
-                    <!-- Left: Category Tree Browser -->
-                    <div class="file-tree">
-                        <h5 style="color: #0284c7; margin-bottom: 15px; font-size: 1em;">📁 Categories</h5>
-                        <div id="fileTreeContent">
-                            <!-- Will be populated dynamically -->
-                        </div>
-                    </div>
-
-                    <!-- Right: File Editor -->
-                    <div class="file-editor">
-                        <div id="fileEditorEmpty" class="empty-state">
-                            <div class="empty-state-icon">📄</div>
-                            <p>Select a category or subcategory from the tree to view and edit flashcards</p>
-                        </div>
-
-                        <div id="fileEditorContent" style="display: none;">
-                            <div class="file-editor-header">
-                                <div class="file-editor-title" id="editorTitle">Default</div>
-                                <div class="file-editor-actions">
-                                    <button class="file-editor-btn" onclick="manualLoadData()" style="background: #10b981; font-size: 1.1em;">
-                                        🔄 Load Data
-                                    </button>
-                                    <button class="file-editor-btn btn-add" onclick="showAddFlashcardForm()">
-                                        ➕ Add Flashcard
-                                    </button>
-                                    <button class="file-editor-btn btn-export" onclick="exportCategoryToCSV()">
-                                        💾 Export CSV
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Add Flashcard Form (Hidden by default) -->
-                            <div class="add-flashcard-form" id="addFlashcardForm">
-                                <h5 style="color: #78350f; margin-bottom: 15px;">➕ Add New Flashcard</h5>
-                                <div class="form-group">
-                                    <label>Source Language Word/Phrase:</label>
-                                    <input type="text" id="newGerman" placeholder="e.g., Hola">
-                                </div>
-                                <div class="form-group">
-                                    <label>Source Example (Optional):</label>
-                                    <input type="text" id="newGermanExample" placeholder="e.g., Hola, ¿cómo estás?">
-                                </div>
-                                <div class="form-group">
-                                    <label>Target Language Translation:</label>
-                                    <input type="text" id="newEnglish" placeholder="e.g., Hello">
-                                </div>
-                                <div class="form-group">
-                                    <label>Target Example (Optional):</label>
-                                    <input type="text" id="newEnglishExample" placeholder="e.g., Hello, how are you?">
-                                </div>
-                                <div class="form-actions">
-                                    <button class="btn-save" onclick="saveNewFlashcard()">💾 Save</button>
-                                    <button class="btn-cancel" onclick="hideAddFlashcardForm()">❌ Cancel</button>
-                                </div>
-                            </div>
-
-                            <!-- Search Bar -->
-                            <div class="search-bar">
-                                <input type="text" id="flashcardSearch" class="search-input" placeholder="🔍 Search flashcards... (Source or Target)">
-                                <button class="file-editor-btn" onclick="clearSearch()" style="background: #6b7280;">Clear</button>
-                            </div>
-
-                            <!-- Bulk Actions Bar (Hidden by default) -->
-                            <div class="bulk-actions hidden" id="bulkActionsBar">
-                                <span class="selection-count" id="selectionCount">0 selected</span>
-                                <button class="file-editor-btn" style="background: #ef4444;" onclick="deleteSelected()">🗑️ Delete Selected</button>
-                                <button class="file-editor-btn" style="background: #6b7280;" onclick="deselectAll()">Clear Selection</button>
-                            </div>
-
-                            <!-- Flashcard List (Excel-like Table) -->
-                            <div class="flashcard-list" id="flashcardListContainer">
-                                <!-- Will be populated dynamically -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
             </div><!-- End management-panel-content -->
         </div><!-- End management-panel -->
 
@@ -4134,19 +4147,19 @@ i<!DOCTYPE html>
         // Category select change handler
         document.getElementById('categorySelect').addEventListener('change', updateSubcategoryDropdown);
 
-        // Category Management Toggle Button Handler
-        document.getElementById('categoryMgmtToggleBtn').addEventListener('click', function() {
-            const section = document.getElementById('categoryManagerSection');
-            const isVisible = section.style.display === 'block';
-
-            if (isVisible) {
-                section.style.display = 'none';
-                this.classList.remove('active');
-            } else {
-                section.style.display = 'block';
-                this.classList.add('active');
-            }
-        });
+        // Category Management Toggle Button Handler (REMOVED - now using toggleMainSection)
+        // document.getElementById('categoryMgmtToggleBtn').addEventListener('click', function() {
+        //     const section = document.getElementById('categoryManagerSection');
+        //     const isVisible = section.style.display === 'block';
+        //
+        //     if (isVisible) {
+        //         section.style.display = 'none';
+        //         this.classList.remove('active');
+        //     } else {
+        //         section.style.display = 'block';
+        //         this.classList.add('active');
+        //     }
+        // });
 
         // ==============================
         // FILE MANAGER FUNCTIONALITY
@@ -4690,20 +4703,20 @@ i<!DOCTYPE html>
             refreshFileTree();
         }
 
-        // File Manager Toggle Button Handler
-        document.getElementById('fileManagerToggleBtn').addEventListener('click', function() {
-            const section = document.getElementById('fileManagerSection');
-            const isVisible = section.style.display === 'block';
-
-            if (isVisible) {
-                section.style.display = 'none';
-                this.classList.remove('active');
-            } else {
-                section.style.display = 'block';
-                this.classList.add('active');
-                refreshFileTree();
-            }
-        });
+        // File Manager Toggle Button Handler (REMOVED - now using toggleMainSection)
+        // document.getElementById('fileManagerToggleBtn').addEventListener('click', function() {
+        //     const section = document.getElementById('fileManagerSection');
+        //     const isVisible = section.style.display === 'block';
+        //
+        //     if (isVisible) {
+        //         section.style.display = 'none';
+        //         this.classList.remove('active');
+        //     } else {
+        //         section.style.display = 'block';
+        //         this.classList.add('active');
+        //         refreshFileTree();
+        //     }
+        // });
 
         // Populate the file tree with categories and subcategories
         function refreshFileTree() {
@@ -6597,6 +6610,77 @@ i<!DOCTYPE html>
             }
         }
 
+        // Toggle subsection visibility (expand/collapse within main sections)
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const toggleBtn = document.getElementById(sectionId.replace('Section', 'Toggle'));
+
+            if (!section) {
+                console.error('Section not found:', sectionId);
+                return;
+            }
+
+            if (section.style.display === 'none' || section.style.display === '') {
+                // Show
+                section.style.display = 'block';
+                if (toggleBtn) toggleBtn.textContent = '▲ Hide';
+            } else {
+                // Hide
+                section.style.display = 'none';
+                if (toggleBtn) toggleBtn.textContent = '▼ Show';
+            }
+        }
+
+        // Toggle main section visibility (from sidebar buttons)
+        function toggleMainSection(sectionName) {
+            let sectionId;
+
+            // Map button names to section IDs
+            switch(sectionName) {
+                case 'categorySuggestion':
+                    sectionId = 'suggestedCategorySection';
+                    break;
+                case 'manageCategories':
+                    sectionId = 'mainManageCategories';
+                    break;
+                case 'fileManager':
+                    sectionId = 'mainFileManager';
+                    break;
+                default:
+                    console.error('Unknown section:', sectionName);
+                    return;
+            }
+
+            const section = document.getElementById(sectionId);
+            if (!section) {
+                console.error('Section not found:', sectionId);
+                return;
+            }
+
+            // Toggle visibility
+            if (section.style.display === 'none' || section.style.display === '') {
+                // Show section
+                // File Manager is a modal, so use flex display
+                if (sectionName === 'fileManager') {
+                    section.style.display = 'flex';
+                    refreshFileTree();
+                } else {
+                    section.style.display = 'block';
+                }
+
+                // Special initialization for Category Suggestion
+                if (sectionName === 'categorySuggestion') {
+                    testAutoOpen();
+                }
+
+                // Close sidebar after selection
+                toggleManagementPanel();
+            } else {
+                // Hide section
+                section.style.display = 'none';
+            }
+        }
+
         // Toggle category browser visibility
         function toggleCategoryBrowser() {
             const content = document.getElementById('categoryBrowserContent');
@@ -7355,11 +7439,8 @@ i<!DOCTYPE html>
                 document.getElementById('clearFileBtn').style.display = 'inline-block';
                 document.getElementById('instructions').style.display = 'none';
 
-                // Refresh file tree if file manager is visible
-                const fileManagerSection = document.getElementById('fileManagerSection');
-                if (fileManagerSection && fileManagerSection.style.display !== 'none') {
-                    refreshFileTree();
-                }
+                // NOTE: Auto-show management sections is ONLY for new file uploads, not for loading existing files
+                // This function is for loading existing saved data, so we don't show management sections
 
                 // Scroll to flashcard
                 flashcardContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -8356,6 +8437,37 @@ i<!DOCTYPE html>
                 if (!useManualMapping) {
                     console.log('📋 Showing format selector (suggestion will trigger after format is selected)');
                     showFormatSelector(lines, detectedSeparator);
+
+                    // Auto-show management sections immediately when file is uploaded
+                    console.log('📂 Auto-showing management sections on file upload');
+
+                    // Show Category Suggestion if exists (with proper function call)
+                    if (window.pendingCategorySuggestion) {
+                        const suggestion = window.pendingCategorySuggestion;
+                        console.log('   💡 Category Suggestion detected:', suggestion.category, suggestion.subcategory);
+
+                        // Call the function to properly display and populate the suggestion
+                        setTimeout(() => {
+                            showCategorySuggestion(suggestion.category, suggestion.subcategory);
+                            console.log('   ✅ Category Suggestion shown and populated');
+                        }, 500);
+                    }
+
+                    // Show Manage Categories section
+                    const manageCategoriesSection = document.getElementById('mainManageCategories');
+                    if (manageCategoriesSection) {
+                        manageCategoriesSection.style.display = 'block';
+                        console.log('   ✅ Manage Categories shown');
+                    }
+
+                    // Show File Manager section
+                    const fileManagerSection = document.getElementById('mainFileManager');
+                    if (fileManagerSection) {
+                        fileManagerSection.style.display = 'block';
+                        refreshFileTree();
+                        console.log('   ✅ File Manager shown');
+                    }
+
                     return;
                 }
 
@@ -8494,6 +8606,24 @@ i<!DOCTYPE html>
 
                     // Hide instructions after successful load
                     document.getElementById('instructions').style.display = 'none';
+
+                    // Auto-show management sections after file upload
+                    console.log('📂 Auto-showing management sections after file upload');
+
+                    // Show Manage Categories section
+                    const manageCategoriesSection = document.getElementById('mainManageCategories');
+                    if (manageCategoriesSection) {
+                        manageCategoriesSection.style.display = 'block';
+                        console.log('   ✅ Manage Categories shown');
+                    }
+
+                    // Show File Manager section
+                    const fileManagerSection = document.getElementById('mainFileManager');
+                    if (fileManagerSection) {
+                        fileManagerSection.style.display = 'block';
+                        refreshFileTree();
+                        console.log('   ✅ File Manager shown');
+                    }
 
                     // Show category suggestion AFTER all UI is visible (SIMPLIFIED - no auto-open needed!)
                     console.log('🔍 Checking pending suggestion. Value:', window.pendingCategorySuggestion);
