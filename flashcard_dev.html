@@ -7448,6 +7448,12 @@ i<!DOCTYPE html>
                         const fileCount = fileList.length;
                         console.log(`    Final count: ${fileCount} files, ${subcatCards} cards`);
 
+                        // Skip empty subcategories (no files/cards)
+                        if (fileCount === 0) {
+                            console.log(`    ⏭️ Skipping empty subcategory: ${subcat}`);
+                            continue;
+                        }
+
                         subcatDiv.innerHTML = `
                             <div>
                                 <div style="font-weight: 600; color: #374151;">📄 ${subcat}</div>
