@@ -7048,14 +7048,26 @@ i<!DOCTYPE html>
 
                 // Get categories for current page
                 const categoriesToShow = Object.keys(filteredCategoryData).sort().slice(startIndex, endIndex);
-                renderListView(categoriesToShow, filteredCategoryData, false);
+
+                // Render based on current view mode
+                if (currentViewMode === 'grouped') {
+                    renderGroupedView(filteredCategoryData, false);
+                } else {
+                    renderListView(categoriesToShow, filteredCategoryData, false);
+                }
             } else {
                 paginationControls.style.display = 'none';
                 currentPage = 1; // Reset pagination
 
                 // Get all categories (no pagination)
                 const categoriesToShow = Object.keys(filteredCategoryData).sort();
-                renderListView(categoriesToShow, filteredCategoryData, false);
+
+                // Render based on current view mode
+                if (currentViewMode === 'grouped') {
+                    renderGroupedView(filteredCategoryData, false);
+                } else {
+                    renderListView(categoriesToShow, filteredCategoryData, false);
+                }
             }
         }
 
