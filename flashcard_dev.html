@@ -7451,7 +7451,7 @@ i<!DOCTYPE html>
                         // Skip empty subcategories (no files/cards)
                         if (fileCount === 0) {
                             console.log(`    ⏭️ Skipping empty subcategory: ${subcat}`);
-                            continue;
+                            return; // Skip this iteration in forEach
                         }
 
                         subcatDiv.innerHTML = `
