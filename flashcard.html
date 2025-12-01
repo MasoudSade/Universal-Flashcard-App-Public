@@ -149,6 +149,7 @@ i<!DOCTYPE html>
         .flashcard-container {
             display: none;
             margin-bottom: 30px;
+            position: relative;
         }
 
         .flashcard {
@@ -2368,6 +2369,225 @@ i<!DOCTYPE html>
                 font-size: 1.3em !important;
             }
         }
+
+        /* ===== MINIMIZE MODE (YouTube-style PIP) ===== */
+        .minimize-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            z-index: 100;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .minimize-btn:hover {
+            background: rgba(102, 126, 234, 1);
+            transform: scale(1.05);
+        }
+
+        .flashcard-container.minimized {
+            position: fixed !important;
+            bottom: 20px !important;
+            right: 20px !important;
+            width: clamp(320px, 30vw, 450px) !important;
+            height: auto !important;
+            max-height: min(70vh, 600px) !important;
+            min-height: 200px !important;
+            z-index: 9999 !important;
+            margin: 0 !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
+            border-radius: 16px !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            transition: all 0.3s ease !important;
+            background: white !important;
+        }
+
+        .flashcard-container.minimized .flashcard {
+            height: auto !important;
+            min-height: auto !important;
+            padding: 10px 12px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            box-sizing: border-box !important;
+        }
+
+        .flashcard-container.minimized .card-lang1-section,
+        .flashcard-container.minimized .card-lang2-section {
+            padding: 10px !important;
+            margin: 2px 0 !important;
+            box-sizing: border-box !important;
+        }
+
+        .flashcard-container.minimized .card-content {
+            font-size: clamp(1em, 1.1em, 1.3em) !important;
+            margin: 5px 0 !important;
+            line-height: 1.3 !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            max-width: 100% !important;
+        }
+
+        .flashcard-container.minimized .card-label {
+            font-size: 0.75em !important;
+            margin-bottom: 3px !important;
+        }
+
+        .flashcard-container.minimized .card-detail {
+            font-size: 0.8em !important;
+            margin-top: 3px !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+        }
+
+        .flashcard-container.minimized .card-divider {
+            margin: 6px 0 !important;
+        }
+
+        .flashcard-container.minimized .reveal-btn {
+            padding: 6px 12px !important;
+            font-size: 0.8em !important;
+            margin-top: 6px !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+        }
+
+        .flashcard-container.minimized .audio-btn,
+        .flashcard-container.minimized .audio-btn-lang2 {
+            font-size: 1em !important;
+            padding: 5px 8px !important;
+        }
+
+        .flashcard-container.minimized .learned-badge {
+            font-size: 0.65em !important;
+            padding: 2px 6px !important;
+        }
+
+        .flashcard-container.minimized .review-info {
+            font-size: 0.65em !important;
+            word-wrap: break-word !important;
+        }
+
+        /* Scrollbar styling for minimized mode */
+        .flashcard-container.minimized::-webkit-scrollbar {
+            width: 6px !important;
+        }
+
+        .flashcard-container.minimized::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05) !important;
+            border-radius: 10px !important;
+        }
+
+        .flashcard-container.minimized::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5) !important;
+            border-radius: 10px !important;
+        }
+
+        .flashcard-container.minimized::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.8) !important;
+        }
+
+        .flashcard-container.minimized .hint {
+            display: none !important;
+        }
+
+        .navigation.hidden {
+            display: none !important;
+        }
+
+        .restore-btn {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 5px 12px;
+            cursor: pointer;
+            font-size: 0.75em;
+            font-weight: 600;
+            z-index: 101;
+            transition: all 0.3s ease;
+        }
+
+        .restore-btn:hover {
+            background: rgba(239, 68, 68, 1);
+        }
+
+        .flashcard-container:not(.minimized) .restore-btn {
+            display: none !important;
+        }
+
+        .flashcard-container.minimized .minimize-btn {
+            display: none !important;
+        }
+
+        /* ===== MOBILE RESPONSIVE FOR MINIMIZE MODE ===== */
+        @media (max-width: 768px) {
+            .flashcard-container.minimized {
+                width: calc(100vw - 40px) !important;
+                max-width: 400px !important;
+                bottom: 10px !important;
+                right: 10px !important;
+                max-height: min(60vh, 500px) !important;
+            }
+
+            .flashcard-container.minimized .card-content {
+                font-size: 1em !important;
+            }
+
+            .minimize-btn {
+                padding: 6px 12px !important;
+                font-size: 0.8em !important;
+            }
+
+            .restore-btn {
+                padding: 4px 10px !important;
+                font-size: 0.7em !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .flashcard-container.minimized {
+                width: calc(100vw - 20px) !important;
+                bottom: 5px !important;
+                right: 5px !important;
+                left: 5px !important;
+                margin: 0 auto !important;
+                max-height: min(50vh, 400px) !important;
+            }
+
+            .flashcard-container.minimized .card-content {
+                font-size: 0.95em !important;
+            }
+
+            .flashcard-container.minimized .card-label {
+                font-size: 0.7em !important;
+            }
+
+            .flashcard-container.minimized .card-detail {
+                font-size: 0.75em !important;
+            }
+
+            .minimize-btn {
+                padding: 5px 10px !important;
+                font-size: 0.75em !important;
+            }
+
+            .restore-btn {
+                padding: 3px 8px !important;
+                font-size: 0.65em !important;
+            }
+        }
     </style>
     <style>
         /* Cloud Sync Login Modal */
@@ -3286,6 +3506,8 @@ i<!DOCTYPE html>
         </div>
 
         <div class="flashcard-container" id="flashcardContainer">
+            <button class="minimize-btn" onclick="window.toggleMinimizeMode()" title="Minimize to corner">⬇️ Minimize</button>
+            <button class="restore-btn" onclick="window.toggleMinimizeMode()" title="Restore to full size">⬆️ Restore</button>
             <div class="flashcard" id="flashcard">
                 <div class="card-lang1-section">
                     <button class="audio-btn" id="audioBtn" title="Pronounce Source word">🔊</button>
@@ -9924,6 +10146,38 @@ i<!DOCTYPE html>
                 e.preventDefault();
                 if (flashcards.length > 0) {
                     togglePracticeMode();
+                }
+            }
+        });
+
+        // ============================================
+        // MINIMIZE MODE (YouTube-style PIP)
+        // ============================================
+        let isMinimized = false;
+
+        window.toggleMinimizeMode = function() {
+            const container = document.getElementById('flashcardContainer');
+            const navigation = document.getElementById('navigation');
+
+            isMinimized = !isMinimized;
+
+            if (isMinimized) {
+                container.classList.add('minimized');
+                navigation.classList.add('hidden');
+                console.log('📦 Minimized');
+            } else {
+                container.classList.remove('minimized');
+                navigation.classList.remove('hidden');
+                console.log('📤 Restored');
+            }
+        };
+
+        // Keyboard shortcut: M key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'm' || e.key === 'M') {
+                const container = document.getElementById('flashcardContainer');
+                if (container && container.style.display !== 'none') {
+                    window.toggleMinimizeMode();
                 }
             }
         });
