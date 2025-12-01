@@ -9240,7 +9240,7 @@ i<!DOCTYPE html>
             if (filteredCards.length === 0) return;
 
             isAutoPlaying = true;
-            autoplayBtn.textContent = '⏸ Stop';
+            autoplayBtn.textContent = '⏸ Pause';
             autoplayBtn.classList.add('playing');
 
             // Auto-open settings menu and expand auto-play accordion
@@ -9257,8 +9257,10 @@ i<!DOCTYPE html>
                 }
             });
 
-            // Start session stats
-            startSessionStats();
+            // Start session stats (only if not already started)
+            if (!sessionStartTime) {
+                startSessionStats();
+            }
 
             // Start timers if enabled
             if (studyTimerEnabled) {
@@ -9332,8 +9334,19 @@ i<!DOCTYPE html>
                 }
             }
 
-            // Stop timers
-            stopAllTimers();
+            // Stop timers (but keep session stats running if manually paused)
+            if (reason === 'manual') {
+                // Only stop study/sleep timers, keep session stats running
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                timerEndTime = null;
+                document.getElementById('timerDisplay').style.display = 'none';
+            } else {
+                // Stop all timers including session stats for timer/sleep/complete
+                stopAllTimers();
+            }
 
             // Show appropriate message (only if recording wasn't already handled)
             const wasRecording = recordedAudioBlob !== null;
@@ -9490,11 +9503,20 @@ i<!DOCTYPE html>
 
         // Session stats functions
         function startSessionStats() {
-            sessionStartTime = Date.now();
-            cardsReviewedCount = 0;
+            // Only initialize if starting fresh (not resuming)
+            if (!sessionStartTime) {
+                sessionStartTime = Date.now();
+                cardsReviewedCount = 0;
+                document.getElementById('sessionStart').textContent = new Date().toLocaleTimeString();
+            }
+
             document.getElementById('sessionStats').style.display = 'block';
-            document.getElementById('sessionStart').textContent = new Date().toLocaleTimeString();
             updateSessionStats();
+
+            // Clear any existing interval before starting new one
+            if (statsInterval) {
+                clearInterval(statsInterval);
+            }
             statsInterval = setInterval(updateSessionStats, 1000);
         }
 
