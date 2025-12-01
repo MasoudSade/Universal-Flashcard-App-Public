@@ -3512,6 +3512,7 @@ i<!DOCTYPE html>
                     <div class="learned-badge" id="learnedBadge" style="display: none;">✓ Learned</div>
                     <div class="card-label">📖 Source Language</div>
                     <div class="card-content" id="germanWord"></div>
+                    <div class="card-detail" id="detailFront"></div>
                     <div class="review-info" id="reviewInfo"></div>
                     <hr class="card-divider">
                     <button class="reveal-btn" id="revealBtn">👁 Show Target Meaning</button>
@@ -9153,6 +9154,16 @@ i<!DOCTYPE html>
 
             germanWord.textContent = card.lang1;
             englishWord.textContent = card.lang2;
+
+            // Show source example (lang1Extended)
+            const detailFront = document.getElementById('detailFront');
+            if (card.lang1Extended) {
+                detailFront.textContent = '📝 ' + card.lang1Extended;
+                detailFront.style.display = 'block';
+                detailFront.style.whiteSpace = 'pre-line';
+            } else {
+                detailFront.style.display = 'none';
+            }
 
             // Show detail and extended content indicators (only English-related content)
             let detailText = '';
