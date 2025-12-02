@@ -6917,7 +6917,12 @@ i<!DOCTYPE html>
             }
 
             // Toggle visibility
-            if (section.style.display === 'none' || section.style.display === '') {
+            // For Category Browser, check actual visibility since it doesn't have inline display style by default
+            const isHidden = (sectionName === 'categoryBrowser')
+                ? (section.style.display === 'none')
+                : (section.style.display === 'none' || section.style.display === '');
+
+            if (isHidden) {
                 // Show section
                 // File Manager is a modal, so use flex display
                 if (sectionName === 'fileManager') {
@@ -6932,13 +6937,8 @@ i<!DOCTYPE html>
                     testAutoOpen();
                 }
 
-                // Close sidebar after selection (except for Category Browser toggle which just toggles visibility)
-                if (sectionName !== 'categoryBrowser') {
-                    toggleManagementPanel();
-                } else {
-                    // Just close the panel for category browser
-                    toggleManagementPanel();
-                }
+                // Close sidebar after selection
+                toggleManagementPanel();
             } else {
                 // Hide section
                 section.style.display = 'none';
