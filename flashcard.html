@@ -2317,12 +2317,6 @@ i<!DOCTYPE html>
             background: #5568d3;
         }
 
-        /* Category browser header buttons */
-        #categoryBrowser button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-
         /* Category collapse button styling */
         .category-collapse-btn:hover {
             color: #764ba2 !important;
@@ -2850,16 +2844,16 @@ i<!DOCTYPE html>
         <!-- Category Browser (Collapsible & Scrollable) - Practice existing vocabulary -->
         <div class="category-browser" id="categoryBrowser" style="background: #f0f9ff; padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 3px solid #667eea;">
             <!-- Header with collapse button -->
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; cursor: pointer;" onclick="toggleCategoryBrowser()">
-                <div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                <div style="cursor: pointer;" onclick="toggleCategoryBrowser()">
                     <h3 style="color: #667eea; margin: 0; display: inline-block;">📚 Your Vocabulary Categories</h3>
                     <span id="categoryCount" style="font-size: 0.85em; color: #999; margin-left: 10px;"></span>
                 </div>
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="event.stopPropagation(); renderCategoryBrowser();" title="Refresh categories" style="background: #10b981; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 1em; transition: all 0.3s;">
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="event.stopPropagation(); renderCategoryBrowser();" style="background: #10b981; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 1em; transition: all 0.3s;" onmouseenter="this.style.background='#059669'" onmouseleave="this.style.background='#10b981'" title="Refresh categories">
                         🔄 Refresh
                     </button>
-                    <button id="categoryBrowserToggle" style="background: #667eea; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 1em; transition: all 0.3s;">
+                    <button id="categoryBrowserToggle" onclick="event.stopPropagation(); toggleCategoryBrowser();" style="background: #667eea; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 1em; transition: all 0.3s;">
                         ▼ Hide
                     </button>
                 </div>
@@ -3265,15 +3259,6 @@ i<!DOCTYPE html>
             </div>
         </div>
 
-        <!-- Quick Actions (Always Visible When File Loaded) -->
-        <div class="quick-actions" id="quickActions">
-            <button class="quick-action-btn autoplay-btn" id="autoplayBtn">▶ Auto-Play</button>
-            <button class="quick-action-btn" id="shuffleBtn">🔀 Shuffle</button>
-            <button class="quick-action-btn" id="learnedBtn">✓ Mark Learned</button>
-            <button class="quick-action-btn" id="showLearnedBtn">👁 Unlearned Only</button>
-            <button class="quick-action-btn" id="remapColumnsBtn" style="background: #f59e0b;">🎯 Remap Columns</button>
-        </div>
-
         <!-- Settings Menu Toggle Button -->
         <button class="settings-toggle-btn" id="settingsToggleBtn">
             <span>⚙️ Settings & Options</span>
@@ -3357,13 +3342,13 @@ i<!DOCTYPE html>
                     </label>
                     <label>
                         <span>Delay between Source & Target:</span>
-                        <input type="range" id="delayBetween" min="500" max="3000" step="100" value="1500">
-                        <span class="delay-value" id="delayBetweenValue">1.5s</span>
+                        <input type="range" id="delayBetween" min="500" max="20000" step="500" value="20000">
+                        <span class="delay-value" id="delayBetweenValue">20s</span>
                     </label>
                     <label>
                         <span>Delay before next card:</span>
-                        <input type="range" id="delayNext" min="1000" max="5000" step="200" value="2500">
-                        <span class="delay-value" id="delayNextValue">2.5s</span>
+                        <input type="range" id="delayNext" min="1000" max="20000" step="500" value="20000">
+                        <span class="delay-value" id="delayNextValue">20s</span>
                     </label>
                     <hr style="border: 1px solid #e2e8f0; margin: 15px 0;">
                     <label>
@@ -3504,6 +3489,18 @@ i<!DOCTYPE html>
             🎯 Start Practice Mode - Focus Only on Flashcards
         </button>
 
+        <!-- Quick Actions (Control buttons) -->
+        <div class="quick-actions" id="quickActions" style="margin: 20px 0;">
+            <button class="quick-action-btn autoplay-btn" id="autoplayBtn">▶ Auto-Play</button>
+            <button class="quick-action-btn" id="shuffleBtn">🔀 Shuffle</button>
+            <button class="quick-action-btn" id="learnedBtn">✓ Mark Learned</button>
+            <button class="quick-action-btn" id="showLearnedBtn">👁 Unlearned Only</button>
+            <button class="quick-action-btn" id="remapColumnsBtn" style="background: #f59e0b;">🎯 Remap Columns</button>
+            <button class="quick-action-btn" id="repeatBtn" style="background: #8b5cf6; color: white;">🔁 Repeat</button>
+            <button class="quick-action-btn" id="minimizeBtn" style="background: #06b6d4; color: white;" onclick="window.toggleMinimizeMode()" title="Minimize flashcard to corner">⬇️ Minimize</button>
+            <button class="quick-action-btn" id="deleteRecordBtn" style="background: #ef4444; color: white;">🗑️ Delete</button>
+        </div>
+
         <!-- Floating Practice Mode Controls -->
         <div class="practice-mode-controls" id="practiceModeControls">
             <button class="floating-control-btn stop" onclick="togglePracticeMode()">
@@ -3515,8 +3512,6 @@ i<!DOCTYPE html>
         </div>
 
         <div class="flashcard-container" id="flashcardContainer">
-            <button class="minimize-btn" onclick="window.toggleMinimizeMode()" title="Minimize to corner">⬇️ Minimize</button>
-            <button class="restore-btn" onclick="window.toggleMinimizeMode()" title="Restore to full size">⬆️ Restore</button>
             <div class="flashcard" id="flashcard">
                 <div class="card-lang1-section">
                     <button class="audio-btn" id="audioBtn" title="Pronounce Source word">🔊</button>
@@ -7840,6 +7835,8 @@ i<!DOCTYPE html>
         const learnedBtn = document.getElementById('learnedBtn');
         const resetBtn = document.getElementById('resetBtn');
         const showLearnedBtn = document.getElementById('showLearnedBtn');
+        const repeatBtn = document.getElementById('repeatBtn');
+        const deleteRecordBtn = document.getElementById('deleteRecordBtn');
         const learnedBadge = document.getElementById('learnedBadge');
         const audioBtn = document.getElementById('audioBtn');
         const reviewInfo = document.getElementById('reviewInfo');
@@ -10036,6 +10033,111 @@ i<!DOCTYPE html>
             }
         }
 
+        // Repeat current card (replay audio)
+        repeatBtn.addEventListener('click', () => {
+            if (filteredCards.length === 0) return;
+
+            // Get current card
+            const card = filteredCards[currentIndex];
+
+            // Stop any ongoing auto-play
+            if (isAutoPlaying) {
+                stopAutoPlay('manual');
+            }
+
+            // Pronounce the source word
+            if (card.lang1) {
+                speakText(card.lang1, sourceLang);
+            }
+
+            // After delay, pronounce the target word if visible
+            setTimeout(() => {
+                if (englishSection.classList.contains('revealed') && card.lang2) {
+                    speakText(card.lang2, targetLang);
+                }
+            }, parseInt(delayBetween.value));
+
+            // Visual feedback
+            repeatBtn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                repeatBtn.style.transform = 'scale(1)';
+            }, 200);
+        });
+
+        // Delete current record
+        deleteRecordBtn.addEventListener('click', () => {
+            if (filteredCards.length === 0) return;
+
+            // Get current card
+            const card = filteredCards[currentIndex];
+
+            // Create confirmation message with card details
+            const confirmMessage = `⚠️ DELETE CONFIRMATION ⚠️\n\n` +
+                `Are you sure you want to permanently delete this flashcard?\n\n` +
+                `📖 Source: ${card.lang1 || 'N/A'}\n` +
+                `   Example: ${card.lang1Extended || 'N/A'}\n\n` +
+                `🎯 Target: ${card.lang2 || 'N/A'}\n` +
+                `   Example: ${card.lang2Extended || 'N/A'}\n\n` +
+                `⚠️ This action CANNOT be undone!\n` +
+                `The record will be removed from your file.`;
+
+            if (confirm(confirmMessage)) {
+                // Stop any ongoing auto-play
+                if (isAutoPlaying) {
+                    stopAutoPlay('manual');
+                }
+
+                // Find the card in the original flashcards array
+                const originalIndex = flashcards.findIndex(c =>
+                    c.lang1 === card.lang1 &&
+                    c.lang2 === card.lang2 &&
+                    c.lang1Extended === card.lang1Extended &&
+                    c.lang2Extended === card.lang2Extended
+                );
+
+                if (originalIndex !== -1) {
+                    // Remove from original array
+                    flashcards.splice(originalIndex, 1);
+
+                    // Save the updated flashcards to localStorage
+                    saveProgress();
+
+                    // Sync to cloud immediately
+                    if (isCloudEnabled && cloudUser) {
+                        uploadToCloud().then(() => {
+                            console.log('✅ Deletion synced to cloud');
+                        }).catch(err => {
+                            console.warn('⚠️ Cloud sync failed:', err);
+                        });
+                    }
+
+                    // Update stats
+                    updateStats();
+
+                    // Recalculate filtered cards and adjust index
+                    const updatedFilteredCards = getActiveCards();
+
+                    // If we're at or past the end, move back
+                    if (currentIndex >= updatedFilteredCards.length && updatedFilteredCards.length > 0) {
+                        currentIndex = updatedFilteredCards.length - 1;
+                    } else if (updatedFilteredCards.length === 0) {
+                        currentIndex = 0;
+                    }
+
+                    // Show next card or empty message
+                    if (updatedFilteredCards.length > 0) {
+                        showFlashcard();
+                        alert(`✓ Flashcard deleted successfully!\n\nRemaining cards: ${flashcards.length}\n\n${isCloudEnabled ? '☁️ Changes synced to cloud' : '💾 Changes saved locally'}`);
+                    } else {
+                        alert(`✓ Flashcard deleted!\n\nNo more cards to display.`);
+                        flashcardContainer.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No flashcards available. Please load a file.</p>';
+                    }
+                } else {
+                    alert('❌ Error: Could not find the card to delete.');
+                }
+            }
+        });
+
         // Reset all progress
         resetBtn.addEventListener('click', () => {
             if (confirm('Reset all progress? This will unmark all learned cards and clear review schedules.')) {
@@ -10207,16 +10309,25 @@ i<!DOCTYPE html>
         window.toggleMinimizeMode = function() {
             const container = document.getElementById('flashcardContainer');
             const navigation = document.getElementById('navigation');
+            const minimizeBtn = document.getElementById('minimizeBtn');
 
             isMinimized = !isMinimized;
 
             if (isMinimized) {
                 container.classList.add('minimized');
                 navigation.classList.add('hidden');
+                if (minimizeBtn) {
+                    minimizeBtn.innerHTML = '⬆️ Restore';
+                    minimizeBtn.title = 'Restore flashcard to full size';
+                }
                 console.log('📦 Minimized');
             } else {
                 container.classList.remove('minimized');
                 navigation.classList.remove('hidden');
+                if (minimizeBtn) {
+                    minimizeBtn.innerHTML = '⬇️ Minimize';
+                    minimizeBtn.title = 'Minimize flashcard to corner';
+                }
                 console.log('📤 Restored');
             }
         };
