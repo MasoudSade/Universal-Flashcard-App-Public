@@ -888,6 +888,45 @@ i<!DOCTYPE html>
             animation: none;
         }
 
+        #dataPreviewTable th.type-lang1Extended1 {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            border: 4px solid #f59e0b;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        #dataPreviewTable th.type-lang1Extended1::before {
+            content: '✓ Selected';
+            color: white;
+            animation: none;
+        }
+
+        #dataPreviewTable th.type-lang1Extended2 {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            border: 4px solid #f59e0b;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        #dataPreviewTable th.type-lang1Extended2::before {
+            content: '✓ Selected';
+            color: white;
+            animation: none;
+        }
+
+        #dataPreviewTable th.type-lang1Extended3 {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            border: 4px solid #f59e0b;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        #dataPreviewTable th.type-lang1Extended3::before {
+            content: '✓ Selected';
+            color: white;
+            animation: none;
+        }
+
         #dataPreviewTable th.type-lang2 {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
             color: white;
@@ -909,6 +948,45 @@ i<!DOCTYPE html>
         }
 
         #dataPreviewTable th.type-lang2Extended::before {
+            content: '✓ Selected';
+            color: white;
+            animation: none;
+        }
+
+        #dataPreviewTable th.type-lang2Extended1 {
+            background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+            color: white;
+            border: 4px solid #ec4899;
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+        }
+
+        #dataPreviewTable th.type-lang2Extended1::before {
+            content: '✓ Selected';
+            color: white;
+            animation: none;
+        }
+
+        #dataPreviewTable th.type-lang2Extended2 {
+            background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+            color: white;
+            border: 4px solid #ec4899;
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+        }
+
+        #dataPreviewTable th.type-lang2Extended2::before {
+            content: '✓ Selected';
+            color: white;
+            animation: none;
+        }
+
+        #dataPreviewTable th.type-lang2Extended3 {
+            background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+            color: white;
+            border: 4px solid #ec4899;
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+        }
+
+        #dataPreviewTable th.type-lang2Extended3::before {
             content: '✓ Selected';
             color: white;
             animation: none;
@@ -954,8 +1032,8 @@ i<!DOCTYPE html>
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
             display: none;
             width: 280px;
-            max-height: 350px;
-            overflow-y: auto;
+            max-height: 400px;
+            overflow-y: scroll !important;
         }
 
         @keyframes slideDown {
@@ -974,21 +1052,25 @@ i<!DOCTYPE html>
         }
 
         .column-type-selector::-webkit-scrollbar {
-            width: 8px;
+            width: 16px;
         }
 
         .column-type-selector::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
+            background: #cbd5e1;
+            border-radius: 10px;
+            border: 2px solid #94a3b8;
         }
 
         .column-type-selector::-webkit-scrollbar-thumb {
             background: #667eea;
-            border-radius: 4px;
+            border-radius: 10px;
+            border: 3px solid #cbd5e1;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
         .column-type-selector::-webkit-scrollbar-thumb:hover {
-            background: #5568d3;
+            background: #4f46e5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
 
         .type-option {
@@ -1517,7 +1599,7 @@ i<!DOCTYPE html>
             display: none;
             width: 280px;
             max-height: 400px;
-            overflow-y: auto;
+            overflow-y: scroll !important;
         }
 
         .column-type-selector.active {
@@ -1525,17 +1607,25 @@ i<!DOCTYPE html>
         }
 
         .column-type-selector::-webkit-scrollbar {
-            width: 8px;
+            width: 16px;
         }
 
         .column-type-selector::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
+            background: #cbd5e1;
+            border-radius: 10px;
+            border: 2px solid #94a3b8;
         }
 
         .column-type-selector::-webkit-scrollbar-thumb {
             background: #667eea;
-            border-radius: 4px;
+            border-radius: 10px;
+            border: 3px solid #cbd5e1;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .column-type-selector::-webkit-scrollbar-thumb:hover {
+            background: #4f46e5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
 
         .type-option {
@@ -2895,7 +2985,7 @@ i<!DOCTYPE html>
         </div>
 
         <!-- Upload Section (Always Visible) -->
-        <div class="upload-section">
+        <div class="upload-section" id="uploadSection">
             <label for="csvFile" class="upload-label">
                 📁 Choose Vocabulary File
             </label>
@@ -3119,6 +3209,18 @@ i<!DOCTYPE html>
                 <div style="margin-bottom: 15px;">
                     <button onclick="remapLoadedFlashcards()" style="display: block; width: 100%; padding: 14px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em; transition: all 0.3s;">
                         🎯 Remap Columns
+                    </button>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <button onclick="toggleMainSection('settingsMenu')" style="display: block; width: 100%; padding: 14px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em; transition: all 0.3s;">
+                        ⚙️ Toggle Settings & Options
+                    </button>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <button onclick="toggleMainSection('uploadSection')" style="display: block; width: 100%; padding: 14px; background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em; transition: all 0.3s;">
+                        📁 Toggle File Upload Section
                     </button>
                 </div>
 
@@ -6905,6 +7007,12 @@ i<!DOCTYPE html>
                 case 'categoryBrowser':
                     sectionId = 'categoryBrowser';
                     break;
+                case 'settingsMenu':
+                    sectionId = 'settingsMenu';
+                    break;
+                case 'uploadSection':
+                    sectionId = 'uploadSection';
+                    break;
                 default:
                     console.error('Unknown section:', sectionName);
                     return;
@@ -6917,8 +7025,8 @@ i<!DOCTYPE html>
             }
 
             // Toggle visibility
-            // For Category Browser, check actual visibility since it doesn't have inline display style by default
-            const isHidden = (sectionName === 'categoryBrowser')
+            // For Category Browser, Settings Menu, and Upload Section, check actual visibility since they don't have inline display style by default
+            const isHidden = (sectionName === 'categoryBrowser' || sectionName === 'settingsMenu' || sectionName === 'uploadSection')
                 ? (section.style.display === 'none')
                 : (section.style.display === 'none' || section.style.display === '');
 
@@ -6937,11 +7045,27 @@ i<!DOCTYPE html>
                     testAutoOpen();
                 }
 
+                // For Settings Menu, also show the toggle button
+                if (sectionName === 'settingsMenu') {
+                    const settingsBtn = document.getElementById('settingsToggleBtn');
+                    if (settingsBtn) {
+                        settingsBtn.style.display = 'flex';
+                    }
+                }
+
                 // Close sidebar after selection
                 toggleManagementPanel();
             } else {
                 // Hide section
                 section.style.display = 'none';
+
+                // For Settings Menu, also hide the toggle button
+                if (sectionName === 'settingsMenu') {
+                    const settingsBtn = document.getElementById('settingsToggleBtn');
+                    if (settingsBtn) {
+                        settingsBtn.style.display = 'none';
+                    }
+                }
 
                 // Close sidebar when hiding (for consistency)
                 toggleManagementPanel();
@@ -7823,9 +7947,16 @@ i<!DOCTYPE html>
                 // NOTE: Auto-show management sections is ONLY for new file uploads, not for loading existing files
                 // This function is for loading existing saved data, so we don't show management sections
 
-                // Hide suggestions and manage categories - Category Browser stays visible
+                // Hide suggestions and manage categories
                 document.getElementById('suggestedCategorySection').style.display = 'none';
                 document.getElementById('mainManageCategories').style.display = 'none';
+
+                // Auto-hide Category Browser, Settings, and Upload Section when loading a file for practice
+                document.getElementById('categoryBrowser').style.display = 'none';
+                document.getElementById('settingsMenu').style.display = 'none';
+                document.getElementById('settingsToggleBtn').style.display = 'none';
+                document.getElementById('uploadSection').style.display = 'none';
+                console.log('   ✅ Category Browser, Settings, and Upload Section auto-hidden for clean practice view');
 
                 // Scroll to flashcard
                 flashcardContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -8181,9 +8312,13 @@ i<!DOCTYPE html>
             if (columnMapping && Object.keys(columnMapping).length > 0) {
                 const result = {
                     lang1: '',
-                    lang1Extended: '',
+                    lang1Extended1: '',
+                    lang1Extended2: '',
+                    lang1Extended3: '',
                     lang2: '',
-                    lang2Extended: '',
+                    lang2Extended1: '',
+                    lang2Extended2: '',
+                    lang2Extended3: '',
                     detail: ''
                 };
 
@@ -8193,9 +8328,13 @@ i<!DOCTYPE html>
                     const colValue = parts[colIndex] ? parts[colIndex].trim() : '';
 
                     if (colType === 'lang1') result.lang1 = colValue;
-                    else if (colType === 'lang1Extended') result.lang1Extended = colValue;
+                    else if (colType === 'lang1Extended1') result.lang1Extended1 = colValue;
+                    else if (colType === 'lang1Extended2') result.lang1Extended2 = colValue;
+                    else if (colType === 'lang1Extended3') result.lang1Extended3 = colValue;
                     else if (colType === 'lang2') result.lang2 = colValue;
-                    else if (colType === 'lang2Extended') result.lang2Extended = colValue;
+                    else if (colType === 'lang2Extended1') result.lang2Extended1 = colValue;
+                    else if (colType === 'lang2Extended2') result.lang2Extended2 = colValue;
+                    else if (colType === 'lang2Extended3') result.lang2Extended3 = colValue;
                 });
 
                 // console.log('Using manual mapping:', result); // Disabled to reduce console spam
@@ -8488,7 +8627,7 @@ i<!DOCTYPE html>
                 startIndex = 1;
             }
 
-            const previewRows = lines.slice(startIndex, Math.min(startIndex + 10, lines.length));
+            const previewRows = lines.slice(startIndex, Math.min(startIndex + 15, lines.length));
             const sampleData = previewRows.map(line => line.split(separator).map(col => col.trim()));
             const numColumns = sampleData[0].length;
 
@@ -8508,17 +8647,33 @@ i<!DOCTYPE html>
                                 <span style="font-size: 1.5em;">📖</span>
                                 <span>Source Language<br><small style="font-weight: normal; opacity: 0.8;">Main vocab (visible)</small></span>
                             </div>
-                            <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang1Extended')" style="color: #f59e0b;">
+                            <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang1Extended1')" style="color: #f59e0b;">
                                 <span style="font-size: 1.5em;">📝</span>
-                                <span>Source Example<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
+                                <span>Source Example 1<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
+                            </div>
+                            <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang1Extended2')" style="color: #f59e0b;">
+                                <span style="font-size: 1.5em;">📝</span>
+                                <span>Source Example 2<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
+                            </div>
+                            <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang1Extended3')" style="color: #f59e0b;">
+                                <span style="font-size: 1.5em;">📝</span>
+                                <span>Source Example 3<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
                             </div>
                             <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang2')" style="color: #3b82f6;">
                                 <span style="font-size: 1.5em;">🎯</span>
                                 <span>Target Language<br><small style="font-weight: normal; opacity: 0.8;">Main translation (visible)</small></span>
                             </div>
-                            <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang2Extended')" style="color: #ec4899;">
+                            <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang2Extended1')" style="color: #ec4899;">
                                 <span style="font-size: 1.5em;">📖</span>
-                                <span>Target Example<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
+                                <span>Target Example 1<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
+                            </div>
+                            <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang2Extended2')" style="color: #ec4899;">
+                                <span style="font-size: 1.5em;">📖</span>
+                                <span>Target Example 2<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
+                            </div>
+                            <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang2Extended3')" style="color: #ec4899;">
+                                <span style="font-size: 1.5em;">📖</span>
+                                <span>Target Example 3<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
                             </div>
                             <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'ignore')" style="color: #94a3b8;">
                                 <span style="font-size: 1.5em;">🚫</span>
@@ -8592,7 +8747,7 @@ i<!DOCTYPE html>
                 startIndex = 1;
             }
 
-            const previewRows = lines.slice(startIndex, Math.min(startIndex + 10, lines.length));
+            const previewRows = lines.slice(startIndex, Math.min(startIndex + 15, lines.length));
             const sampleData = previewRows.map(line => line.split(separator).map(col => col.trim()));
             const numColumns = sampleData[0].length;
 
@@ -8612,17 +8767,33 @@ i<!DOCTYPE html>
                                 <span style="font-size: 1.5em;">📖</span>
                                 <span>Source Language<br><small style="font-weight: normal; opacity: 0.8;">Main vocab (visible)</small></span>
                             </div>
-                            <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang1Extended')" style="color: #f59e0b;">
+                            <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang1Extended1')" style="color: #f59e0b;">
                                 <span style="font-size: 1.5em;">📝</span>
-                                <span>Source Example<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
+                                <span>Source Example 1<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
+                            </div>
+                            <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang1Extended2')" style="color: #f59e0b;">
+                                <span style="font-size: 1.5em;">📝</span>
+                                <span>Source Example 2<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
+                            </div>
+                            <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang1Extended3')" style="color: #f59e0b;">
+                                <span style="font-size: 1.5em;">📝</span>
+                                <span>Source Example 3<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
                             </div>
                             <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang2')" style="color: #3b82f6;">
                                 <span style="font-size: 1.5em;">🎯</span>
                                 <span>Target Language<br><small style="font-weight: normal; opacity: 0.8;">Main translation (visible)</small></span>
                             </div>
-                            <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang2Extended')" style="color: #ec4899;">
+                            <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang2Extended1')" style="color: #ec4899;">
                                 <span style="font-size: 1.5em;">📖</span>
-                                <span>Target Example<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
+                                <span>Target Example 1<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
+                            </div>
+                            <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang2Extended2')" style="color: #ec4899;">
+                                <span style="font-size: 1.5em;">📖</span>
+                                <span>Target Example 2<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
+                            </div>
+                            <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'lang2Extended3')" style="color: #ec4899;">
+                                <span style="font-size: 1.5em;">📖</span>
+                                <span>Target Example 3<br><small style="font-weight: normal; opacity: 0.8;">Hidden until revealed</small></span>
                             </div>
                             <div class="type-option" onclick="event.stopPropagation(); setColumnType(${i}, 'ignore')" style="color: #94a3b8;">
                                 <span style="font-size: 1.5em;">🚫</span>
@@ -8686,9 +8857,13 @@ i<!DOCTYPE html>
             // Update header text and visual appearance
             const typeInfo = {
                 'lang1': { icon: '📖', name: 'Source Language', desc: 'Main vocab (visible)' },
-                'lang1Extended': { icon: '📝', name: 'Source Example', desc: 'Extended (hidden)' },
+                'lang1Extended1': { icon: '📝', name: 'Source Example 1', desc: 'Extended (hidden)' },
+                'lang1Extended2': { icon: '📝', name: 'Source Example 2', desc: 'Extended (hidden)' },
+                'lang1Extended3': { icon: '📝', name: 'Source Example 3', desc: 'Extended (hidden)' },
                 'lang2': { icon: '🎯', name: 'Target Language', desc: 'Main translation (visible)' },
-                'lang2Extended': { icon: '📖', name: 'Target Example', desc: 'Extended (hidden)' },
+                'lang2Extended1': { icon: '📖', name: 'Target Example 1', desc: 'Extended (hidden)' },
+                'lang2Extended2': { icon: '📖', name: 'Target Example 2', desc: 'Extended (hidden)' },
+                'lang2Extended3': { icon: '📖', name: 'Target Example 3', desc: 'Extended (hidden)' },
                 'ignore': { icon: '🚫', name: 'Ignored', desc: 'Will be skipped' }
             };
 
@@ -8880,10 +9055,22 @@ i<!DOCTYPE html>
                     }
 
                     let lang1 = detected.lang1;
-                    let lang1Extended = detected.lang1Extended;
+                    let lang1Extended1 = detected.lang1Extended1 || '';
+                    let lang1Extended2 = detected.lang1Extended2 || '';
+                    let lang1Extended3 = detected.lang1Extended3 || '';
                     let lang2 = detected.lang2;
-                    let lang2Extended = detected.lang2Extended;
+                    let lang2Extended1 = detected.lang2Extended1 || '';
+                    let lang2Extended2 = detected.lang2Extended2 || '';
+                    let lang2Extended3 = detected.lang2Extended3 || '';
                     let detail = detected.detail;
+
+                    // Combine multiple examples with | separator for display
+                    const lang1Extended = [lang1Extended1, lang1Extended2, lang1Extended3]
+                        .filter(ex => ex.trim() !== '')
+                        .join(' | ');
+                    const lang2Extended = [lang2Extended1, lang2Extended2, lang2Extended3]
+                        .filter(ex => ex.trim() !== '')
+                        .join(' | ');
 
                     // Check if we have saved progress for this card
                     const savedCard = savedProgress?.find(s => s.lang1 === lang1 && s.lang2 === lang2);
@@ -8892,8 +9079,14 @@ i<!DOCTYPE html>
                         id: index,
                         lang1: lang1,
                         lang1Extended: lang1Extended,
+                        lang1Extended1: lang1Extended1,
+                        lang1Extended2: lang1Extended2,
+                        lang1Extended3: lang1Extended3,
                         lang2: lang2,
                         lang2Extended: lang2Extended,
+                        lang2Extended1: lang2Extended1,
+                        lang2Extended2: lang2Extended2,
+                        lang2Extended3: lang2Extended3,
                         detail: detail,
                         hasExtended: !!(lang1Extended || lang2Extended),
                         learned: savedCard?.learned || false,
