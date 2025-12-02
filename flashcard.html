@@ -3534,7 +3534,13 @@ i<!DOCTYPE html>
 
         <div class="navigation" id="navigation">
             <button class="nav-button" id="prevBtn">← Previous</button>
-            <div class="progress" id="progress">1 / 1</div>
+            <div class="progress" id="progress">
+                <input type="number" id="currentCardInput" min="1" value="1"
+                       style="width: 60px; text-align: center; font-size: 1.1em; font-weight: bold; border: 2px solid #667eea; border-radius: 5px; padding: 5px; background: white;"
+                       title="Enter card number to jump to" />
+                <span style="font-weight: bold;"> / </span>
+                <span id="totalCards">1</span>
+            </div>
             <button class="nav-button" id="nextBtn">Next →</button>
         </div>
     </div>
@@ -9222,7 +9228,12 @@ i<!DOCTYPE html>
                 learnedBtn.textContent = '✓ Mark as Learned';
             }
 
-            progress.textContent = `${currentIndex + 1} / ${filteredCards.length}`;
+            // Update card number input and total
+            const currentCardInput = document.getElementById('currentCardInput');
+            const totalCardsSpan = document.getElementById('totalCards');
+            if (currentCardInput) currentCardInput.value = currentIndex + 1;
+            if (totalCardsSpan) totalCardsSpan.textContent = filteredCards.length;
+            if (currentCardInput) currentCardInput.max = filteredCards.length;
 
             // Handle English section visibility
             if (alwaysShowMeanings) {
@@ -9975,6 +9986,59 @@ i<!DOCTYPE html>
                 showFlashcard();
             }
         });
+
+        // Jump to specific card by entering card number
+        const currentCardInput = document.getElementById('currentCardInput');
+        let jumpTimeout = null;
+
+        if (currentCardInput) {
+            const jumpToCard = () => {
+                stopAutoPlay(); // Stop auto-play on manual navigation
+                const cardNumber = parseInt(currentCardInput.value);
+
+                // Validate input
+                if (isNaN(cardNumber) || cardNumber < 1) {
+                    currentCardInput.value = currentIndex + 1;
+                    alert('⚠️ Please enter a valid card number (minimum: 1)');
+                    return;
+                }
+
+                if (cardNumber > filteredCards.length) {
+                    currentCardInput.value = currentIndex + 1;
+                    alert(`⚠️ Card number cannot exceed ${filteredCards.length}`);
+                    return;
+                }
+
+                // Jump to the card (convert to 0-based index)
+                currentIndex = cardNumber - 1;
+                showFlashcard();
+            };
+
+            // Auto-update as you type (with 800ms delay after you stop typing)
+            currentCardInput.addEventListener('input', () => {
+                // Clear previous timeout
+                if (jumpTimeout) clearTimeout(jumpTimeout);
+
+                // Set new timeout - updates 800ms after you stop typing
+                jumpTimeout = setTimeout(() => {
+                    jumpToCard();
+                }, 800);
+            });
+
+            // Also handle Enter key for immediate jump
+            currentCardInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    if (jumpTimeout) clearTimeout(jumpTimeout);
+                    jumpToCard();
+                }
+            });
+
+            // Handle blur (clicking outside) for immediate jump
+            currentCardInput.addEventListener('blur', () => {
+                if (jumpTimeout) clearTimeout(jumpTimeout);
+                jumpToCard();
+            });
+        }
 
         // Shuffle cards
         shuffleBtn.addEventListener('click', () => {
