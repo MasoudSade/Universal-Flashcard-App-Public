@@ -3111,6 +3111,12 @@ i<!DOCTYPE html>
                 </div>
 
                 <div style="margin-bottom: 15px;">
+                    <button onclick="toggleMainSection('categoryBrowser')" style="display: block; width: 100%; padding: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em; transition: all 0.3s;">
+                        🗂️ Toggle Category Browser
+                    </button>
+                </div>
+
+                <div style="margin-bottom: 15px;">
                     <button onclick="remapLoadedFlashcards()" style="display: block; width: 100%; padding: 14px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em; transition: all 0.3s;">
                         🎯 Remap Columns
                     </button>
@@ -3964,8 +3970,16 @@ i<!DOCTYPE html>
             updateCurrentFileDisplay();
             renderCategoryBrowser();
 
+            // Hide manage categories and show format selector
+            document.getElementById('mainManageCategories').style.display = 'none';
+            const formatSelector = document.getElementById('formatSelector');
+            if (formatSelector) {
+                formatSelector.style.display = 'block';
+                console.log('   ✅ Format selector shown after manual category assignment');
+            }
+
             const subText = subcategory ? ` > ${subcategory}` : '';
-            alert(`File mapped to: ${category}${subText}`);
+            alert(`File mapped to: ${category}${subText}\n\nNext: Choose how to load your file below!`);
         }
 
         function updateCategoryDropdowns() {
@@ -5987,12 +6001,22 @@ i<!DOCTYPE html>
             // Hide suggestion section
             document.getElementById('suggestedCategorySection').style.display = 'none';
 
-            // Render category browser
+            // Hide manage categories section
+            document.getElementById('mainManageCategories').style.display = 'none';
+
+            // Show format selector
+            const formatSelector = document.getElementById('formatSelector');
+            if (formatSelector) {
+                formatSelector.style.display = 'block';
+                console.log('   ✅ Format selector shown');
+            }
+
+            // Render category browser (always visible)
             renderCategoryBrowser();
 
             // Show success message
             const subText = subcategory ? ` → ${subcategory}` : '';
-            alert(`✓ Success! File assigned to:\n📁 ${category}${subText}\n\n💾 Vocabulary saved and ready to practice!`);
+            alert(`✓ Success! File assigned to:\n📁 ${category}${subText}\n\nNext: Choose how to load your file below!`);
         }
 
         function rejectSuggestion() {
@@ -6019,10 +6043,14 @@ i<!DOCTYPE html>
             // Hide suggestion section
             document.getElementById('suggestedCategorySection').style.display = 'none';
 
-            // Render category browser
+            // Show manage categories section so user can manually select
+            document.getElementById('mainManageCategories').style.display = 'block';
+            console.log('   ✅ Manage Categories shown for manual selection');
+
+            // Render category browser (always visible)
             renderCategoryBrowser();
 
-            alert('✓ File assigned to Default category\n\n💾 Vocabulary saved and ready to practice!');
+            alert('✓ File assigned to Default category\n\nNext: Manually select a category below, then choose how to load your file!');
         }
 
         // ===== CLOUD SYNC FUNCTIONS =====
@@ -6874,6 +6902,9 @@ i<!DOCTYPE html>
                 case 'fileManager':
                     sectionId = 'mainFileManager';
                     break;
+                case 'categoryBrowser':
+                    sectionId = 'categoryBrowser';
+                    break;
                 default:
                     console.error('Unknown section:', sectionName);
                     return;
@@ -6901,11 +6932,19 @@ i<!DOCTYPE html>
                     testAutoOpen();
                 }
 
-                // Close sidebar after selection
-                toggleManagementPanel();
+                // Close sidebar after selection (except for Category Browser toggle which just toggles visibility)
+                if (sectionName !== 'categoryBrowser') {
+                    toggleManagementPanel();
+                } else {
+                    // Just close the panel for category browser
+                    toggleManagementPanel();
+                }
             } else {
                 // Hide section
                 section.style.display = 'none';
+
+                // Close sidebar when hiding (for consistency)
+                toggleManagementPanel();
             }
         }
 
@@ -7783,6 +7822,10 @@ i<!DOCTYPE html>
 
                 // NOTE: Auto-show management sections is ONLY for new file uploads, not for loading existing files
                 // This function is for loading existing saved data, so we don't show management sections
+
+                // Hide suggestions and manage categories - Category Browser stays visible
+                document.getElementById('suggestedCategorySection').style.display = 'none';
+                document.getElementById('mainManageCategories').style.display = 'none';
 
                 // Scroll to flashcard
                 flashcardContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -8779,8 +8822,8 @@ i<!DOCTYPE html>
 
                 // Show format selector on first load (unless explicitly using a method)
                 if (!useManualMapping) {
-                    console.log('📋 Showing format selector (suggestion will trigger after format is selected)');
-                    showFormatSelector(lines, detectedSeparator);
+                    console.log('📋 Format selector hidden - directly showing suggestions');
+                    // Format selector hidden - user sees only category suggestions
 
                     // Auto-show management sections immediately when file is uploaded
                     console.log('📂 Auto-showing management sections on file upload');
@@ -8797,15 +8840,15 @@ i<!DOCTYPE html>
                         }, 500);
                     }
 
-                    // Show Manage Categories section
+                    // Hide Manage Categories section - Category Browser stays visible
                     const manageCategoriesSection = document.getElementById('mainManageCategories');
                     if (manageCategoriesSection) {
-                        manageCategoriesSection.style.display = 'block';
-                        console.log('   ✅ Manage Categories shown');
+                        manageCategoriesSection.style.display = 'none';
+                        console.log('   ✅ Manage Categories hidden');
                     }
 
                     // NOTE: File Manager is NOT auto-shown - user opens it manually from hamburger menu
-                    // Only Category Suggestion and Manage Categories auto-show on new file upload
+                    // Category Browser always remains visible for easy access to existing vocabulary
 
                     return;
                 }
@@ -8946,49 +8989,57 @@ i<!DOCTYPE html>
                     // Hide instructions after successful load
                     document.getElementById('instructions').style.display = 'none';
 
-                    // Auto-show management sections after file upload
-                    console.log('📂 Auto-showing management sections after file upload');
+                    // Auto-show management sections ONLY on first file upload (not during re-parse)
+                    if (!useManualMapping) {
+                        console.log('📂 Auto-showing management sections after file upload');
 
-                    // Show Manage Categories section
-                    const manageCategoriesSection = document.getElementById('mainManageCategories');
-                    if (manageCategoriesSection) {
-                        manageCategoriesSection.style.display = 'block';
-                        console.log('   ✅ Manage Categories shown');
+                        // Show Manage Categories section
+                        const manageCategoriesSection = document.getElementById('mainManageCategories');
+                        if (manageCategoriesSection) {
+                            manageCategoriesSection.style.display = 'block';
+                            console.log('   ✅ Manage Categories shown');
+                        }
+
+                        // NOTE: File Manager is NOT auto-shown - user opens it manually from hamburger menu
+                        // Only Category Suggestion auto-shows on new file upload
+                    } else {
+                        console.log('📂 Re-parse after format selection - keeping current visibility state');
                     }
 
-                    // NOTE: File Manager is NOT auto-shown - user opens it manually from hamburger menu
-                    // Only Category Suggestion auto-shows on new file upload
+                    // Show category suggestion AFTER all UI is visible (ONLY on first upload)
+                    if (!useManualMapping) {
+                        console.log('🔍 Checking pending suggestion. Value:', window.pendingCategorySuggestion);
+                        console.log('🔍 File already categorized?', fileAlreadyCategorized);
+                        console.log('🔍 Current fileName:', currentFileName);
 
-                    // Show category suggestion AFTER all UI is visible
-                    console.log('🔍 Checking pending suggestion. Value:', window.pendingCategorySuggestion);
-                    console.log('🔍 File already categorized?', fileAlreadyCategorized);
-                    console.log('🔍 Current fileName:', currentFileName);
+                        // ALWAYS show suggestion if one exists (for testing - we can refine later)
+                        if (window.pendingCategorySuggestion) {
+                            const suggestion = window.pendingCategorySuggestion;
+                            console.log('📋 Suggestion found! Showing it now. Category:', suggestion.category, 'Subcategory:', suggestion.subcategory);
 
-                    // ALWAYS show suggestion if one exists (for testing - we can refine later)
-                    if (window.pendingCategorySuggestion) {
-                        const suggestion = window.pendingCategorySuggestion;
-                        console.log('📋 Suggestion found! Showing it now. Category:', suggestion.category, 'Subcategory:', suggestion.subcategory);
+                            // Store for later reference
+                            window.lastDetectedSuggestion = {
+                                category: suggestion.category,
+                                subcategory: suggestion.subcategory
+                            };
 
-                        // Store for later reference
-                        window.lastDetectedSuggestion = {
-                            category: suggestion.category,
-                            subcategory: suggestion.subcategory
-                        };
+                            window.pendingCategorySuggestion = null; // Clear pending
 
-                        window.pendingCategorySuggestion = null; // Clear pending
-
-                        // Simply show the suggestion box (it's now outside category management!)
-                        setTimeout(() => {
-                            console.log('⏰ About to call showCategorySuggestion...');
-                            showCategorySuggestion(suggestion.category, suggestion.subcategory);
-                            console.log('✅ showCategorySuggestion called');
-                        }, 500);
+                            // Simply show the suggestion box (it's now outside category management!)
+                            setTimeout(() => {
+                                console.log('⏰ About to call showCategorySuggestion...');
+                                showCategorySuggestion(suggestion.category, suggestion.subcategory);
+                                console.log('✅ showCategorySuggestion called');
+                            }, 500);
+                        } else {
+                            console.log('⚠️ NO pending suggestion found!');
+                            console.log('   This means either:');
+                            console.log('   1. No suggestion was detected from filename');
+                            console.log('   2. Suggestion was cleared somewhere');
+                            console.log('   3. This is a re-parse without suggestion');
+                        }
                     } else {
-                        console.log('⚠️ NO pending suggestion found!');
-                        console.log('   This means either:');
-                        console.log('   1. No suggestion was detected from filename');
-                        console.log('   2. Suggestion was cleared somewhere');
-                        console.log('   3. This is a re-parse without suggestion');
+                        console.log('🔍 Re-parse mode - skipping suggestion display');
 
                         // If no suggestion and file is new, save default category now
                         if (!fileAlreadyCategorized) {
