@@ -4054,7 +4054,44 @@ i<!DOCTYPE html>
             }
 
             const category = document.getElementById('categorySelect').value;
-            const subcategory = document.getElementById('subcategorySelect').value;
+            let subcategory = document.getElementById('subcategorySelect').value;
+
+            // ⚠️ VALIDATION: Check for duplicate subcategory (only for new subcategories)
+            if (subcategory && categories[category] && categories[category].includes(subcategory)) {
+                // Check if this is a different file trying to use an existing subcategory
+                const existingFileWithSubcat = Object.keys(fileCategories).find(fileName =>
+                    fileName !== currentFileName &&
+                    fileCategories[fileName].category === category &&
+                    fileCategories[fileName].subcategory === subcategory
+                );
+
+                if (existingFileWithSubcat) {
+                    const proposedSubcategory = generateUniqueSubcategory(category, subcategory);
+
+                    // Show error dialog with proposed solution
+                    const userResponse = confirm(
+                        '⚠️ DUPLICATE SUBCATEGORY DETECTED!\n\n' +
+                        `Subcategory: "${subcategory}"\n` +
+                        `Already used by file: "${existingFileWithSubcat}"\n` +
+                        `In category: "${category}"\n\n` +
+                        `─────────────────────────\n\n` +
+                        `PROPOSED SOLUTION:\n` +
+                        `📝 New subcategory: "${proposedSubcategory}"\n\n` +
+                        `─────────────────────────\n\n` +
+                        `Click OK to use the new subcategory name.\n` +
+                        `Click CANCEL to keep the same subcategory (files will be grouped together).`
+                    );
+
+                    if (userResponse) {
+                        // User accepted - use proposed subcategory
+                        subcategory = proposedSubcategory;
+                        console.log(`✅ Using proposed subcategory: ${proposedSubcategory}`);
+                    } else {
+                        console.log(`✅ User chose to use existing subcategory: ${subcategory}`);
+                        // User wants to keep the same subcategory (files will be grouped)
+                    }
+                }
+            }
 
             fileCategories[currentFileName] = { category, subcategory };
             currentFileCategory = { category, subcategory };
@@ -6051,8 +6088,8 @@ i<!DOCTYPE html>
             const categoryInput = document.getElementById('suggestedCategoryInput');
             const subcategoryInput = document.getElementById('suggestedSubcategoryInput');
 
-            const category = categoryInput.value.trim();
-            const subcategory = subcategoryInput.value.trim();
+            let category = categoryInput.value.trim();
+            let subcategory = subcategoryInput.value.trim();
 
             if (!category) {
                 alert('Please enter a category name!');
@@ -6066,6 +6103,37 @@ i<!DOCTYPE html>
             if (!categories[category]) {
                 categories[category] = [];
                 console.log('Created new category:', category);
+            }
+
+            // ⚠️ VALIDATION: Check for duplicate subcategory
+            if (subcategory && categories[category].includes(subcategory)) {
+                const proposedSubcategory = generateUniqueSubcategory(category, subcategory);
+
+                // Show error dialog with proposed solution
+                const userResponse = confirm(
+                    '⚠️ DUPLICATE SUBCATEGORY DETECTED!\n\n' +
+                    `Subcategory: "${subcategory}"\n` +
+                    `Already exists in category: "${category}"\n\n` +
+                    `─────────────────────────\n\n` +
+                    `PROPOSED SOLUTION:\n` +
+                    `📝 New subcategory: "${proposedSubcategory}"\n\n` +
+                    `─────────────────────────\n\n` +
+                    `Click OK to use the new subcategory name.\n` +
+                    `Click CANCEL to edit it manually.`
+                );
+
+                if (!userResponse) {
+                    // User cancelled - focus on subcategory input for manual edit
+                    subcategoryInput.focus();
+                    subcategoryInput.select();
+                    console.log('❌ User wants to manually edit subcategory');
+                    return;
+                }
+
+                // User accepted - use proposed subcategory
+                subcategory = proposedSubcategory;
+                subcategoryInput.value = proposedSubcategory;
+                console.log(`✅ Using proposed subcategory: ${proposedSubcategory}`);
             }
 
             // Create subcategory if provided and doesn't exist
@@ -8036,11 +8104,92 @@ i<!DOCTYPE html>
         const delayBetweenValue = document.getElementById('delayBetweenValue');
         const delayNextValue = document.getElementById('delayNextValue');
 
+        // Helper function to generate unique file name
+        function generateUniqueFileName(originalName) {
+            // Extract file name without extension
+            const lastDotIndex = originalName.lastIndexOf('.');
+            const baseName = lastDotIndex > 0 ? originalName.substring(0, lastDotIndex) : originalName;
+            const extension = lastDotIndex > 0 ? originalName.substring(lastDotIndex) : '';
+
+            let counter = 1;
+            let newName = `${baseName}_${counter}${extension}`;
+
+            // Keep incrementing until we find a unique name
+            while (fileCategories[newName]) {
+                counter++;
+                newName = `${baseName}_${counter}${extension}`;
+            }
+
+            return newName;
+        }
+
+        // Helper function to generate unique subcategory name
+        function generateUniqueSubcategory(category, originalSubcategory) {
+            if (!originalSubcategory) return '';
+
+            // Check if this subcategory already exists in this category
+            const existingSubcategories = categories[category] || [];
+
+            if (!existingSubcategories.includes(originalSubcategory)) {
+                return originalSubcategory; // Not a duplicate, use original
+            }
+
+            let counter = 1;
+            let newSubcategory = `${originalSubcategory}_${counter}`;
+
+            // Keep incrementing until we find a unique subcategory
+            while (existingSubcategories.includes(newSubcategory)) {
+                counter++;
+                newSubcategory = `${originalSubcategory}_${counter}`;
+            }
+
+            return newSubcategory;
+        }
+
         // Handle file upload
         csvFileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file) {
                 console.log('🆕 New file upload detected:', file.name);
+
+                // ⚠️ VALIDATION: Check for duplicate file name
+                if (fileCategories[file.name]) {
+                    const existingFile = fileCategories[file.name];
+                    const proposedFileName = generateUniqueFileName(file.name);
+
+                    // Show error dialog with proposed solution
+                    const userResponse = confirm(
+                        '⚠️ DUPLICATE FILE DETECTED!\n\n' +
+                        `File name: "${file.name}"\n` +
+                        `Already exists in your library!\n\n` +
+                        `Existing file details:\n` +
+                        `• Category: ${existingFile.category}\n` +
+                        `• Subcategory: ${existingFile.subcategory || '(None)'}\n\n` +
+                        `─────────────────────────\n\n` +
+                        `PROPOSED SOLUTION:\n` +
+                        `📝 New file name: "${proposedFileName}"\n\n` +
+                        `─────────────────────────\n\n` +
+                        `Click OK to proceed with the new file name.\n` +
+                        `Click CANCEL to choose a different file.`
+                    );
+
+                    if (!userResponse) {
+                        // User cancelled - reset file input
+                        csvFileInput.value = '';
+                        fileInfo.textContent = '❌ Upload cancelled. Please rename your file or choose a different one.';
+                        console.log('❌ User cancelled upload due to duplicate file name');
+                        return;
+                    }
+
+                    // User accepted - we'll rename the file internally
+                    console.log(`✅ User accepted new file name: ${proposedFileName}`);
+
+                    // Store the proposed name to use during parsing
+                    window.proposedFileName = proposedFileName;
+                } else {
+                    // No duplicate, clear any previous proposed name
+                    window.proposedFileName = null;
+                }
 
                 // Clear any pending suggestion from previous file
                 window.pendingCategorySuggestion = null;
@@ -8063,7 +8212,7 @@ i<!DOCTYPE html>
                 columnMapping = null;
                 console.log('   Reset column mapping');
 
-                fileInfo.textContent = `Loading: ${file.name}`;
+                fileInfo.textContent = `Loading: ${window.proposedFileName || file.name}`;
                 parseCSV(file);
             }
         });
@@ -8978,9 +9127,13 @@ i<!DOCTYPE html>
                 const text = e.target.result;
                 const lines = text.split('\n').filter(line => line.trim() !== '');
 
-                currentFileName = file.name;
+                // Use proposed file name if it exists (due to duplicate detection)
+                currentFileName = window.proposedFileName || file.name;
                 rawFileData = text;
                 console.log('📁 Current file:', currentFileName, '| Lines:', lines.length);
+                if (window.proposedFileName) {
+                    console.log('   ℹ️ Using proposed file name due to duplicate detection');
+                }
 
                 // Detect separator automatically
                 detectedSeparator = detectSeparator(text);
