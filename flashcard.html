@@ -4531,51 +4531,151 @@ i<!DOCTYPE html>
                 return;
             }
 
-            if (!confirm(`Delete category "${category}" and all its subcategories?`)) {
+            // Prevent deleting the last category
+            const categoryCount = Object.keys(categories).length;
+            if (categoryCount <= 1) {
+                alert('⚠️ Cannot delete the last category!\n\nAt least one category must remain.');
                 return;
             }
 
+            // Find all files in this category
+            const filesToDelete = Object.keys(fileCategories).filter(file =>
+                fileCategories[file].category === category
+            );
+
+            // Show detailed confirmation
+            const subcategoryCount = categories[category] ? categories[category].length : 0;
+            const confirmMessage = `⚠️ DELETE CATEGORY CONFIRMATION ⚠️\n\n` +
+                `Category: "${category}"\n` +
+                `Subcategories: ${subcategoryCount}\n` +
+                `Files to delete: ${filesToDelete.length}\n\n` +
+                `This will permanently delete:\n` +
+                `✗ The category and all subcategories\n` +
+                `✗ All ${filesToDelete.length} files in this category\n` +
+                `✗ All flashcard data from localStorage\n` +
+                `✗ All flashcard data from cloud (if synced)\n\n` +
+                `⚠️ THIS CANNOT BE UNDONE!\n\n` +
+                `Are you sure you want to proceed?`;
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            // Delete all files and their data
+            let deletedCount = 0;
+            filesToDelete.forEach(fileName => {
+                // Remove from localStorage
+                safeStorage.removeItem(`flashcards_${fileName}`);
+
+                // Remove from fileCategories mapping
+                delete fileCategories[fileName];
+
+                // Remove from global flashcards array if currently loaded
+                if (currentFileName === fileName) {
+                    flashcards = [];
+                    filteredCards = [];
+                    currentIndex = 0;
+                    currentFileName = '';
+                }
+
+                deletedCount++;
+                console.log(`🗑️ Deleted file: ${fileName}`);
+            });
+
+            // Delete the category itself
             delete categories[category];
 
             // Remove group mapping
             delete categoryGroups[category];
 
-            // Reassign files to Default
-            Object.keys(fileCategories).forEach(file => {
-                if (fileCategories[file].category === category) {
-                    fileCategories[file] = { category: 'Default', subcategory: '' };
-                }
-            });
-
+            // Save changes
             saveCategories();
             updateCategoryDropdowns();
             renderCategoryList();
             renderCategoryBrowser();
-            alert(`Category "${category}" deleted!`);
+            refreshFileTree();
+
+            // Sync to cloud
+            if (isCloudEnabled && cloudUser) {
+                uploadToCloud();
+            }
+
+            alert(`✅ Category deleted successfully!\n\n` +
+                `Deleted:\n` +
+                `• Category: "${category}"\n` +
+                `• Subcategories: ${subcategoryCount}\n` +
+                `• Files: ${deletedCount}\n\n` +
+                `${isCloudEnabled ? '☁️ Changes synced to cloud' : '💾 Changes saved locally'}`);
         }
 
         function deleteSubcategory(category, subcategory) {
-            if (!confirm(`Delete subcategory "${subcategory}"?`)) {
+            // Find all files in this subcategory
+            const filesToDelete = Object.keys(fileCategories).filter(file =>
+                fileCategories[file].category === category &&
+                fileCategories[file].subcategory === subcategory
+            );
+
+            // Show detailed confirmation
+            const confirmMessage = `⚠️ DELETE SUBCATEGORY CONFIRMATION ⚠️\n\n` +
+                `Category: "${category}"\n` +
+                `Subcategory: "${subcategory}"\n` +
+                `Files to delete: ${filesToDelete.length}\n\n` +
+                `This will permanently delete:\n` +
+                `✗ The subcategory\n` +
+                `✗ All ${filesToDelete.length} files in this subcategory\n` +
+                `✗ All flashcard data from localStorage\n` +
+                `✗ All flashcard data from cloud (if synced)\n\n` +
+                `⚠️ THIS CANNOT BE UNDONE!\n\n` +
+                `Are you sure you want to proceed?`;
+
+            if (!confirm(confirmMessage)) {
                 return;
             }
 
+            // Delete all files and their data
+            let deletedCount = 0;
+            filesToDelete.forEach(fileName => {
+                // Remove from localStorage
+                safeStorage.removeItem(`flashcards_${fileName}`);
+
+                // Remove from fileCategories mapping
+                delete fileCategories[fileName];
+
+                // Remove from global flashcards array if currently loaded
+                if (currentFileName === fileName) {
+                    flashcards = [];
+                    filteredCards = [];
+                    currentIndex = 0;
+                    currentFileName = '';
+                }
+
+                deletedCount++;
+                console.log(`🗑️ Deleted file: ${fileName}`);
+            });
+
+            // Remove subcategory from category list
             const index = categories[category].indexOf(subcategory);
             if (index > -1) {
                 categories[category].splice(index, 1);
             }
 
-            // Reassign files
-            Object.keys(fileCategories).forEach(file => {
-                if (fileCategories[file].category === category &&
-                    fileCategories[file].subcategory === subcategory) {
-                    fileCategories[file].subcategory = '';
-                }
-            });
-
+            // Save changes
             saveCategories();
             updateCategoryDropdowns();
             renderCategoryList();
-            alert(`Subcategory "${subcategory}" deleted!`);
+            renderCategoryBrowser();
+            refreshFileTree();
+
+            // Sync to cloud
+            if (isCloudEnabled && cloudUser) {
+                uploadToCloud();
+            }
+
+            alert(`✅ Subcategory deleted successfully!\n\n` +
+                `Deleted:\n` +
+                `• Subcategory: "${subcategory}"\n` +
+                `• Files: ${deletedCount}\n\n` +
+                `${isCloudEnabled ? '☁️ Changes synced to cloud' : '💾 Changes saved locally'}`);
         }
 
         function updateCurrentFileDisplay() {
@@ -6585,29 +6685,241 @@ i<!DOCTYPE html>
             }
         }
 
-        // Safe localStorage wrapper (handles tracking prevention)
+        // Safe localStorage wrapper (handles tracking prevention and quota exceeded)
         const safeStorage = {
+            // Maximum chunk size (1MB per chunk to stay well under quota)
+            CHUNK_SIZE: 1024 * 1024, // 1MB
+
             getItem: function(key) {
                 try {
-                    return localStorage.getItem(key);
+                    // Try to get regular item first
+                    const item = localStorage.getItem(key);
+                    if (item !== null) {
+                        return item;
+                    }
+
+                    // Check if it's a chunked item
+                    const chunkCount = localStorage.getItem(`${key}_chunks`);
+                    if (chunkCount) {
+                        return this.getChunkedItem(key, parseInt(chunkCount));
+                    }
+
+                    return null;
                 } catch (e) {
                     console.warn('localStorage blocked by browser:', e);
                     return null;
                 }
             },
+
             setItem: function(key, value) {
+                // Check quota before attempting to save
+                const quotaCheck = this.checkQuota(value.length);
+
+                if (quotaCheck.shouldWarn) {
+                    console.warn(`⚠️ Storage usage high: ${quotaCheck.usagePercent}% (${quotaCheck.totalSizeMB}MB / ~8MB)`);
+                }
+
+                if (!quotaCheck.hasSpace) {
+                    console.error('Storage quota will be exceeded. Cannot save.');
+                    const cleanupMsg = this.suggestCleanup();
+                    throw new Error('QUOTA_EXCEEDED_WITH_DETAILS:' + cleanupMsg);
+                }
+
                 try {
+                    // Try normal storage first
                     localStorage.setItem(key, value);
+                } catch (e) {
+                    if (e.name === 'QuotaExceededError') {
+                        console.warn('localStorage quota exceeded, attempting chunked storage...');
+                        try {
+                            // Remove the failed attempt
+                            localStorage.removeItem(key);
+
+                            // Try chunked storage
+                            this.setChunkedItem(key, value);
+                        } catch (chunkError) {
+                            console.error('Chunked storage also failed:', chunkError);
+
+                            // Provide detailed cleanup suggestions
+                            const cleanupMsg = this.suggestCleanup();
+                            throw new Error('QUOTA_EXCEEDED_WITH_DETAILS:' + cleanupMsg);
+                        }
+                    } else {
+                        console.warn('localStorage blocked by browser:', e);
+                        throw e;
+                    }
+                }
+            },
+
+            setChunkedItem: function(key, value) {
+                // Remove any existing chunks
+                this.removeItem(key);
+
+                const chunks = [];
+                let offset = 0;
+
+                // Split into chunks
+                while (offset < value.length) {
+                    chunks.push(value.substring(offset, offset + this.CHUNK_SIZE));
+                    offset += this.CHUNK_SIZE;
+                }
+
+                console.log(`Splitting ${key} into ${chunks.length} chunks`);
+
+                // Store chunk count
+                localStorage.setItem(`${key}_chunks`, chunks.length.toString());
+
+                // Store each chunk
+                for (let i = 0; i < chunks.length; i++) {
+                    localStorage.setItem(`${key}_chunk_${i}`, chunks[i]);
+                }
+            },
+
+            getChunkedItem: function(key, chunkCount) {
+                const chunks = [];
+
+                for (let i = 0; i < chunkCount; i++) {
+                    const chunk = localStorage.getItem(`${key}_chunk_${i}`);
+                    if (chunk === null) {
+                        console.error(`Missing chunk ${i} for ${key}`);
+                        return null;
+                    }
+                    chunks.push(chunk);
+                }
+
+                return chunks.join('');
+            },
+
+            removeItem: function(key) {
+                try {
+                    // Remove regular item
+                    localStorage.removeItem(key);
+
+                    // Remove chunked items if they exist
+                    const chunkCount = localStorage.getItem(`${key}_chunks`);
+                    if (chunkCount) {
+                        const count = parseInt(chunkCount);
+                        for (let i = 0; i < count; i++) {
+                            localStorage.removeItem(`${key}_chunk_${i}`);
+                        }
+                        localStorage.removeItem(`${key}_chunks`);
+                    }
                 } catch (e) {
                     console.warn('localStorage blocked by browser:', e);
                 }
             },
-            removeItem: function(key) {
+
+            // Get total localStorage usage in bytes
+            getStorageUsage: function() {
+                let totalSize = 0;
                 try {
-                    localStorage.removeItem(key);
+                    for (let key in localStorage) {
+                        if (localStorage.hasOwnProperty(key)) {
+                            totalSize += localStorage[key].length + key.length;
+                        }
+                    }
                 } catch (e) {
-                    console.warn('localStorage blocked by browser:', e);
+                    console.warn('Could not calculate storage usage:', e);
                 }
+                return totalSize;
+            },
+
+            // Get list of stored flashcard files with sizes
+            getStoredFiles: function() {
+                const files = [];
+                const processedKeys = new Set();
+
+                try {
+                    for (let key in localStorage) {
+                        if (localStorage.hasOwnProperty(key) && key.startsWith('flashcards_')) {
+                            // Skip chunk metadata keys
+                            if (key.endsWith('_chunks') || key.includes('_chunk_')) {
+                                continue;
+                            }
+
+                            const baseKey = key;
+                            if (processedKeys.has(baseKey)) continue;
+                            processedKeys.add(baseKey);
+
+                            // Get full content (whether chunked or not)
+                            const content = this.getItem(baseKey);
+                            if (content) {
+                                const fileName = key.replace('flashcards_', '');
+                                const size = content.length;
+
+                                // Try to get card count
+                                let cardCount = 0;
+                                try {
+                                    const data = JSON.parse(content);
+                                    cardCount = Array.isArray(data) ? data.length : 0;
+                                } catch (e) {
+                                    // Invalid JSON, ignore card count
+                                }
+
+                                files.push({
+                                    key: baseKey,
+                                    fileName: fileName,
+                                    size: size,
+                                    sizeMB: (size / (1024 * 1024)).toFixed(2),
+                                    cardCount: cardCount
+                                });
+                            }
+                        }
+                    }
+
+                    // Sort by size (largest first)
+                    files.sort((a, b) => b.size - a.size);
+                } catch (e) {
+                    console.warn('Could not list stored files:', e);
+                }
+
+                return files;
+            },
+
+            // Check if there's enough quota for new data
+            checkQuota: function(newDataSize) {
+                const currentUsage = this.getStorageUsage();
+                const totalSize = currentUsage + newDataSize;
+
+                // Typical localStorage limit is 5-10MB, we'll use 8MB as safe threshold
+                const STORAGE_LIMIT = 8 * 1024 * 1024; // 8MB
+                const WARNING_THRESHOLD = 0.7; // Warn at 70%
+
+                const usagePercent = totalSize / STORAGE_LIMIT;
+
+                return {
+                    hasSpace: totalSize < STORAGE_LIMIT,
+                    currentUsageMB: (currentUsage / (1024 * 1024)).toFixed(2),
+                    totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2),
+                    usagePercent: (usagePercent * 100).toFixed(1),
+                    shouldWarn: usagePercent > WARNING_THRESHOLD
+                };
+            },
+
+            // Suggest which files to delete to free up space
+            suggestCleanup: function() {
+                const files = this.getStoredFiles();
+                const currentUsage = this.getStorageUsage();
+                const currentUsageMB = (currentUsage / (1024 * 1024)).toFixed(2);
+
+                let message = `📊 STORAGE USAGE: ${currentUsageMB}MB / ~8MB\n\n`;
+                message += `You have ${files.length} flashcard file(s) stored:\n\n`;
+
+                files.forEach((file, index) => {
+                    message += `${index + 1}. ${file.fileName}\n`;
+                    message += `   Size: ${file.sizeMB}MB (${file.cardCount} cards)\n\n`;
+                });
+
+                if (files.length > 0) {
+                    message += `💡 TIP: Delete unused files in the "Manage Files" section (☰ menu) to free up space.\n\n`;
+                    message += `Or enable Cloud Sync (☁️ button) to store data online instead of locally.`;
+                } else {
+                    message += `Other data is using storage. Try:\n`;
+                    message += `1. Clear browser cache for this site\n`;
+                    message += `2. Check browser's storage settings`;
+                }
+
+                return message;
             }
         };
 
@@ -6919,19 +7231,30 @@ i<!DOCTYPE html>
 
                 // Check data size before encryption
                 const dataSize = JSON.stringify(dataToSync).length;
-                console.log(`📊 Data size before encryption: ${(dataSize / 1024).toFixed(2)} KB`);
-
-                if (dataSize > 5 * 1024 * 1024) { // 5MB warning
-                    console.warn('⚠️ Data size is large, may hit Firebase limits');
-                }
+                const dataSizeMB = (dataSize / (1024 * 1024)).toFixed(2);
+                console.log(`📊 Syncing ${Object.keys(allFlashcardData).length} files (${dataSizeMB}MB unencrypted)`);
 
                 // Encrypt data
                 const encrypted = await encryptData(dataToSync, cloudUser.password);
-                console.log(`🔐 Encrypted data size: ${(encrypted.length / 1024).toFixed(2)} KB`);
+                const encryptedSizeMB = (encrypted.length / (1024 * 1024)).toFixed(2);
+                console.log(`🔐 Encrypted data size: ${encryptedSizeMB}MB`);
 
                 // Check Firebase limits (10MB per node)
                 if (encrypted.length > 10 * 1024 * 1024) {
-                    throw new Error('Data exceeds Firebase size limit (10MB)');
+                    updateSyncStatus('error', '❌ Too Large');
+                    alert(`⚠️ CLOUD SYNC FAILED\n\n` +
+                        `Your flashcard data (${encryptedSizeMB}MB) exceeds Firebase's 10MB limit.\n\n` +
+                        `SOLUTIONS:\n` +
+                        `1. Delete unused categories/files\n` +
+                        `2. Split large files into smaller files\n` +
+                        `3. Export important data as CSV backups\n\n` +
+                        `Your data is still saved locally, but cannot sync to cloud.`);
+                    throw new Error(`Data exceeds Firebase size limit (${encryptedSizeMB}MB / 10MB max)`);
+                }
+
+                // Warn if getting close to limit (8MB = 80% of 10MB)
+                if (encrypted.length > 8 * 1024 * 1024) {
+                    console.warn(`⚠️ Warning: Data size (${encryptedSizeMB}MB) is approaching Firebase 10MB limit. Consider reducing data.`);
                 }
 
                 // Upload to Firebase
@@ -6952,6 +7275,9 @@ i<!DOCTYPE html>
                 if (error.message.includes('size limit')) {
                     alert('⚠️ Your flashcard data is too large to sync. Please contact support or reduce the number of flashcards.');
                 }
+
+                // Re-throw error so caller knows upload failed (prevents data loss)
+                throw error;
             }
         }
 
@@ -8344,22 +8670,57 @@ i<!DOCTYPE html>
         // LocalStorage functions
         function saveProgress() {
             if (currentFileName && flashcards.length > 0) {
-                const progressData = flashcards.map(card => ({
-                    id: card.id,
-                    lang1: card.lang1,
-                    lang1Extended: card.lang1Extended || '',
-                    lang2: card.lang2,
-                    lang2Extended: card.lang2Extended || '',
-                    detail: card.detail || '',
-                    learned: card.learned,
-                    reviewDate: card.reviewDate || null,
-                    repetitions: card.repetitions || 0,
-                    easeFactor: card.easeFactor || 2.5,
-                    interval: card.interval || 1,
-                    category: card.category || 'Default',
-                    subcategory: card.subcategory || ''
-                }));
-                safeStorage.setItem(`flashcards_${currentFileName}`, JSON.stringify(progressData));
+                try {
+                    const progressData = flashcards.map(card => ({
+                        id: card.id,
+                        lang1: card.lang1,
+                        lang1Extended: card.lang1Extended || '',
+                        lang2: card.lang2,
+                        lang2Extended: card.lang2Extended || '',
+                        detail: card.detail || '',
+                        learned: card.learned,
+                        reviewDate: card.reviewDate || null,
+                        repetitions: card.repetitions || 0,
+                        easeFactor: card.easeFactor || 2.5,
+                        interval: card.interval || 1,
+                        category: card.category || 'Default',
+                        subcategory: card.subcategory || ''
+                    }));
+
+                    const jsonData = JSON.stringify(progressData);
+                    const sizeInMB = (jsonData.length / (1024 * 1024)).toFixed(2);
+
+                    console.log(`Saving ${currentFileName}: ${flashcards.length} cards, ${sizeInMB}MB`);
+
+                    safeStorage.setItem(`flashcards_${currentFileName}`, jsonData);
+
+                    // Check if it was stored as chunks
+                    const chunkCount = localStorage.getItem(`flashcards_${currentFileName}_chunks`);
+                    if (chunkCount) {
+                        console.log(`✅ Large file saved successfully using ${chunkCount} chunks`);
+                    }
+                } catch (error) {
+                    console.error('Error saving progress:', error);
+
+                    if (error.message.startsWith('QUOTA_EXCEEDED_WITH_DETAILS:')) {
+                        // Extract the detailed cleanup message
+                        const cleanupDetails = error.message.replace('QUOTA_EXCEEDED_WITH_DETAILS:', '');
+                        alert(`⚠️ STORAGE LIMIT EXCEEDED\n\n` +
+                            `Cannot save ${flashcards.length} flashcards - storage is full!\n\n` +
+                            cleanupDetails);
+                    } else if (error.message === 'QUOTA_EXCEEDED') {
+                        alert(`⚠️ STORAGE LIMIT EXCEEDED\n\n` +
+                            `Your device's storage is full and cannot save ${flashcards.length} flashcards.\n\n` +
+                            `SOLUTIONS:\n` +
+                            `1. Enable Cloud Sync (☁️ button) to store data online\n` +
+                            `2. Clear browser data for this site\n` +
+                            `3. Delete unused flashcard categories\n` +
+                            `4. Split your file into smaller files\n\n` +
+                            `⚠️ Your current session data may not be saved!`);
+                    } else {
+                        alert(`Failed to save progress: ${error.message}`);
+                    }
+                }
             }
         }
 

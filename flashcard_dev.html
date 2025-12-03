@@ -3789,6 +3789,9 @@ i<!DOCTYPE html>
         let cloudUser = null; // {username, passwordHash}
         let firebaseDB = null;
         let isCloudEnabled = false;
+        let isCloudFirstMode = false; // When true, saves directly to cloud instead of localStorage
+        let cloudDataCache = {}; // In-memory cache of flashcard data (for cloud-first mode)
+        let pendingCloudSync = new Set(); // Track files that need to be synced to cloud (for retry logic)
 
         // ===== FIREBASE CONFIGURATION =====
         // 🔒 SECURITY NOTE: This API key is SAFE to be public!
@@ -4531,51 +4534,151 @@ i<!DOCTYPE html>
                 return;
             }
 
-            if (!confirm(`Delete category "${category}" and all its subcategories?`)) {
+            // Prevent deleting the last category
+            const categoryCount = Object.keys(categories).length;
+            if (categoryCount <= 1) {
+                alert('⚠️ Cannot delete the last category!\n\nAt least one category must remain.');
                 return;
             }
 
+            // Find all files in this category
+            const filesToDelete = Object.keys(fileCategories).filter(file =>
+                fileCategories[file].category === category
+            );
+
+            // Show detailed confirmation
+            const subcategoryCount = categories[category] ? categories[category].length : 0;
+            const confirmMessage = `⚠️ DELETE CATEGORY CONFIRMATION ⚠️\n\n` +
+                `Category: "${category}"\n` +
+                `Subcategories: ${subcategoryCount}\n` +
+                `Files to delete: ${filesToDelete.length}\n\n` +
+                `This will permanently delete:\n` +
+                `✗ The category and all subcategories\n` +
+                `✗ All ${filesToDelete.length} files in this category\n` +
+                `✗ All flashcard data from localStorage\n` +
+                `✗ All flashcard data from cloud (if synced)\n\n` +
+                `⚠️ THIS CANNOT BE UNDONE!\n\n` +
+                `Are you sure you want to proceed?`;
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            // Delete all files and their data
+            let deletedCount = 0;
+            filesToDelete.forEach(fileName => {
+                // Remove from localStorage
+                safeStorage.removeItem(`flashcards_${fileName}`);
+
+                // Remove from fileCategories mapping
+                delete fileCategories[fileName];
+
+                // Remove from global flashcards array if currently loaded
+                if (currentFileName === fileName) {
+                    flashcards = [];
+                    filteredCards = [];
+                    currentIndex = 0;
+                    currentFileName = '';
+                }
+
+                deletedCount++;
+                console.log(`🗑️ Deleted file: ${fileName}`);
+            });
+
+            // Delete the category itself
             delete categories[category];
 
             // Remove group mapping
             delete categoryGroups[category];
 
-            // Reassign files to Default
-            Object.keys(fileCategories).forEach(file => {
-                if (fileCategories[file].category === category) {
-                    fileCategories[file] = { category: 'Default', subcategory: '' };
-                }
-            });
-
+            // Save changes
             saveCategories();
             updateCategoryDropdowns();
             renderCategoryList();
             renderCategoryBrowser();
-            alert(`Category "${category}" deleted!`);
+            refreshFileTree();
+
+            // Sync to cloud
+            if (isCloudEnabled && cloudUser) {
+                uploadToCloud();
+            }
+
+            alert(`✅ Category deleted successfully!\n\n` +
+                `Deleted:\n` +
+                `• Category: "${category}"\n` +
+                `• Subcategories: ${subcategoryCount}\n` +
+                `• Files: ${deletedCount}\n\n` +
+                `${isCloudEnabled ? '☁️ Changes synced to cloud' : '💾 Changes saved locally'}`);
         }
 
         function deleteSubcategory(category, subcategory) {
-            if (!confirm(`Delete subcategory "${subcategory}"?`)) {
+            // Find all files in this subcategory
+            const filesToDelete = Object.keys(fileCategories).filter(file =>
+                fileCategories[file].category === category &&
+                fileCategories[file].subcategory === subcategory
+            );
+
+            // Show detailed confirmation
+            const confirmMessage = `⚠️ DELETE SUBCATEGORY CONFIRMATION ⚠️\n\n` +
+                `Category: "${category}"\n` +
+                `Subcategory: "${subcategory}"\n` +
+                `Files to delete: ${filesToDelete.length}\n\n` +
+                `This will permanently delete:\n` +
+                `✗ The subcategory\n` +
+                `✗ All ${filesToDelete.length} files in this subcategory\n` +
+                `✗ All flashcard data from localStorage\n` +
+                `✗ All flashcard data from cloud (if synced)\n\n` +
+                `⚠️ THIS CANNOT BE UNDONE!\n\n` +
+                `Are you sure you want to proceed?`;
+
+            if (!confirm(confirmMessage)) {
                 return;
             }
 
+            // Delete all files and their data
+            let deletedCount = 0;
+            filesToDelete.forEach(fileName => {
+                // Remove from localStorage
+                safeStorage.removeItem(`flashcards_${fileName}`);
+
+                // Remove from fileCategories mapping
+                delete fileCategories[fileName];
+
+                // Remove from global flashcards array if currently loaded
+                if (currentFileName === fileName) {
+                    flashcards = [];
+                    filteredCards = [];
+                    currentIndex = 0;
+                    currentFileName = '';
+                }
+
+                deletedCount++;
+                console.log(`🗑️ Deleted file: ${fileName}`);
+            });
+
+            // Remove subcategory from category list
             const index = categories[category].indexOf(subcategory);
             if (index > -1) {
                 categories[category].splice(index, 1);
             }
 
-            // Reassign files
-            Object.keys(fileCategories).forEach(file => {
-                if (fileCategories[file].category === category &&
-                    fileCategories[file].subcategory === subcategory) {
-                    fileCategories[file].subcategory = '';
-                }
-            });
-
+            // Save changes
             saveCategories();
             updateCategoryDropdowns();
             renderCategoryList();
-            alert(`Subcategory "${subcategory}" deleted!`);
+            renderCategoryBrowser();
+            refreshFileTree();
+
+            // Sync to cloud
+            if (isCloudEnabled && cloudUser) {
+                uploadToCloud();
+            }
+
+            alert(`✅ Subcategory deleted successfully!\n\n` +
+                `Deleted:\n` +
+                `• Subcategory: "${subcategory}"\n` +
+                `• Files: ${deletedCount}\n\n` +
+                `${isCloudEnabled ? '☁️ Changes synced to cloud' : '💾 Changes saved locally'}`);
         }
 
         function updateCurrentFileDisplay() {
@@ -4653,7 +4756,15 @@ i<!DOCTYPE html>
 
             // Load each file into the global flashcards array
             allFiles.forEach(fileName => {
-                const savedData = safeStorage.getItem(`flashcards_${fileName}`);
+                // Check memory cache first (cloud-first mode), then localStorage
+                let savedData = null;
+
+                if (cloudDataCache[fileName]) {
+                    savedData = cloudDataCache[fileName];
+                } else {
+                    savedData = safeStorage.getItem(`flashcards_${fileName}`);
+                }
+
                 if (!savedData) {
                     console.log(`⚠️ No data for file: ${fileName}`);
                     return;
@@ -4798,7 +4909,8 @@ i<!DOCTYPE html>
                     (!fileCategory.subcategory || fileCategory.subcategory === '');
 
                 if (matchesCategory && matchesSubcategory) {
-                    const savedData = safeStorage.getItem(`flashcards_${fileName}`);
+                    // Check memory cache first (cloud-first mode), then localStorage
+                    let savedData = cloudDataCache[fileName] || safeStorage.getItem(`flashcards_${fileName}`);
                     if (savedData) {
                         try {
                             const cardData = JSON.parse(savedData);
@@ -5225,7 +5337,8 @@ i<!DOCTYPE html>
                         Object.keys(fileCategories).forEach(fileName => {
                             const fileCategory = fileCategories[fileName];
                             if (fileCategory.category === category && fileCategory.subcategory === subcategory) {
-                                const savedData = safeStorage.getItem(`flashcards_${fileName}`);
+                                // Check memory cache first (cloud-first mode), then localStorage
+                                const savedData = cloudDataCache[fileName] || safeStorage.getItem(`flashcards_${fileName}`);
                                 if (savedData) {
                                     try {
                                         const cardData = JSON.parse(savedData);
@@ -6468,6 +6581,15 @@ i<!DOCTYPE html>
                 }));
 
                 isCloudEnabled = true;
+                isCloudFirstMode = true; // Enable cloud-first storage to avoid localStorage quota issues
+
+                // Show cloud-first mode indicator
+                console.log('%c☁️ CLOUD-FIRST MODE ENABLED', 'background: #4CAF50; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold');
+                console.log('✅ Data will be saved directly to cloud, avoiding localStorage quota issues');
+                console.log('✅ Minimal cache kept in localStorage for offline fallback');
+
+                // Clean up any corrupted localStorage entries from previous quota errors
+                safeStorage.cleanupCorrupted();
 
                 // Hide login modal
                 document.getElementById('loginOverlay').style.display = 'none';
@@ -6477,8 +6599,95 @@ i<!DOCTYPE html>
                 document.getElementById('syncStatus').style.display = 'block';
                 updateSyncStatus('syncing', 'Syncing...');
 
-                // Try to download existing data from cloud
-                await downloadFromCloud();
+                // IMPORTANT: Upload any localStorage data BEFORE clearing
+                // This ensures no data is lost if user was offline and data was saved locally
+                console.log('📤 Checking for local data to upload before clearing...');
+                const localFiles = safeStorage.getStoredFiles();
+                let uploadSuccessful = false;
+
+                if (localFiles.length > 0) {
+                    console.log(`📦 Found ${localFiles.length} files in localStorage. Uploading to cloud first...`);
+
+                    // Try upload up to 3 times before giving up
+                    let uploadAttempts = 0;
+                    let uploadError = null;
+
+                    while (uploadAttempts < 3 && !uploadSuccessful) {
+                        uploadAttempts++;
+                        try {
+                            console.log(`📤 Upload attempt ${uploadAttempts}/3...`);
+                            await uploadToCloud(); // Upload everything to cloud first
+
+                            // VERIFY: Download and check that all files made it to cloud
+                            await downloadFromCloud();
+                            const cloudFiles = Object.keys(cloudDataCache);
+
+                            if (cloudFiles.length === localFiles.length) {
+                                console.log(`✅ VERIFIED: All ${localFiles.length} files uploaded successfully`);
+                                uploadSuccessful = true;
+                                pendingCloudSync.clear(); // Clear pending list after successful upload
+                            } else {
+                                throw new Error(`Upload incomplete: ${cloudFiles.length}/${localFiles.length} files in cloud`);
+                            }
+                        } catch (error) {
+                            uploadError = error;
+                            console.warn(`⚠️ Upload attempt ${uploadAttempts} failed:`, error);
+                            if (uploadAttempts < 3) {
+                                console.log('⏳ Retrying in 2 seconds...');
+                                await new Promise(resolve => setTimeout(resolve, 2000));
+                            }
+                        }
+                    }
+
+                    // If all attempts failed, ABORT - don't clear localStorage!
+                    if (!uploadSuccessful) {
+                        updateSyncStatus('error', '❌ Upload Failed');
+                        alert('⚠️ CLOUD SYNC FAILED\n\n' +
+                            `Could not upload your ${localFiles.length} files to cloud after 3 attempts.\n\n` +
+                            '✅ YOUR DATA IS SAFE in localStorage\n' +
+                            '❌ localStorage will NOT be cleared\n\n' +
+                            'WHAT TO DO:\n' +
+                            '1. Check your internet connection\n' +
+                            '2. Try logging in again later\n' +
+                            '3. Or export your data as CSV backup\n\n' +
+                            `Error: ${uploadError?.message || 'Unknown error'}`);
+                        throw new Error('Upload failed - localStorage NOT cleared to prevent data loss');
+                    }
+                } else {
+                    console.log('✅ No local data to upload');
+                    pendingCloudSync.clear(); // Clear any stale pending items
+                    uploadSuccessful = true; // No data to upload = success
+
+                    // Still download from cloud to get any existing data
+                    await downloadFromCloud();
+                }
+
+                // ONLY clear localStorage if upload was verified successful
+                if (uploadSuccessful) {
+                    console.log('🧹 Clearing flashcard data from localStorage (data verified in cloud + memory)...');
+                    let clearedCount = 0;
+                    try {
+                        const keysToRemove = [];
+                        for (let key in localStorage) {
+                            if (localStorage.hasOwnProperty(key) && key.startsWith('flashcards_')) {
+                                keysToRemove.push(key);
+                            }
+                        }
+
+                        keysToRemove.forEach(key => {
+                            safeStorage.removeItem(key);
+                            clearedCount++;
+                        });
+
+                        console.log(`✅ Cleared ${clearedCount} flashcard entries from localStorage`);
+                        const freedMB = (safeStorage.getStorageUsage() / (1024 * 1024)).toFixed(2);
+                        console.log(`📊 localStorage now: ${freedMB}MB (freed up space for metadata)`);
+                    } catch (e) {
+                        console.warn('Could not clear localStorage:', e);
+                    }
+                } else {
+                    console.log('⚠️ Skipping localStorage clear - upload not verified');
+                }
 
                 // Load categories (will use cloud data if available)
                 loadCategories();
@@ -6557,6 +6766,15 @@ i<!DOCTYPE html>
                 }));
 
                 isCloudEnabled = true;
+                isCloudFirstMode = true; // Enable cloud-first storage to avoid localStorage quota issues
+
+                // Show cloud-first mode indicator
+                console.log('%c☁️ CLOUD-FIRST MODE ENABLED', 'background: #4CAF50; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold');
+                console.log('✅ Data will be saved directly to cloud, avoiding localStorage quota issues');
+                console.log('✅ Minimal cache kept in localStorage for offline fallback');
+
+                // Clean up any corrupted localStorage entries from previous quota errors
+                safeStorage.cleanupCorrupted();
 
                 // Hide login modal
                 document.getElementById('loginOverlay').style.display = 'none';
@@ -6564,15 +6782,46 @@ i<!DOCTYPE html>
                 // Show account button in hamburger panel and sync status
                 document.getElementById('accountButtonPanel').style.display = 'block';
                 document.getElementById('syncStatus').style.display = 'block';
+                updateSyncStatus('syncing', 'Syncing...');
 
-                // Load categories (will be empty for new user)
+                // Load categories (will be empty for new user, or from localStorage if migrating)
                 loadCategories();
 
                 // Refresh category browser
                 renderCategoryBrowser();
 
-                // Upload initial empty categories to claim the username
-                await uploadToCloud();
+                // IMPORTANT: Upload any localStorage data BEFORE clearing
+                // This handles migration scenario where user had offline data
+                console.log('📤 Checking for local data to upload before clearing...');
+                const localFiles = safeStorage.getStoredFiles();
+                if (localFiles.length > 0) {
+                    console.log(`📦 Found ${localFiles.length} files in localStorage. Uploading to cloud first...`);
+                }
+                await uploadToCloud(); // Upload everything (or create empty account if no local data)
+                pendingCloudSync.clear(); // Clear any pending items after upload
+
+                // AFTER uploading, clear all flashcard data from localStorage to free up space
+                console.log('🧹 Clearing flashcard data from localStorage (data is now in cloud)...');
+                let clearedCount = 0;
+                try {
+                    const keysToRemove = [];
+                    for (let key in localStorage) {
+                        if (localStorage.hasOwnProperty(key) && key.startsWith('flashcards_')) {
+                            keysToRemove.push(key);
+                        }
+                    }
+
+                    keysToRemove.forEach(key => {
+                        safeStorage.removeItem(key);
+                        clearedCount++;
+                    });
+
+                    console.log(`✅ Cleared ${clearedCount} flashcard entries from localStorage`);
+                    const freedMB = (safeStorage.getStorageUsage() / (1024 * 1024)).toFixed(2);
+                    console.log(`📊 localStorage now: ${freedMB}MB (freed up space for metadata)`);
+                } catch (e) {
+                    console.warn('Could not clear localStorage:', e);
+                }
 
                 updateSyncStatus('synced', '✅ Account Created!');
 
@@ -6585,29 +6834,282 @@ i<!DOCTYPE html>
             }
         }
 
-        // Safe localStorage wrapper (handles tracking prevention)
+        // Safe localStorage wrapper (handles tracking prevention and quota exceeded)
         const safeStorage = {
+            // Maximum chunk size (1MB per chunk to stay well under quota)
+            CHUNK_SIZE: 1024 * 1024, // 1MB
+
             getItem: function(key) {
                 try {
-                    return localStorage.getItem(key);
+                    // Try to get regular item first
+                    const item = localStorage.getItem(key);
+                    if (item !== null) {
+                        return item;
+                    }
+
+                    // Check if it's a chunked item
+                    const chunkCount = localStorage.getItem(`${key}_chunks`);
+                    if (chunkCount) {
+                        return this.getChunkedItem(key, parseInt(chunkCount));
+                    }
+
+                    return null;
                 } catch (e) {
                     console.warn('localStorage blocked by browser:', e);
                     return null;
                 }
             },
+
             setItem: function(key, value) {
+                // Check quota before attempting to save
+                const quotaCheck = this.checkQuota(value.length);
+
+                if (quotaCheck.shouldWarn) {
+                    console.warn(`⚠️ Storage usage high: ${quotaCheck.usagePercent}% (${quotaCheck.totalSizeMB}MB / ~8MB)`);
+                }
+
+                if (!quotaCheck.hasSpace) {
+                    console.error('Storage quota will be exceeded. Cannot save.');
+                    const cleanupMsg = this.suggestCleanup();
+                    throw new Error('QUOTA_EXCEEDED_WITH_DETAILS:' + cleanupMsg);
+                }
+
                 try {
+                    // Try normal storage first
                     localStorage.setItem(key, value);
+                } catch (e) {
+                    if (e.name === 'QuotaExceededError') {
+                        console.warn('localStorage quota exceeded, attempting chunked storage...');
+                        try {
+                            // Remove the failed attempt
+                            localStorage.removeItem(key);
+
+                            // Try chunked storage
+                            this.setChunkedItem(key, value);
+                        } catch (chunkError) {
+                            console.error('Chunked storage also failed:', chunkError);
+
+                            // Provide detailed cleanup suggestions
+                            const cleanupMsg = this.suggestCleanup();
+                            throw new Error('QUOTA_EXCEEDED_WITH_DETAILS:' + cleanupMsg);
+                        }
+                    } else {
+                        console.warn('localStorage blocked by browser:', e);
+                        throw e;
+                    }
+                }
+            },
+
+            setChunkedItem: function(key, value) {
+                // Remove any existing chunks
+                this.removeItem(key);
+
+                const chunks = [];
+                let offset = 0;
+
+                // Split into chunks
+                while (offset < value.length) {
+                    chunks.push(value.substring(offset, offset + this.CHUNK_SIZE));
+                    offset += this.CHUNK_SIZE;
+                }
+
+                console.log(`Splitting ${key} into ${chunks.length} chunks`);
+
+                // Store chunk count
+                localStorage.setItem(`${key}_chunks`, chunks.length.toString());
+
+                // Store each chunk
+                for (let i = 0; i < chunks.length; i++) {
+                    localStorage.setItem(`${key}_chunk_${i}`, chunks[i]);
+                }
+            },
+
+            getChunkedItem: function(key, chunkCount) {
+                const chunks = [];
+
+                for (let i = 0; i < chunkCount; i++) {
+                    const chunk = localStorage.getItem(`${key}_chunk_${i}`);
+                    if (chunk === null) {
+                        // Missing chunk - data is corrupted (don't log as error, handled at higher level)
+                        return null;
+                    }
+                    chunks.push(chunk);
+                }
+
+                return chunks.join('');
+            },
+
+            removeItem: function(key) {
+                try {
+                    // Remove regular item
+                    localStorage.removeItem(key);
+
+                    // Remove chunked items if they exist
+                    const chunkCount = localStorage.getItem(`${key}_chunks`);
+                    if (chunkCount) {
+                        const count = parseInt(chunkCount);
+                        for (let i = 0; i < count; i++) {
+                            localStorage.removeItem(`${key}_chunk_${i}`);
+                        }
+                        localStorage.removeItem(`${key}_chunks`);
+                    }
                 } catch (e) {
                     console.warn('localStorage blocked by browser:', e);
                 }
             },
-            removeItem: function(key) {
+
+            // Get total localStorage usage in bytes
+            getStorageUsage: function() {
+                let totalSize = 0;
                 try {
-                    localStorage.removeItem(key);
+                    for (let key in localStorage) {
+                        if (localStorage.hasOwnProperty(key)) {
+                            totalSize += localStorage[key].length + key.length;
+                        }
+                    }
                 } catch (e) {
-                    console.warn('localStorage blocked by browser:', e);
+                    console.warn('Could not calculate storage usage:', e);
                 }
+                return totalSize;
+            },
+
+            // Get list of stored flashcard files with sizes
+            getStoredFiles: function() {
+                const files = [];
+                const processedKeys = new Set();
+
+                try {
+                    for (let key in localStorage) {
+                        if (localStorage.hasOwnProperty(key) && key.startsWith('flashcards_')) {
+                            // Skip chunk metadata keys
+                            if (key.endsWith('_chunks') || key.includes('_chunk_')) {
+                                continue;
+                            }
+
+                            const baseKey = key;
+                            if (processedKeys.has(baseKey)) continue;
+                            processedKeys.add(baseKey);
+
+                            // Get full content (whether chunked or not)
+                            const content = this.getItem(baseKey);
+                            if (content) {
+                                const fileName = key.replace('flashcards_', '');
+                                const size = content.length;
+
+                                // Try to get card count
+                                let cardCount = 0;
+                                try {
+                                    const data = JSON.parse(content);
+                                    cardCount = Array.isArray(data) ? data.length : 0;
+                                } catch (e) {
+                                    // Invalid JSON, ignore card count
+                                }
+
+                                files.push({
+                                    key: baseKey,
+                                    fileName: fileName,
+                                    size: size,
+                                    sizeMB: (size / (1024 * 1024)).toFixed(2),
+                                    cardCount: cardCount
+                                });
+                            }
+                        }
+                    }
+
+                    // Sort by size (largest first)
+                    files.sort((a, b) => b.size - a.size);
+                } catch (e) {
+                    console.warn('Could not list stored files:', e);
+                }
+
+                return files;
+            },
+
+            // Check if there's enough quota for new data
+            checkQuota: function(newDataSize) {
+                const currentUsage = this.getStorageUsage();
+                const totalSize = currentUsage + newDataSize;
+
+                // Typical localStorage limit is 5-10MB, we'll use 8MB as safe threshold
+                const STORAGE_LIMIT = 8 * 1024 * 1024; // 8MB
+                const WARNING_THRESHOLD = 0.7; // Warn at 70%
+
+                const usagePercent = totalSize / STORAGE_LIMIT;
+
+                return {
+                    hasSpace: totalSize < STORAGE_LIMIT,
+                    currentUsageMB: (currentUsage / (1024 * 1024)).toFixed(2),
+                    totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2),
+                    usagePercent: (usagePercent * 100).toFixed(1),
+                    shouldWarn: usagePercent > WARNING_THRESHOLD
+                };
+            },
+
+            // Suggest which files to delete to free up space
+            suggestCleanup: function() {
+                const files = this.getStoredFiles();
+                const currentUsage = this.getStorageUsage();
+                const currentUsageMB = (currentUsage / (1024 * 1024)).toFixed(2);
+
+                let message = `📊 STORAGE USAGE: ${currentUsageMB}MB / ~8MB\n\n`;
+                message += `You have ${files.length} flashcard file(s) stored:\n\n`;
+
+                files.forEach((file, index) => {
+                    message += `${index + 1}. ${file.fileName}\n`;
+                    message += `   Size: ${file.sizeMB}MB (${file.cardCount} cards)\n\n`;
+                });
+
+                if (files.length > 0) {
+                    message += `💡 TIP: Delete unused files in the "Manage Files" section (☰ menu) to free up space.\n\n`;
+                    message += `Or enable Cloud Sync (☁️ button) to store data online instead of locally.`;
+                } else {
+                    message += `Other data is using storage. Try:\n`;
+                    message += `1. Clear browser cache for this site\n`;
+                    message += `2. Check browser's storage settings`;
+                }
+
+                return message;
+            },
+
+            // Clean up corrupted localStorage entries (orphaned chunks, incomplete data)
+            cleanupCorrupted: function() {
+                console.log('🧹 Cleaning up corrupted localStorage entries...');
+                let removedCount = 0;
+
+                try {
+                    const keysToCheck = [];
+                    for (let key in localStorage) {
+                        if (localStorage.hasOwnProperty(key) && key.startsWith('flashcards_')) {
+                            keysToCheck.push(key);
+                        }
+                    }
+
+                    keysToCheck.forEach(key => {
+                        // Skip chunk metadata keys
+                        if (key.endsWith('_chunks') || key.includes('_chunk_')) {
+                            return;
+                        }
+
+                        // Try to read the data
+                        const data = this.getItem(key);
+                        if (data === null) {
+                            // Corrupted or unreadable - remove it
+                            console.log(`   Removing corrupted entry: ${key}`);
+                            this.removeItem(key);
+                            removedCount++;
+                        }
+                    });
+
+                    if (removedCount > 0) {
+                        console.log(`✅ Cleaned up ${removedCount} corrupted entry/entries`);
+                    } else {
+                        console.log('✅ No corrupted entries found');
+                    }
+                } catch (e) {
+                    console.warn('Could not complete cleanup:', e);
+                }
+
+                return removedCount;
             }
         };
 
@@ -6919,19 +7421,30 @@ i<!DOCTYPE html>
 
                 // Check data size before encryption
                 const dataSize = JSON.stringify(dataToSync).length;
-                console.log(`📊 Data size before encryption: ${(dataSize / 1024).toFixed(2)} KB`);
-
-                if (dataSize > 5 * 1024 * 1024) { // 5MB warning
-                    console.warn('⚠️ Data size is large, may hit Firebase limits');
-                }
+                const dataSizeMB = (dataSize / (1024 * 1024)).toFixed(2);
+                console.log(`📊 Syncing ${Object.keys(allFlashcardData).length} files (${dataSizeMB}MB unencrypted)`);
 
                 // Encrypt data
                 const encrypted = await encryptData(dataToSync, cloudUser.password);
-                console.log(`🔐 Encrypted data size: ${(encrypted.length / 1024).toFixed(2)} KB`);
+                const encryptedSizeMB = (encrypted.length / (1024 * 1024)).toFixed(2);
+                console.log(`🔐 Encrypted data size: ${encryptedSizeMB}MB`);
 
                 // Check Firebase limits (10MB per node)
                 if (encrypted.length > 10 * 1024 * 1024) {
-                    throw new Error('Data exceeds Firebase size limit (10MB)');
+                    updateSyncStatus('error', '❌ Too Large');
+                    alert(`⚠️ CLOUD SYNC FAILED\n\n` +
+                        `Your flashcard data (${encryptedSizeMB}MB) exceeds Firebase's 10MB limit.\n\n` +
+                        `SOLUTIONS:\n` +
+                        `1. Delete unused categories/files\n` +
+                        `2. Split large files into smaller files\n` +
+                        `3. Export important data as CSV backups\n\n` +
+                        `Your data is still saved locally, but cannot sync to cloud.`);
+                    throw new Error(`Data exceeds Firebase size limit (${encryptedSizeMB}MB / 10MB max)`);
+                }
+
+                // Warn if getting close to limit (8MB = 80% of 10MB)
+                if (encrypted.length > 8 * 1024 * 1024) {
+                    console.warn(`⚠️ Warning: Data size (${encryptedSizeMB}MB) is approaching Firebase 10MB limit. Consider reducing data.`);
                 }
 
                 // Upload to Firebase
@@ -6952,6 +7465,126 @@ i<!DOCTYPE html>
                 if (error.message.includes('size limit')) {
                     alert('⚠️ Your flashcard data is too large to sync. Please contact support or reduce the number of flashcards.');
                 }
+
+                // CRITICAL: Re-throw the error so caller knows upload failed!
+                // This prevents data loss by stopping the process before localStorage is cleared
+                throw error;
+            }
+        }
+
+        // Save single file directly to cloud (Cloud-First Mode)
+        // This bypasses localStorage quota issues by storing data primarily in cloud
+        async function saveToCloudImmediate(fileName, data) {
+            if (!isCloudEnabled || !cloudUser || !firebaseDB) {
+                console.warn('⚠️ Cloud save skipped: not logged in. Falling back to localStorage.');
+                return false;
+            }
+
+            try {
+                console.log(`☁️ Cloud-first: Saving ${fileName} directly to cloud...`);
+                console.log(`📊 Memory cache status: ${Object.keys(cloudDataCache).length} files cached`);
+                console.log(`📊 fileCategories: ${Object.keys(fileCategories).length} files registered`);
+
+                // CRITICAL: If cloudDataCache is empty (e.g., after page refresh), download from cloud first
+                if (Object.keys(cloudDataCache).length === 0 && Object.keys(fileCategories).length > 0) {
+                    console.log('⚠️ Memory cache is empty but files exist. Downloading from cloud first...');
+                    try {
+                        await downloadFromCloud();
+                        console.log(`✅ Cache repopulated: ${Object.keys(cloudDataCache).length} files loaded`);
+                    } catch (downloadError) {
+                        console.warn('⚠️ Could not download from cloud to repopulate cache:', downloadError);
+                        // Continue anyway - will upload what we have
+                    }
+                }
+
+                // Collect all flashcard data including the one we're saving
+                const allFlashcardData = {};
+                const skippedFiles = [];
+
+                Object.keys(fileCategories).forEach(fn => {
+                    if (fn === fileName) {
+                        // Use the new data we're saving
+                        allFlashcardData[fn] = data;
+                    } else {
+                        // Try to get existing data from multiple sources
+                        let foundData = null;
+
+                        // 1. Check memory cache first (cloud-first mode)
+                        if (cloudDataCache[fn]) {
+                            foundData = cloudDataCache[fn];
+                            console.log(`   📦 Found ${fn} in memory cache`);
+                        }
+
+                        // 2. Fall back to localStorage if not in cache
+                        if (!foundData) {
+                            try {
+                                const savedData = safeStorage.getItem(`flashcards_${fn}`);
+                                if (savedData) {
+                                    foundData = savedData;
+                                    console.log(`   💾 Found ${fn} in localStorage`);
+                                }
+                            } catch (e) {
+                                console.warn(`⚠️ Could not read ${fn} from localStorage:`, e);
+                            }
+                        }
+
+                        // 3. Add to upload or skip
+                        if (foundData) {
+                            allFlashcardData[fn] = foundData;
+                        } else {
+                            // File not found in memory or localStorage - skip it
+                            console.warn(`⚠️ ${fn} not found in memory or localStorage, skipping...`);
+                            skippedFiles.push(fn);
+                        }
+                    }
+                });
+
+                if (skippedFiles.length > 0) {
+                    console.warn(`⚠️ Skipped ${skippedFiles.length} corrupted file(s) from localStorage:`, skippedFiles);
+                    console.warn('   These files will not be included in this cloud save.');
+                    console.warn('   They may have been corrupted due to previous quota errors.');
+                }
+
+                // Prepare data package
+                const dataToSync = {
+                    categories: categories,
+                    fileCategories: fileCategories,
+                    flashcardData: allFlashcardData,
+                    lastSync: Date.now()
+                };
+
+                // Encrypt data
+                const encrypted = await encryptData(dataToSync, cloudUser.password);
+                const encryptedSizeMB = (encrypted.length / (1024 * 1024)).toFixed(2);
+
+                // Check Firebase limits (10MB per node)
+                if (encrypted.length > 10 * 1024 * 1024) {
+                    console.error(`❌ Cloud data too large: ${encryptedSizeMB}MB (max 10MB)`);
+                    alert(`⚠️ CLOUD SAVE FAILED\n\n` +
+                        `Your flashcard data (${encryptedSizeMB}MB) exceeds Firebase's 10MB limit.\n\n` +
+                        `SOLUTIONS:\n` +
+                        `1. Delete unused categories/files\n` +
+                        `2. Split large files into smaller files\n` +
+                        `3. Export important data as CSV backups\n\n` +
+                        `Temporarily saving to local storage as fallback.`);
+                    return false;
+                }
+
+                // Upload to Firebase
+                const userPath = `users-universal/${cloudUser.username}`;
+                await firebaseDB.ref(userPath).set({
+                    data: encrypted,
+                    passwordHash: cloudUser.passwordHash,
+                    lastModified: Date.now()
+                });
+
+                updateSyncStatus('synced', '☁️ Synced');
+                console.log(`✅ ${fileName} saved to cloud (${encryptedSizeMB}MB encrypted)`);
+                return true;
+            } catch (error) {
+                console.error('❌ Cloud save error:', error);
+                updateSyncStatus('error', '❌ Cloud Error');
+                return false;
             }
         }
 
@@ -7012,15 +7645,36 @@ i<!DOCTYPE html>
                     console.warn('  3. Data was corrupted during upload/download');
                 }
 
-                Object.keys(flashcardData).forEach(fileName => {
-                    const data = flashcardData[fileName];
-                    console.log(`  💾 Restoring ${fileName}: ${data ? data.length : 0} bytes`);
-                    safeStorage.setItem(`flashcards_${fileName}`, data);
-                });
+                // CLOUD-FIRST MODE: Don't save to localStorage, keep data in cloud only
+                if (isCloudFirstMode) {
+                    console.log('%c☁️ CLOUD-FIRST: Skipping localStorage save', 'background: #2196F3; color: white; padding: 2px 6px; border-radius: 3px');
+                    console.log(`📥 Loaded ${Object.keys(flashcardData).length} files from cloud (kept in memory only)`);
 
-                // Save to local storage
-                safeStorage.setItem('flashcard_categories', JSON.stringify(categories));
-                safeStorage.setItem('flashcard_file_categories', JSON.stringify(fileCategories));
+                    // Store in memory cache for cloud-first mode
+                    cloudDataCache = flashcardData;
+                    console.log(`💾 Cached ${Object.keys(cloudDataCache).length} files in memory`);
+
+                    // Only save metadata (categories) to localStorage - very small
+                    try {
+                        safeStorage.setItem('flashcard_categories', JSON.stringify(categories));
+                        safeStorage.setItem('flashcard_file_categories', JSON.stringify(fileCategories));
+                        console.log('✅ Saved category metadata to localStorage');
+                    } catch (metaError) {
+                        console.warn('⚠️ Could not save metadata to localStorage (not critical)');
+                    }
+                } else {
+                    // NORMAL MODE: Save everything to localStorage
+                    console.log('💾 Saving files to localStorage...');
+                    Object.keys(flashcardData).forEach(fileName => {
+                        const data = flashcardData[fileName];
+                        console.log(`  💾 Restoring ${fileName}: ${data ? data.length : 0} bytes`);
+                        safeStorage.setItem(`flashcards_${fileName}`, data);
+                    });
+
+                    // Save to local storage
+                    safeStorage.setItem('flashcard_categories', JSON.stringify(categories));
+                    safeStorage.setItem('flashcard_file_categories', JSON.stringify(fileCategories));
+                }
 
                 console.log('✅ Data downloaded from cloud');
                 console.log(`📥 Restored ${Object.keys(flashcardData).length} files from cloud`);
@@ -7619,7 +8273,15 @@ i<!DOCTYPE html>
                     fileCount += categoryData[category][subcat].length;
                     // Count cards
                     categoryData[category][subcat].forEach(fileName => {
-                        const savedData = safeStorage.getItem(`flashcards_${fileName}`);
+                        // Check memory cache first (cloud-first mode), then localStorage
+                        let savedData = null;
+
+                        if (cloudDataCache[fileName]) {
+                            savedData = cloudDataCache[fileName];
+                        } else {
+                            savedData = safeStorage.getItem(`flashcards_${fileName}`);
+                        }
+
                         if (savedData) {
                             try {
                                 const cardData = JSON.parse(savedData);
@@ -7721,7 +8383,8 @@ i<!DOCTYPE html>
 
                         fileList.forEach(fileName => {
                             console.log(`    Checking file: ${fileName}`);
-                            const savedData = safeStorage.getItem(`flashcards_${fileName}`);
+                            // Check memory cache first (cloud-first mode), then localStorage
+                            const savedData = cloudDataCache[fileName] || safeStorage.getItem(`flashcards_${fileName}`);
                             if (savedData) {
                                 try {
                                     const cardData = JSON.parse(savedData);
@@ -8011,8 +8674,8 @@ i<!DOCTYPE html>
         }
 
         function loadFileByName(fileName) {
-            // Try to load from localStorage
-            const savedData = safeStorage.getItem(`flashcards_${fileName}`);
+            // Check memory cache first (cloud-first mode), then localStorage
+            const savedData = cloudDataCache[fileName] || safeStorage.getItem(`flashcards_${fileName}`);
 
             if (!savedData) {
                 alert(`Vocabulary data for "${fileName}" not found. Please upload the file again.`);
@@ -8342,24 +9005,99 @@ i<!DOCTYPE html>
         });
 
         // LocalStorage functions
-        function saveProgress() {
+        async function saveProgress() {
             if (currentFileName && flashcards.length > 0) {
-                const progressData = flashcards.map(card => ({
-                    id: card.id,
-                    lang1: card.lang1,
-                    lang1Extended: card.lang1Extended || '',
-                    lang2: card.lang2,
-                    lang2Extended: card.lang2Extended || '',
-                    detail: card.detail || '',
-                    learned: card.learned,
-                    reviewDate: card.reviewDate || null,
-                    repetitions: card.repetitions || 0,
-                    easeFactor: card.easeFactor || 2.5,
-                    interval: card.interval || 1,
-                    category: card.category || 'Default',
-                    subcategory: card.subcategory || ''
-                }));
-                safeStorage.setItem(`flashcards_${currentFileName}`, JSON.stringify(progressData));
+                try {
+                    const progressData = flashcards.map(card => ({
+                        id: card.id,
+                        lang1: card.lang1,
+                        lang1Extended: card.lang1Extended || '',
+                        lang2: card.lang2,
+                        lang2Extended: card.lang2Extended || '',
+                        detail: card.detail || '',
+                        learned: card.learned,
+                        reviewDate: card.reviewDate || null,
+                        repetitions: card.repetitions || 0,
+                        easeFactor: card.easeFactor || 2.5,
+                        interval: card.interval || 1,
+                        category: card.category || 'Default',
+                        subcategory: card.subcategory || ''
+                    }));
+
+                    const jsonData = JSON.stringify(progressData);
+                    const sizeInMB = (jsonData.length / (1024 * 1024)).toFixed(2);
+
+                    console.log(`Saving ${currentFileName}: ${flashcards.length} cards, ${sizeInMB}MB`);
+
+                    // CLOUD-FIRST MODE: Try to save to cloud first if enabled
+                    if (isCloudFirstMode) {
+                        console.log('☁️ Cloud-first mode: Attempting cloud save...');
+                        const cloudSaveSuccess = await saveToCloudImmediate(currentFileName, jsonData);
+
+                        if (cloudSaveSuccess) {
+                            // Cloud save succeeded - update memory cache only (no localStorage)
+                            console.log('✅ Cloud save successful. Updating memory cache...');
+                            cloudDataCache[currentFileName] = jsonData;
+                            console.log(`💾 Updated memory cache for ${currentFileName}`);
+                            console.log('☁️ Data stored in cloud + memory only (no localStorage)');
+
+                            // Remove from pending sync list
+                            pendingCloudSync.delete(currentFileName);
+
+                            // Try to sync any other pending files (retry mechanism)
+                            if (pendingCloudSync.size > 0) {
+                                console.log(`📤 Found ${pendingCloudSync.size} pending file(s) to sync. Attempting full cloud sync...`);
+                                try {
+                                    await uploadToCloud(); // This will upload all files including pending ones
+                                    console.log('✅ Pending files synced successfully');
+                                    pendingCloudSync.clear(); // Clear all pending after successful upload
+                                } catch (retryError) {
+                                    console.warn('⚠️ Could not sync pending files, will retry later:', retryError);
+                                }
+                            }
+
+                            return; // Exit early - save is complete
+                        } else {
+                            // Cloud save failed - fall back to localStorage and mark for retry
+                            console.warn('⚠️ Cloud save failed. Falling back to localStorage...');
+                            pendingCloudSync.add(currentFileName);
+                            console.warn(`📝 File marked for cloud sync. Pending files: ${pendingCloudSync.size}`);
+
+                            // Update sync status to show pending uploads
+                            updateSyncStatus('error', `⚠️ ${pendingCloudSync.size} Pending`);
+                        }
+                    }
+
+                    // FALLBACK or NON-CLOUD MODE: Save to localStorage
+                    safeStorage.setItem(`flashcards_${currentFileName}`, jsonData);
+
+                    // Check if it was stored as chunks
+                    const chunkCount = localStorage.getItem(`flashcards_${currentFileName}_chunks`);
+                    if (chunkCount) {
+                        console.log(`✅ Large file saved successfully using ${chunkCount} chunks`);
+                    }
+                } catch (error) {
+                    console.error('Error saving progress:', error);
+
+                    if (error.message.startsWith('QUOTA_EXCEEDED_WITH_DETAILS:')) {
+                        // Extract the detailed cleanup message
+                        const cleanupDetails = error.message.replace('QUOTA_EXCEEDED_WITH_DETAILS:', '');
+                        alert(`⚠️ STORAGE LIMIT EXCEEDED\n\n` +
+                            `Cannot save ${flashcards.length} flashcards - storage is full!\n\n` +
+                            cleanupDetails);
+                    } else if (error.message === 'QUOTA_EXCEEDED') {
+                        alert(`⚠️ STORAGE LIMIT EXCEEDED\n\n` +
+                            `Your device's storage is full and cannot save ${flashcards.length} flashcards.\n\n` +
+                            `SOLUTIONS:\n` +
+                            `1. Enable Cloud Sync (☁️ button) to store data online\n` +
+                            `2. Clear browser data for this site\n` +
+                            `3. Delete unused flashcard categories\n` +
+                            `4. Split your file into smaller files\n\n` +
+                            `⚠️ Your current session data may not be saved!`);
+                    } else {
+                        alert(`Failed to save progress: ${error.message}`);
+                    }
+                }
             }
         }
 
@@ -8369,6 +9107,17 @@ i<!DOCTYPE html>
         }
 
         function loadProgress(fileName) {
+            // CLOUD-FIRST MODE: Check memory cache first
+            if (isCloudFirstMode && cloudDataCache[fileName]) {
+                console.log(`☁️ Loading ${fileName} from memory cache`);
+                try {
+                    return JSON.parse(cloudDataCache[fileName]);
+                } catch (e) {
+                    console.error(`Error parsing cached data for ${fileName}:`, e);
+                }
+            }
+
+            // FALLBACK: Try localStorage
             const saved = safeStorage.getItem(`flashcards_${fileName}`);
             if (saved) {
                 return JSON.parse(saved);
