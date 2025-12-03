@@ -672,6 +672,19 @@ i<!DOCTYPE html>
             z-index: 10;
         }
 
+        .unlearned-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ef4444;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            z-index: 10;
+        }
+
         .stats {
             display: none;
             background: #f0f9ff;
@@ -1404,6 +1417,52 @@ i<!DOCTYPE html>
         .quick-action-btn.active {
             background: #667eea;
             color: white;
+        }
+
+        /* Repeat dropdown menu */
+        .repeat-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .repeat-dropdown-menu {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: white;
+            border: 2px solid #8b5cf6;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            min-width: 200px;
+            margin-bottom: 5px;
+        }
+
+        .repeat-dropdown-menu.show {
+            display: block;
+        }
+
+        .repeat-dropdown-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background 0.2s;
+            font-size: 0.9em;
+        }
+
+        .repeat-dropdown-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 6px 6px;
+        }
+
+        .repeat-dropdown-item:first-child {
+            border-radius: 6px 6px 0 0;
+        }
+
+        .repeat-dropdown-item:hover {
+            background: #f3e8ff;
+            color: #8b5cf6;
         }
 
         /* Fix accordion content labels */
@@ -3602,9 +3661,18 @@ i<!DOCTYPE html>
             <button class="quick-action-btn autoplay-btn" id="autoplayBtn">▶ Auto-Play</button>
             <button class="quick-action-btn" id="shuffleBtn">🔀 Shuffle</button>
             <button class="quick-action-btn" id="learnedBtn">✓ Mark Learned</button>
-            <button class="quick-action-btn" id="showLearnedBtn">👁 Unlearned Only</button>
+            <button class="quick-action-btn" id="unlearnedBtn" style="display: none;">✗ Mark Unlearned</button>
+            <button class="quick-action-btn" id="showLearnedBtn">👁 Show All</button>
             <button class="quick-action-btn" id="remapColumnsBtn" style="background: #f59e0b;">🎯 Remap Columns</button>
-            <button class="quick-action-btn" id="repeatBtn" style="background: #8b5cf6; color: white;">🔁 Repeat</button>
+            <div class="repeat-dropdown" style="display: inline-block;">
+                <button class="quick-action-btn" id="repeatBtn" style="background: #8b5cf6; color: white;">🔁 Repeat</button>
+                <div class="repeat-dropdown-menu" id="repeatDropdown">
+                    <div class="repeat-dropdown-item" data-action="all">🔄 Repeat All Cards</div>
+                    <div class="repeat-dropdown-item" data-action="learned">✓ Repeat Learned Only</div>
+                    <div class="repeat-dropdown-item" data-action="unlearned">✗ Repeat Unlearned Only</div>
+                    <div class="repeat-dropdown-item" data-action="current">🔊 Replay Current Card</div>
+                </div>
+            </div>
             <button class="quick-action-btn" id="minimizeBtn" style="background: #06b6d4; color: white;" onclick="window.toggleMinimizeMode()" title="Minimize flashcard to corner">⬇️ Minimize</button>
             <button class="quick-action-btn" id="deleteRecordBtn" style="background: #ef4444; color: white;">🗑️ Delete</button>
         </div>
@@ -3624,6 +3692,7 @@ i<!DOCTYPE html>
                 <div class="card-lang1-section">
                     <button class="audio-btn" id="audioBtn" title="Pronounce Source word">🔊</button>
                     <div class="learned-badge" id="learnedBadge" style="display: none;">✓ Learned</div>
+                    <div class="unlearned-badge" id="unlearnedBadge" style="display: none;">✗ Unlearned</div>
                     <div class="card-label">📖 Source Language</div>
                     <div class="card-content" id="germanWord"></div>
                     <div class="card-detail" id="detailFront"></div>
@@ -3665,6 +3734,7 @@ i<!DOCTYPE html>
         let flashcards = [];
         let currentIndex = 0;
         let showOnlyUnlearned = false;
+        let filterMode = 'all'; // 'all', 'unlearned', 'learned'
         let filteredCards = [];
         let currentFileName = '';
         let alwaysShowMeanings = false;
@@ -9534,9 +9604,13 @@ i<!DOCTYPE html>
 
         // Get active card list
         function getActiveCards() {
-            return showOnlyUnlearned
-                ? flashcards.filter(card => !card.learned)
-                : flashcards;
+            if (filterMode === 'unlearned') {
+                return flashcards.filter(card => !card.learned);
+            } else if (filterMode === 'learned') {
+                return flashcards.filter(card => card.learned);
+            } else {
+                return flashcards;
+            }
         }
 
         // Show current flashcard
@@ -9617,12 +9691,15 @@ i<!DOCTYPE html>
                 reviewInfo.style.display = 'none';
             }
 
-            // Show/hide learned badge
+            // Show/hide learned/unlearned badge
+            const unlearnedBadge = document.getElementById('unlearnedBadge');
             if (card.learned) {
                 learnedBadge.style.display = 'block';
+                unlearnedBadge.style.display = 'none';
                 learnedBtn.textContent = '✗ Unmark Learned';
             } else {
                 learnedBadge.style.display = 'none';
+                unlearnedBadge.style.display = 'block';
                 learnedBtn.textContent = '✓ Mark as Learned';
             }
 
@@ -10450,6 +10527,23 @@ i<!DOCTYPE html>
             }
         });
 
+        // Mark as unlearned button
+        const unlearnedBtn = document.getElementById('unlearnedBtn');
+        unlearnedBtn.addEventListener('click', () => {
+            if (filteredCards.length === 0) return;
+
+            // First reveal the English meaning if not visible
+            if (!alwaysShowMeanings && !englishSection.classList.contains('revealed')) {
+                revealEnglish();
+                // Give user a moment to see the meaning before marking
+                setTimeout(() => {
+                    markCardAsUnlearned();
+                }, 300);
+            } else {
+                markCardAsUnlearned();
+            }
+        });
+
         function markCardAsLearned() {
             const card = filteredCards[currentIndex];
 
@@ -10481,35 +10575,110 @@ i<!DOCTYPE html>
             }
         }
 
-        // Repeat current card (replay audio)
-        repeatBtn.addEventListener('click', () => {
-            if (filteredCards.length === 0) return;
-
-            // Get current card
+        function markCardAsUnlearned() {
             const card = filteredCards[currentIndex];
 
-            // Stop any ongoing auto-play
-            if (isAutoPlaying) {
-                stopAutoPlay('manual');
-            }
+            // Always mark as unlearned and reset spaced repetition
+            card.learned = false;
+            card.repetitions = 0;
+            card.interval = 1;
+            card.reviewDate = null;
 
-            // Pronounce the source word
-            if (card.lang1) {
-                speakText(card.lang1, sourceLang);
-            }
+            updateStats();
+            showFlashcard();
+            saveProgress();
+        }
 
-            // After delay, pronounce the target word if visible
-            setTimeout(() => {
-                if (englishSection.classList.contains('revealed') && card.lang2) {
-                    speakText(card.lang2, targetLang);
+        // Repeat button - show dropdown
+        const repeatDropdown = document.getElementById('repeatDropdown');
+
+        repeatBtn.addEventListener('click', (e) => {
+            if (filteredCards.length === 0) return;
+            e.stopPropagation();
+            repeatDropdown.classList.toggle('show');
+        });
+
+        // Handle repeat dropdown item clicks
+        document.querySelectorAll('.repeat-dropdown-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const action = item.getAttribute('data-action');
+                repeatDropdown.classList.remove('show');
+
+                // Stop any ongoing auto-play
+                if (isAutoPlaying) {
+                    stopAutoPlay('manual');
                 }
-            }, parseInt(delayBetween.value));
 
-            // Visual feedback
-            repeatBtn.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                repeatBtn.style.transform = 'scale(1)';
-            }, 200);
+                switch (action) {
+                    case 'all':
+                        // Repeat all cards
+                        currentIndex = 0;
+                        filteredCards = [...flashcards];
+                        showFlashcard();
+                        updateStats();
+                        alert('✅ Repeating all cards!\n\nStarting from the first card.');
+                        break;
+
+                    case 'learned':
+                        // Repeat marked as learned
+                        const learnedCards = flashcards.filter(card => card.learned === true);
+                        if (learnedCards.length === 0) {
+                            alert('⚠️ No learned cards found!');
+                            return;
+                        }
+                        currentIndex = 0;
+                        filteredCards = learnedCards;
+                        showFlashcard();
+                        updateStats();
+                        alert(`✅ Repeating ${learnedCards.length} learned cards!\n\nStarting from the first learned card.`);
+                        break;
+
+                    case 'unlearned':
+                        // Repeat marked as unlearned
+                        const unlearnedCards = flashcards.filter(card => card.learned === false);
+                        if (unlearnedCards.length === 0) {
+                            alert('⚠️ No unlearned cards found!');
+                            return;
+                        }
+                        currentIndex = 0;
+                        filteredCards = unlearnedCards;
+                        showFlashcard();
+                        updateStats();
+                        alert(`✅ Repeating ${unlearnedCards.length} unlearned cards!\n\nStarting from the first unlearned card.`);
+                        break;
+
+                    case 'current':
+                        // Repeat current card (replay audio)
+                        const card = filteredCards[currentIndex];
+
+                        // Pronounce the source word
+                        if (card.lang1) {
+                            speakText(card.lang1, sourceLang);
+                        }
+
+                        // After delay, pronounce the target word if visible
+                        setTimeout(() => {
+                            if (englishSection.classList.contains('revealed') && card.lang2) {
+                                speakText(card.lang2, targetLang);
+                            }
+                        }, parseInt(delayBetween.value));
+
+                        // Visual feedback
+                        repeatBtn.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            repeatBtn.style.transform = 'scale(1)';
+                        }, 200);
+                        break;
+                }
+            });
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.repeat-dropdown')) {
+                repeatDropdown.classList.remove('show');
+            }
         });
 
         // Delete current record
@@ -10600,15 +10769,29 @@ i<!DOCTYPE html>
             }
         });
 
-        // Toggle show only unlearned
+        // Toggle filter mode (all → unlearned → learned → all)
         showLearnedBtn.addEventListener('click', () => {
-            showOnlyUnlearned = !showOnlyUnlearned;
-
-            if (showOnlyUnlearned) {
-                showLearnedBtn.textContent = '👁 Show All Cards';
+            // Cycle through modes
+            if (filterMode === 'all') {
+                filterMode = 'unlearned';
+                showOnlyUnlearned = true; // Keep for backwards compatibility
+                showLearnedBtn.textContent = '👁 Unlearned Only';
+                showLearnedBtn.style.background = '#ef4444';
+                showLearnedBtn.style.color = 'white';
+                showLearnedBtn.classList.add('active');
+            } else if (filterMode === 'unlearned') {
+                filterMode = 'learned';
+                showOnlyUnlearned = false;
+                showLearnedBtn.textContent = '👁 Learned Only';
+                showLearnedBtn.style.background = '#10b981';
+                showLearnedBtn.style.color = 'white';
                 showLearnedBtn.classList.add('active');
             } else {
-                showLearnedBtn.textContent = '👁 Show Only Unlearned';
+                filterMode = 'all';
+                showOnlyUnlearned = false;
+                showLearnedBtn.textContent = '👁 Show All';
+                showLearnedBtn.style.background = '';
+                showLearnedBtn.style.color = '';
                 showLearnedBtn.classList.remove('active');
             }
 
