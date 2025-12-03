@@ -3424,8 +3424,8 @@ i<!DOCTYPE html>
                     </div>
                     <label style="margin-top: 15px;">
                         <span>Speech Rate:</span>
-                        <input type="range" id="speechRate" min="0.5" max="1.5" step="0.1" value="0.8">
-                        <span class="delay-value" id="speechRateValue">0.8x</span>
+                        <input type="range" id="speechRate" min="0.5" max="1.5" step="0.1" value="1.0">
+                        <span class="delay-value" id="speechRateValue">1.0x</span>
                         <div style="font-size: 0.8em; color: #888; margin-top: 3px;">Slower (0.5x) ← → Faster (1.5x)</div>
                     </label>
                     <label>
@@ -3450,13 +3450,13 @@ i<!DOCTYPE html>
                     </label>
                     <label>
                         <span>Delay between Source & Target:</span>
-                        <input type="range" id="delayBetween" min="500" max="20000" step="500" value="20000">
-                        <span class="delay-value" id="delayBetweenValue">20s</span>
+                        <input type="range" id="delayBetween" min="500" max="20000" step="500" value="4000">
+                        <span class="delay-value" id="delayBetweenValue">4.0s</span>
                     </label>
                     <label>
                         <span>Delay before next card:</span>
-                        <input type="range" id="delayNext" min="1000" max="20000" step="500" value="20000">
-                        <span class="delay-value" id="delayNextValue">20s</span>
+                        <input type="range" id="delayNext" min="1000" max="20000" step="500" value="4000">
+                        <span class="delay-value" id="delayNextValue">4.0s</span>
                     </label>
                     <hr style="border: 1px solid #e2e8f0; margin: 15px 0;">
                     <label>
@@ -3689,8 +3689,8 @@ i<!DOCTYPE html>
         let isAutoPlaying = false;
         let autoplayTimeout = null;
         let autoplayEnglishEnabled = false;
-        let delayBetweenLangs = 1500; // milliseconds
-        let delayBeforeNext = 2500; // milliseconds
+        let delayBetweenLangs = 4000; // milliseconds
+        let delayBeforeNext = 4000; // milliseconds
 
         // Advanced feature variables
         let loopModeEnabled = false;
@@ -3751,7 +3751,7 @@ i<!DOCTYPE html>
         let sourceVoice = null;
         let targetVoice = null;
         let allVoices = [];
-        let speechRate = 0.8;
+        let speechRate = 1.0;
         let speechPitch = 1.0;
 
         // Load voices - Universal version supporting all languages
@@ -9522,20 +9522,6 @@ i<!DOCTYPE html>
             isAutoPlaying = true;
             autoplayBtn.textContent = '⏸ Pause';
             autoplayBtn.classList.add('playing');
-
-            // Auto-open settings menu and expand auto-play accordion
-            document.getElementById('settingsMenu').style.display = 'block';
-            document.getElementById('settingsToggleBtn').classList.add('active');
-
-            // Open Auto-Play and Advanced accordions
-            const accordions = document.querySelectorAll('.accordion-header');
-            accordions.forEach(header => {
-                const text = header.textContent;
-                if (text.includes('Auto-Play') || text.includes('Advanced Features')) {
-                    header.classList.add('active');
-                    header.nextElementSibling.classList.add('active');
-                }
-            });
 
             // Start session stats (only if not already started)
             if (!sessionStartTime) {
