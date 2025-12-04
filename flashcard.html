@@ -4859,7 +4859,7 @@ i<!DOCTYPE html>
             console.log('💾 Saving all changes...');
             saveProgress();
             if (isCloudEnabled && cloudUser) {
-                syncToCloud();
+                uploadToCloud();
             }
             alert('✅ All changes saved successfully!');
         }
@@ -5198,7 +5198,7 @@ i<!DOCTYPE html>
 
             selectedFlashcardIds.clear();
             saveProgress();
-            if (isCloudEnabled && cloudUser) syncToCloud();
+            if (isCloudEnabled && cloudUser) uploadToCloud();
 
             // Reload modal
             const { category, subcategory } = currentFileManagerSelection;
@@ -5238,7 +5238,7 @@ i<!DOCTYPE html>
 
             flashcards.push(newCard);
             saveProgress();
-            if (isCloudEnabled && cloudUser) syncToCloud();
+            if (isCloudEnabled && cloudUser) uploadToCloud();
 
             // Reload modal
             const { category, subcategory } = currentFileManagerSelection;
@@ -5716,7 +5716,7 @@ i<!DOCTYPE html>
 
             // Sync to cloud if enabled
             if (isCloudEnabled && cloudUser) {
-                syncToCloud();
+                uploadToCloud();
             }
 
             // Refresh display
@@ -5784,7 +5784,7 @@ i<!DOCTYPE html>
 
             // Sync to cloud if enabled
             if (isCloudEnabled && cloudUser) {
-                syncToCloud();
+                uploadToCloud();
             }
 
             // Refresh display
@@ -5821,7 +5821,7 @@ i<!DOCTYPE html>
 
                 // Sync to cloud if enabled
                 if (isCloudEnabled && cloudUser) {
-                    syncToCloud();
+                    uploadToCloud();
                 }
 
                 // Visual feedback
@@ -5862,7 +5862,7 @@ i<!DOCTYPE html>
 
             // Sync to cloud if enabled
             if (isCloudEnabled && cloudUser) {
-                syncToCloud();
+                uploadToCloud();
             }
 
             // Refresh display
@@ -5891,7 +5891,7 @@ i<!DOCTYPE html>
 
             // Sync to cloud if enabled
             if (isCloudEnabled && cloudUser) {
-                syncToCloud();
+                uploadToCloud();
             }
 
             // Refresh display
@@ -8662,9 +8662,15 @@ i<!DOCTYPE html>
 
         // LocalStorage functions
         function saveProgress() {
-            // Skip localStorage saving if cloud sync is enabled
+            // If cloud sync is enabled, save to cloud instead of localStorage
             if (isCloudEnabled && cloudUser) {
-                console.log(`☁️ Skipping localStorage save - cloud sync is enabled`);
+                console.log(`☁️ Skipping localStorage save - uploading to cloud instead`);
+                if (currentFileName && flashcards.length > 0) {
+                    // Trigger cloud upload asynchronously to avoid blocking
+                    setTimeout(() => {
+                        uploadToCloud();
+                    }, 100);
+                }
                 return;
             }
 
