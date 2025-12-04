@@ -4320,16 +4320,14 @@ i<!DOCTYPE html>
                 const actions = document.createElement('div');
                 actions.style.cssText = 'display: flex; gap: 5px;';
 
-                if (cat !== 'Default') {
-                    // Delete button
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.textContent = '✕';
-                    deleteBtn.className = 'btn-small';
-                    deleteBtn.style.cssText = 'background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; padding: 6px 10px; font-size: 1em;';
-                    deleteBtn.title = 'Delete category';
-                    deleteBtn.onclick = () => deleteCategory(cat);
-                    actions.appendChild(deleteBtn);
-                }
+                // Delete button (now available for all categories including Default)
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '✕';
+                deleteBtn.className = 'btn-small';
+                deleteBtn.style.cssText = 'background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; padding: 6px 10px; font-size: 1em;';
+                deleteBtn.title = 'Delete category';
+                deleteBtn.onclick = () => deleteCategory(cat);
+                actions.appendChild(deleteBtn);
 
                 catDiv.appendChild(catInfo);
                 catDiv.appendChild(actions);
@@ -4526,11 +4524,6 @@ i<!DOCTYPE html>
         }
 
         function deleteCategory(category) {
-            if (category === 'Default') {
-                alert('Cannot delete Default category!');
-                return;
-            }
-
             // Prevent deleting the last category
             const categoryCount = Object.keys(categories).length;
             if (categoryCount <= 1) {
@@ -7408,7 +7401,7 @@ i<!DOCTYPE html>
         // Category Browser Functions
         // Global variables for pagination and view
         let currentPage = 1;
-        let categoriesPerPage = 6;
+        let categoriesPerPage = 3;
         let allCategoryData = {};
         let filteredCategoryData = {};
         let currentViewMode = 'list'; // 'list' or 'grouped'
@@ -7891,7 +7884,7 @@ i<!DOCTYPE html>
 
             // Pagination logic
             const paginationControls = document.getElementById('categoryPagination');
-            const shouldShowPagination = totalCategoryCount > 6; // Show pagination if more than 6 categories
+            const shouldShowPagination = totalCategoryCount > 3; // Show pagination if more than 3 categories
 
             if (shouldShowPagination) {
                 paginationControls.style.display = 'block';
@@ -8669,6 +8662,12 @@ i<!DOCTYPE html>
 
         // LocalStorage functions
         function saveProgress() {
+            // Skip localStorage saving if cloud sync is enabled
+            if (isCloudEnabled && cloudUser) {
+                console.log(`☁️ Skipping localStorage save - cloud sync is enabled`);
+                return;
+            }
+
             if (currentFileName && flashcards.length > 0) {
                 try {
                     const progressData = flashcards.map(card => ({
@@ -8690,7 +8689,7 @@ i<!DOCTYPE html>
                     const jsonData = JSON.stringify(progressData);
                     const sizeInMB = (jsonData.length / (1024 * 1024)).toFixed(2);
 
-                    console.log(`Saving ${currentFileName}: ${flashcards.length} cards, ${sizeInMB}MB`);
+                    console.log(`💾 Saving ${currentFileName}: ${flashcards.length} cards, ${sizeInMB}MB to localStorage`);
 
                     safeStorage.setItem(`flashcards_${currentFileName}`, jsonData);
 
@@ -8730,6 +8729,12 @@ i<!DOCTYPE html>
         }
 
         function loadProgress(fileName) {
+            // Skip localStorage loading if cloud sync is enabled
+            if (isCloudEnabled && cloudUser) {
+                console.log(`☁️ Skipping localStorage load - cloud sync is enabled`);
+                return null;
+            }
+
             const saved = safeStorage.getItem(`flashcards_${fileName}`);
             if (saved) {
                 return JSON.parse(saved);
