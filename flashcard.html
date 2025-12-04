@@ -7685,12 +7685,8 @@
                 // Restore flashcard data
                 const flashcardData = decrypted.flashcardData || {};
 
-                if (Object.keys(flashcardData).length === 0) {
-                    console.warn('⚠️ WARNING: flashcardData is empty! This may indicate:');
-                    console.warn('  1. No data was uploaded to cloud yet');
-                    console.warn('  2. Upload failed silently');
-                    console.warn('  3. Data was corrupted during upload/download');
-                }
+                // Note: Empty flashcardData on download is normal during initial sync or after cleanup
+                // Data gets populated when files are uploaded
 
                 // CLOUD-FIRST MODE: Don't save to localStorage, keep data in cloud only
                 if (isCloudFirstMode) {
