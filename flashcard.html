@@ -1867,6 +1867,118 @@
             }
         }
 
+        /* ============================================ */
+        /* COMPREHENSIVE MOBILE ENHANCEMENTS - v3.3 */
+        /* ============================================ */
+
+        /* Tablet and Mobile (768px and below) */
+        @media (max-width: 768px) {
+            /* Prevent horizontal overflow */
+            html, body {
+                max-width: 100vw;
+                overflow-x: hidden;
+            }
+
+            body {
+                padding: 10px 5px;
+            }
+
+            .container {
+                width: calc(100vw - 20px);
+                max-width: 100%;
+                margin-left: auto;
+                margin-right: auto;
+                padding: 20px 15px;
+            }
+
+            /* Better touch targets */
+            button, .btn, input[type="button"], input[type="submit"] {
+                min-height: 44px;
+                padding: 12px 16px;
+            }
+
+            /* Side panel mobile */
+            .management-panel {
+                max-width: 90vw !important;
+                width: 90vw !important;
+            }
+
+            /* Modals full width */
+            .modal-content {
+                width: 95% !important;
+                max-width: 95vw !important;
+                padding: 20px 15px;
+            }
+
+            /* Input fields - prevent zoom on iOS */
+            input[type="text"],
+            input[type="password"],
+            input[type="number"],
+            textarea,
+            select {
+                font-size: 16px !important;
+            }
+
+            /* Navigation responsive */
+            #navigation {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            /* Quick actions grid */
+            #quickActions {
+                grid-template-columns: 1fr 1fr !important;
+            }
+
+            /* Category browser */
+            #categoryBrowserList {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Flashcard mobile */
+            .card-content {
+                font-size: 1.6em !important;
+            }
+
+            /* Audio buttons */
+            .audio-btn, .audio-btn-lang2 {
+                width: 48px !important;
+                height: 48px !important;
+            }
+        }
+
+        /* Small Mobile (480px and below) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 10px;
+            }
+
+            h1 {
+                font-size: 1.3em !important;
+            }
+
+            .card-content {
+                font-size: 1.4em !important;
+            }
+
+            #quickActions {
+                grid-template-columns: 1fr !important;
+            }
+
+            .nav-button {
+                width: 100%;
+            }
+        }
+
+        /* Landscape mobile */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .card-lang1-section,
+            .card-lang2-section {
+                max-height: 120px;
+                overflow-y: auto;
+            }
+        }
+
         /* File Manager Styles */
         .file-manager {
             background: #f8fafc;
