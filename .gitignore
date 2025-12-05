@@ -1,0 +1,44 @@
+# IDE and Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS files
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+
+# Personal vocabulary files (users create their own)
+*.csv
+!sample_vocabulary.csv
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Temporary files
+*.tmp
+*.temp
+
+# Development folders
+archive_old_versions/
+Universal-Flashcard-PWA-v3.0/
+
+# Backup HTML files
+*_backup*.html
+*_OLD*.html
+*_FINAL*.html
+!flashcard.html
+
+# Development scripts
+transform_to_universal.sh
+transform_universal.py
+language_selector_ui.html
+universal_lang_js.txt

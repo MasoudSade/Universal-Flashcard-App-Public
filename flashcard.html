@@ -4248,38 +4248,37 @@
                 const catInfo = document.createElement('span');
                 catInfo.style.cssText = 'display: flex; align-items: center; gap: 8px; flex: 1;';
 
-                // Editable category name
-                const isEditable = cat !== 'Default';
+                // Editable category name (ALL categories are now editable, including Default)
                 const editableSpan = document.createElement('strong');
                 editableSpan.textContent = cat;
-                editableSpan.contentEditable = isEditable;
+                editableSpan.contentEditable = true;
                 editableSpan.style.cssText = `
                     outline: none;
                     padding: 4px 8px;
                     border-radius: 4px;
                     min-width: 100px;
-                    ${isEditable ? 'cursor: text; background: #f0f9ff; border: 1px solid #bfdbfe;' : 'cursor: default;'}
+                    cursor: text;
+                    background: #f0f9ff;
+                    border: 1px solid #bfdbfe;
                 `;
                 editableSpan.setAttribute('data-original-name', cat);
                 editableSpan.setAttribute('data-type', 'category');
-                editableSpan.title = isEditable ? 'Click to edit (press Enter to save)' : 'Default category cannot be renamed';
+                editableSpan.title = 'Click to edit (press Enter to save)';
 
-                // Save on blur or Enter key
-                if (isEditable) {
-                    editableSpan.addEventListener('blur', function() {
-                        saveCategoryEdit(this);
-                    });
-                    editableSpan.addEventListener('keydown', function(e) {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            this.blur();
-                        }
-                        if (e.key === 'Escape') {
-                            this.textContent = this.getAttribute('data-original-name');
-                            this.blur();
-                        }
-                    });
-                }
+                // Save on blur or Enter key (ALL categories are editable now)
+                editableSpan.addEventListener('blur', function() {
+                    saveCategoryEdit(this);
+                });
+                editableSpan.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.blur();
+                    }
+                    if (e.key === 'Escape') {
+                        this.textContent = this.getAttribute('data-original-name');
+                        this.blur();
+                    }
+                });
 
                 catInfo.innerHTML = '📁 ';
                 catInfo.appendChild(editableSpan);
@@ -4325,16 +4324,14 @@
                 const actions = document.createElement('div');
                 actions.style.cssText = 'display: flex; gap: 5px;';
 
-                if (cat !== 'Default') {
-                    // Delete button
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.textContent = '✕';
-                    deleteBtn.className = 'btn-small';
-                    deleteBtn.style.cssText = 'background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; padding: 6px 10px; font-size: 1em;';
-                    deleteBtn.title = 'Delete category';
-                    deleteBtn.onclick = () => deleteCategory(cat);
-                    actions.appendChild(deleteBtn);
-                }
+                // Delete button (now available for ALL categories including Default)
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '✕';
+                deleteBtn.className = 'btn-small';
+                deleteBtn.style.cssText = 'background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; padding: 6px 10px; font-size: 1em;';
+                deleteBtn.title = 'Delete category';
+                deleteBtn.onclick = () => deleteCategory(cat);
+                actions.appendChild(deleteBtn);
 
                 catDiv.appendChild(catInfo);
                 catDiv.appendChild(actions);
@@ -4531,17 +4528,8 @@
         }
 
         function deleteCategory(category) {
-            if (category === 'Default') {
-                alert('Cannot delete Default category!');
-                return;
-            }
-
-            // Prevent deleting the last category
-            const categoryCount = Object.keys(categories).length;
-            if (categoryCount <= 1) {
-                alert('⚠️ Cannot delete the last category!\n\nAt least one category must remain.');
-                return;
-            }
+            // REMOVED RESTRICTIONS: User can now delete ANY category including Default and the last category
+            // This allows complete cleanup of all categories if needed
 
             // Find all files in this category
             const filesToDelete = Object.keys(fileCategories).filter(file =>
@@ -6601,104 +6589,58 @@
                 document.getElementById('syncStatus').style.display = 'block';
                 updateSyncStatus('syncing', 'Syncing...');
 
-                // IMPORTANT: Upload any localStorage data BEFORE clearing
-                // This ensures no data is lost if user was offline and data was saved locally
-                console.log('📤 Checking for local data to upload before clearing...');
-                const localFiles = safeStorage.getStoredFiles();
-                let uploadSuccessful = false;
+                // ========================================================
+                // HYBRID CLOUD-MASTER MODE:
+                // - Cloud is ALWAYS the master (source of truth)
+                // - localStorage is NEVER uploaded to cloud on login
+                // - localStorage only used as temporary practice cache
+                // - Clear ALL localStorage on login to prevent conflicts
+                // ========================================================
 
-                if (localFiles.length > 0) {
-                    console.log(`📦 Found ${localFiles.length} files in localStorage. Uploading to cloud first...`);
+                console.log('%c☁️ CLOUD-MASTER MODE', 'background: #2196F3; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold');
+                console.log('📋 Cloud = Master (always read from cloud)');
+                console.log('💾 localStorage = Practice cache only (never uploaded)');
 
-                    // Try upload up to 3 times before giving up
-                    let uploadAttempts = 0;
-                    let uploadError = null;
-
-                    while (uploadAttempts < 3 && !uploadSuccessful) {
-                        uploadAttempts++;
-                        try {
-                            console.log(`📤 Upload attempt ${uploadAttempts}/3...`);
-
-                            await uploadToCloud(); // Upload everything to cloud first
-
-                            // VERIFY: Download and check that all files made it to cloud
-                            await downloadFromCloud();
-                            const cloudFiles = Object.keys(cloudDataCache);
-
-                            // Clean up orphaned entries AFTER download (when cloudDataCache is populated)
-                            cleanupOrphanedEntries();
-
-                            // Get actual file count from fileCategories (after cleanup)
-                            const actualFiles = Object.keys(fileCategories).length;
-
-                            if (cloudFiles.length === actualFiles) {
-                                console.log(`✅ VERIFIED: All ${actualFiles} files uploaded successfully`);
-                                uploadSuccessful = true;
-                                pendingCloudSync.clear(); // Clear pending list after successful upload
-                            } else {
-                                console.warn(`⚠️ File count mismatch: ${cloudFiles.length} in cloud vs ${actualFiles} in fileCategories`);
-                                console.log('Accepting this as success (cleanup may have removed orphaned entries)');
-                                uploadSuccessful = true;
-                                pendingCloudSync.clear();
-                            }
-                        } catch (error) {
-                            uploadError = error;
-                            console.warn(`⚠️ Upload attempt ${uploadAttempts} failed:`, error);
-                            if (uploadAttempts < 3) {
-                                console.log('⏳ Retrying in 2 seconds...');
-                                await new Promise(resolve => setTimeout(resolve, 2000));
-                            }
+                // STEP 1: Clear ALL localStorage immediately (no questions asked)
+                console.log('🧹 Clearing ALL localStorage (cloud-master mode)...');
+                let clearedCount = 0;
+                try {
+                    const keysToRemove = [];
+                    for (let key in localStorage) {
+                        if (localStorage.hasOwnProperty(key) &&
+                            (key.startsWith('flashcards_') || key === 'practice_cache')) {
+                            keysToRemove.push(key);
                         }
                     }
 
-                    // If all attempts failed, ABORT - don't clear localStorage!
-                    if (!uploadSuccessful) {
-                        updateSyncStatus('error', '❌ Upload Failed');
-                        alert('⚠️ CLOUD SYNC FAILED\n\n' +
-                            `Could not upload your ${localFiles.length} files to cloud after 3 attempts.\n\n` +
-                            '✅ YOUR DATA IS SAFE in localStorage\n' +
-                            '❌ localStorage will NOT be cleared\n\n' +
-                            'WHAT TO DO:\n' +
-                            '1. Check your internet connection\n' +
-                            '2. Try logging in again later\n' +
-                            '3. Or export your data as CSV backup\n\n' +
-                            `Error: ${uploadError?.message || 'Unknown error'}`);
-                        throw new Error('Upload failed - localStorage NOT cleared to prevent data loss');
-                    }
-                } else {
-                    console.log('✅ No local data to upload');
-                    pendingCloudSync.clear(); // Clear any stale pending items
-                    uploadSuccessful = true; // No data to upload = success
+                    keysToRemove.forEach(key => {
+                        safeStorage.removeItem(key);
+                        clearedCount++;
+                    });
 
-                    // Still download from cloud to get any existing data
-                    await downloadFromCloud();
+                    console.log(`✅ Cleared ${clearedCount} flashcard entries from localStorage`);
+                    console.log('✅ localStorage clean - ready for cloud data');
+                } catch (e) {
+                    console.warn('⚠️ Could not clear localStorage (non-critical):', e);
                 }
 
-                // ONLY clear localStorage if upload was verified successful
-                if (uploadSuccessful) {
-                    console.log('🧹 Clearing flashcard data from localStorage (data verified in cloud + memory)...');
-                    let clearedCount = 0;
-                    try {
-                        const keysToRemove = [];
-                        for (let key in localStorage) {
-                            if (localStorage.hasOwnProperty(key) && key.startsWith('flashcards_')) {
-                                keysToRemove.push(key);
-                            }
-                        }
-
-                        keysToRemove.forEach(key => {
-                            safeStorage.removeItem(key);
-                            clearedCount++;
-                        });
-
-                        console.log(`✅ Cleared ${clearedCount} flashcard entries from localStorage`);
-                        const freedMB = (safeStorage.getStorageUsage() / (1024 * 1024)).toFixed(2);
-                        console.log(`📊 localStorage now: ${freedMB}MB (freed up space for metadata)`);
-                    } catch (e) {
-                        console.warn('Could not clear localStorage:', e);
-                    }
-                } else {
-                    console.log('⚠️ Skipping localStorage clear - upload not verified');
+                // STEP 2: Download from cloud ONLY (ignore any localStorage data)
+                console.log('📥 Downloading ALL data from cloud...');
+                try {
+                    await downloadFromCloud();
+                    pendingCloudSync.clear(); // Clear any stale pending items
+                    console.log('✅ Cloud data loaded successfully');
+                } catch (downloadError) {
+                    updateSyncStatus('error', '❌ Download Failed');
+                    console.error('❌ Failed to download from cloud:', downloadError);
+                    alert('⚠️ CLOUD DOWNLOAD FAILED\n\n' +
+                        'Could not download your data from cloud.\n\n' +
+                        'WHAT TO DO:\n' +
+                        '1. Check your internet connection\n' +
+                        '2. Try logging in again\n' +
+                        '3. Contact support if problem persists\n\n' +
+                        `Error: ${downloadError?.message || 'Unknown error'}`);
+                    throw new Error('Download failed - cannot proceed without cloud data');
                 }
 
                 // Load categories (will use cloud data if available)
@@ -7379,9 +7321,25 @@
             // Clear local session
             safeStorage.removeItem('cloud_user');
 
+            // Clear practice cache (hybrid cloud-master mode)
+            clearPracticeCache();
+
+            // Clear all flashcard data from localStorage
+            try {
+                for (let key in localStorage) {
+                    if (key.startsWith('flashcards_') || key === 'practice_cache' || key === 'practice_cache_filename') {
+                        safeStorage.removeItem(key);
+                    }
+                }
+                console.log('🧹 All flashcard data cleared on logout');
+            } catch (e) {
+                console.warn('⚠️ Could not clear localStorage:', e);
+            }
+
             // Reset app state
             cloudUser = null;
             isCloudEnabled = false;
+            cloudDataCache = {}; // Clear memory cache too
 
             alert('✅ Logged out successfully.\n\nYou can login again anytime to access your data.');
 
@@ -7441,17 +7399,41 @@
 
                 // Collect all flashcard data from localStorage and cloudDataCache
                 const allFlashcardData = {};
-                Object.keys(fileCategories).forEach(fileName => {
-                    // Check cloudDataCache first (cloud-first mode), then localStorage
-                    let savedData = null;
-                    if (cloudDataCache && cloudDataCache[fileName]) {
-                        savedData = cloudDataCache[fileName];
-                    } else {
-                        savedData = safeStorage.getItem(`flashcards_${fileName}`);
-                    }
 
-                    if (savedData) {
-                        allFlashcardData[fileName] = savedData;
+                // CRITICAL FIX: Read from localStorage DIRECTLY, not just fileCategories
+                // This prevents data loss when fileCategories mapping is empty/corrupted
+                const storedFiles = safeStorage.getStoredFiles();
+                console.log(`🔍 Found ${storedFiles.length} files in localStorage to upload`);
+
+                // First, collect from cloudDataCache (for files already in memory)
+                if (cloudDataCache) {
+                    Object.keys(cloudDataCache).forEach(fileName => {
+                        allFlashcardData[fileName] = cloudDataCache[fileName];
+                    });
+                }
+
+                // Then, collect from localStorage (for files not yet in cloudDataCache)
+                storedFiles.forEach(fileInfo => {
+                    const fileName = fileInfo.fileName;
+                    if (!allFlashcardData[fileName]) {
+                        const savedData = safeStorage.getItem(`flashcards_${fileName}`);
+                        if (savedData) {
+                            allFlashcardData[fileName] = savedData;
+
+                            // Rebuild fileCategories mapping if missing
+                            if (!fileCategories[fileName]) {
+                                // Try to detect category from fileName
+                                let detectedCategory = 'Default';
+                                for (let cat in categories) {
+                                    if (fileName.toLowerCase().includes(cat.toLowerCase())) {
+                                        detectedCategory = cat;
+                                        break;
+                                    }
+                                }
+                                fileCategories[fileName] = detectedCategory;
+                                console.log(`🔧 Rebuilding mapping: ${fileName} → ${detectedCategory}`);
+                            }
+                        }
                     }
                 });
 
@@ -8717,12 +8699,31 @@
         }
 
         function loadFileByName(fileName) {
-            // Check memory cache first (cloud-first mode), then localStorage
-            const savedData = cloudDataCache[fileName] || safeStorage.getItem(`flashcards_${fileName}`);
+            console.log(`🎯 Loading file for practice: ${fileName}`);
+
+            // STEP 1: Clear old practice cache (switching files)
+            if (currentFileName && currentFileName !== fileName) {
+                console.log(`🧹 Clearing old practice cache for: ${currentFileName}`);
+                clearPracticeCache();
+            }
+
+            // STEP 2: Load from CLOUD ONLY (cloudDataCache), never from old localStorage files
+            const savedData = cloudDataCache[fileName];
 
             if (!savedData) {
-                alert(`Vocabulary data for "${fileName}" not found. Please upload the file again.`);
+                console.error(`❌ File not found in cloud: ${fileName}`);
+                alert(`Vocabulary data for "${fileName}" not found in cloud.\n\nPlease ensure:\n1. You are connected to internet\n2. File was uploaded successfully\n3. Try refreshing the page`);
                 return;
+            }
+
+            // STEP 3: Save to practice cache for offline resilience
+            console.log(`💾 Caching ${fileName} for offline practice...`);
+            try {
+                safeStorage.setItem('practice_cache', savedData);
+                safeStorage.setItem('practice_cache_filename', fileName);
+                console.log(`✅ Practice cache ready for offline mode`);
+            } catch (cacheError) {
+                console.warn('⚠️ Could not cache for offline (non-critical):', cacheError);
             }
 
             try {
@@ -8808,6 +8809,17 @@
             } catch (error) {
                 console.error('Error loading saved vocabulary:', error);
                 alert('Error loading vocabulary data. Please upload the file again.');
+            }
+        }
+
+        // Helper: Clear practice cache (called when switching files or logging out)
+        function clearPracticeCache() {
+            try {
+                safeStorage.removeItem('practice_cache');
+                safeStorage.removeItem('practice_cache_filename');
+                console.log('🧹 Practice cache cleared');
+            } catch (error) {
+                console.warn('⚠️ Could not clear practice cache:', error);
             }
         }
 
@@ -9082,7 +9094,19 @@
                             console.log('✅ Cloud save successful. Updating memory cache...');
                             cloudDataCache[currentFileName] = jsonData;
                             console.log(`💾 Updated memory cache for ${currentFileName}`);
-                            console.log('☁️ Data stored in cloud + memory only (no localStorage)');
+
+                            // HYBRID MODE: Also update practice cache if this is the current practice file
+                            try {
+                                const cachedFileName = safeStorage.getItem('practice_cache_filename');
+                                if (cachedFileName === currentFileName) {
+                                    safeStorage.setItem('practice_cache', jsonData);
+                                    console.log('💾 Practice cache updated for offline resilience');
+                                }
+                            } catch (cacheError) {
+                                console.warn('⚠️ Could not update practice cache (non-critical):', cacheError);
+                            }
+
+                            console.log('☁️ Data stored: Cloud (master) + Memory (cache) + Practice cache (if active)');
 
                             // Remove from pending sync list
                             pendingCloudSync.delete(currentFileName);
@@ -9101,18 +9125,27 @@
 
                             return; // Exit early - save is complete
                         } else {
-                            // Cloud save failed - fall back to localStorage and mark for retry
-                            console.warn('⚠️ Cloud save failed. Falling back to localStorage...');
+                            // CLOUD-MASTER MODE: No localStorage fallback - show error
+                            console.error('❌ Cloud save failed in cloud-master mode!');
                             pendingCloudSync.add(currentFileName);
                             console.warn(`📝 File marked for cloud sync. Pending files: ${pendingCloudSync.size}`);
 
                             // Update sync status to show pending uploads
                             updateSyncStatus('error', `⚠️ ${pendingCloudSync.size} Pending`);
+
+                            alert('⚠️ CLOUD SAVE FAILED\n\n' +
+                                'Your progress could not be saved to cloud.\n\n' +
+                                'The app will retry automatically.\n' +
+                                'Please ensure you have internet connection.\n\n' +
+                                '⚠️ Do not close the app until cloud save succeeds.');
+                            return; // Don't continue to localStorage save
                         }
                     }
 
-                    // FALLBACK or NON-CLOUD MODE: Save to localStorage
-                    safeStorage.setItem(`flashcards_${currentFileName}`, jsonData);
+                    // NON-CLOUD MODE: Save to localStorage only if cloud is disabled
+                    if (!isCloudEnabled) {
+                        safeStorage.setItem(`flashcards_${currentFileName}`, jsonData);
+                    }
 
                     // Check if it was stored as chunks
                     const chunkCount = localStorage.getItem(`flashcards_${currentFileName}_chunks`);
