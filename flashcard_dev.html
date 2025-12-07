@@ -1,5 +1,6 @@
-i<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
+<!-- ✅ PRODUCTION VERSION - Cloud-First Storage Fix - Dec 4 2025 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1866,6 +1867,118 @@ i<!DOCTYPE html>
             }
         }
 
+        /* ============================================ */
+        /* COMPREHENSIVE MOBILE ENHANCEMENTS - v3.3 */
+        /* ============================================ */
+
+        /* Tablet and Mobile (768px and below) */
+        @media (max-width: 768px) {
+            /* Prevent horizontal overflow */
+            html, body {
+                max-width: 100vw;
+                overflow-x: hidden;
+            }
+
+            body {
+                padding: 10px 5px;
+            }
+
+            .container {
+                width: calc(100vw - 20px);
+                max-width: 100%;
+                margin-left: auto;
+                margin-right: auto;
+                padding: 20px 15px;
+            }
+
+            /* Better touch targets */
+            button, .btn, input[type="button"], input[type="submit"] {
+                min-height: 44px;
+                padding: 12px 16px;
+            }
+
+            /* Side panel mobile */
+            .management-panel {
+                max-width: 90vw !important;
+                width: 90vw !important;
+            }
+
+            /* Modals full width */
+            .modal-content {
+                width: 95% !important;
+                max-width: 95vw !important;
+                padding: 20px 15px;
+            }
+
+            /* Input fields - prevent zoom on iOS */
+            input[type="text"],
+            input[type="password"],
+            input[type="number"],
+            textarea,
+            select {
+                font-size: 16px !important;
+            }
+
+            /* Navigation responsive */
+            #navigation {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            /* Quick actions grid */
+            #quickActions {
+                grid-template-columns: 1fr 1fr !important;
+            }
+
+            /* Category browser */
+            #categoryBrowserList {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Flashcard mobile */
+            .card-content {
+                font-size: 1.6em !important;
+            }
+
+            /* Audio buttons */
+            .audio-btn, .audio-btn-lang2 {
+                width: 48px !important;
+                height: 48px !important;
+            }
+        }
+
+        /* Small Mobile (480px and below) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 10px;
+            }
+
+            h1 {
+                font-size: 1.3em !important;
+            }
+
+            .card-content {
+                font-size: 1.4em !important;
+            }
+
+            #quickActions {
+                grid-template-columns: 1fr !important;
+            }
+
+            .nav-button {
+                width: 100%;
+            }
+        }
+
+        /* Landscape mobile */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .card-lang1-section,
+            .card-lang2-section {
+                max-height: 120px;
+                overflow-y: auto;
+            }
+        }
+
         /* File Manager Styles */
         .file-manager {
             background: #f8fafc;
@@ -3557,10 +3670,20 @@ i<!DOCTYPE html>
                         <input type="checkbox" id="loopMode">
                         <span>🔁 Loop Mode - Restart automatically when finished</span>
                     </label>
-                    <label>
-                        <input type="checkbox" id="repeatMode">
-                        <span>🗣️ Repeat Each Card:</span>
-                        <select id="repeatCount" style="margin-left: 10px; padding: 4px;">
+                    <label style="display: block; margin-bottom: 10px;">
+                        <span style="font-weight: 600; display: block; margin-bottom: 5px;">🗣️ Repeat Source Language:</span>
+                        <select id="repeatSourceCount" style="margin-left: 10px; padding: 4px; min-width: 100px;">
+                            <option value="1">1 time</option>
+                            <option value="2">2 times</option>
+                            <option value="3">3 times</option>
+                            <option value="4">4 times</option>
+                            <option value="5">5 times</option>
+                        </select>
+                    </label>
+                    <label style="display: block; margin-bottom: 10px;">
+                        <span style="font-weight: 600; display: block; margin-bottom: 5px;">🗣️ Repeat Target Language:</span>
+                        <select id="repeatTargetCount" style="margin-left: 10px; padding: 4px; min-width: 100px;">
+                            <option value="1">1 time</option>
                             <option value="2">2 times</option>
                             <option value="3">3 times</option>
                             <option value="4">4 times</option>
@@ -3764,9 +3887,10 @@ i<!DOCTYPE html>
 
         // Advanced feature variables
         let loopModeEnabled = false;
-        let repeatModeEnabled = false;
-        let repeatCount = 2;
-        let currentRepeat = 0;
+        let repeatSourceCount = 1;
+        let repeatTargetCount = 1;
+        let currentSourceRepeat = 0;
+        let currentTargetRepeat = 0;
         let studyTimerEnabled = false;
         let sleepTimerEnabled = false;
         let timerInterval = null;
@@ -4050,6 +4174,7 @@ i<!DOCTYPE html>
             const savedFiles = safeStorage.getItem('flashcard_file_categories');
             if (savedFiles) {
                 fileCategories = JSON.parse(savedFiles);
+                // Cleanup is now done explicitly during login, not here
             }
 
             const savedGroups = safeStorage.getItem('flashcard_category_groups');
@@ -4246,38 +4371,37 @@ i<!DOCTYPE html>
                 const catInfo = document.createElement('span');
                 catInfo.style.cssText = 'display: flex; align-items: center; gap: 8px; flex: 1;';
 
-                // Editable category name
-                const isEditable = cat !== 'Default';
+                // Editable category name (ALL categories are now editable, including Default)
                 const editableSpan = document.createElement('strong');
                 editableSpan.textContent = cat;
-                editableSpan.contentEditable = isEditable;
+                editableSpan.contentEditable = true;
                 editableSpan.style.cssText = `
                     outline: none;
                     padding: 4px 8px;
                     border-radius: 4px;
                     min-width: 100px;
-                    ${isEditable ? 'cursor: text; background: #f0f9ff; border: 1px solid #bfdbfe;' : 'cursor: default;'}
+                    cursor: text;
+                    background: #f0f9ff;
+                    border: 1px solid #bfdbfe;
                 `;
                 editableSpan.setAttribute('data-original-name', cat);
                 editableSpan.setAttribute('data-type', 'category');
-                editableSpan.title = isEditable ? 'Click to edit (press Enter to save)' : 'Default category cannot be renamed';
+                editableSpan.title = 'Click to edit (press Enter to save)';
 
-                // Save on blur or Enter key
-                if (isEditable) {
-                    editableSpan.addEventListener('blur', function() {
-                        saveCategoryEdit(this);
-                    });
-                    editableSpan.addEventListener('keydown', function(e) {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            this.blur();
-                        }
-                        if (e.key === 'Escape') {
-                            this.textContent = this.getAttribute('data-original-name');
-                            this.blur();
-                        }
-                    });
-                }
+                // Save on blur or Enter key (ALL categories are editable now)
+                editableSpan.addEventListener('blur', function() {
+                    saveCategoryEdit(this);
+                });
+                editableSpan.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.blur();
+                    }
+                    if (e.key === 'Escape') {
+                        this.textContent = this.getAttribute('data-original-name');
+                        this.blur();
+                    }
+                });
 
                 catInfo.innerHTML = '📁 ';
                 catInfo.appendChild(editableSpan);
@@ -4323,16 +4447,14 @@ i<!DOCTYPE html>
                 const actions = document.createElement('div');
                 actions.style.cssText = 'display: flex; gap: 5px;';
 
-                if (cat !== 'Default') {
-                    // Delete button
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.textContent = '✕';
-                    deleteBtn.className = 'btn-small';
-                    deleteBtn.style.cssText = 'background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; padding: 6px 10px; font-size: 1em;';
-                    deleteBtn.title = 'Delete category';
-                    deleteBtn.onclick = () => deleteCategory(cat);
-                    actions.appendChild(deleteBtn);
-                }
+                // Delete button (now available for ALL categories including Default)
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '✕';
+                deleteBtn.className = 'btn-small';
+                deleteBtn.style.cssText = 'background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; padding: 6px 10px; font-size: 1em;';
+                deleteBtn.title = 'Delete category';
+                deleteBtn.onclick = () => deleteCategory(cat);
+                actions.appendChild(deleteBtn);
 
                 catDiv.appendChild(catInfo);
                 catDiv.appendChild(actions);
@@ -4529,17 +4651,8 @@ i<!DOCTYPE html>
         }
 
         function deleteCategory(category) {
-            if (category === 'Default') {
-                alert('Cannot delete Default category!');
-                return;
-            }
-
-            // Prevent deleting the last category
-            const categoryCount = Object.keys(categories).length;
-            if (categoryCount <= 1) {
-                alert('⚠️ Cannot delete the last category!\n\nAt least one category must remain.');
-                return;
-            }
+            // REMOVED RESTRICTIONS: User can now delete ANY category including Default and the last category
+            // This allows complete cleanup of all categories if needed
 
             // Find all files in this category
             const filesToDelete = Object.keys(fileCategories).filter(file =>
@@ -6599,94 +6712,58 @@ i<!DOCTYPE html>
                 document.getElementById('syncStatus').style.display = 'block';
                 updateSyncStatus('syncing', 'Syncing...');
 
-                // IMPORTANT: Upload any localStorage data BEFORE clearing
-                // This ensures no data is lost if user was offline and data was saved locally
-                console.log('📤 Checking for local data to upload before clearing...');
-                const localFiles = safeStorage.getStoredFiles();
-                let uploadSuccessful = false;
+                // ========================================================
+                // HYBRID CLOUD-MASTER MODE:
+                // - Cloud is ALWAYS the master (source of truth)
+                // - localStorage is NEVER uploaded to cloud on login
+                // - localStorage only used as temporary practice cache
+                // - Clear ALL localStorage on login to prevent conflicts
+                // ========================================================
 
-                if (localFiles.length > 0) {
-                    console.log(`📦 Found ${localFiles.length} files in localStorage. Uploading to cloud first...`);
+                console.log('%c☁️ CLOUD-MASTER MODE', 'background: #2196F3; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold');
+                console.log('📋 Cloud = Master (always read from cloud)');
+                console.log('💾 localStorage = Practice cache only (never uploaded)');
 
-                    // Try upload up to 3 times before giving up
-                    let uploadAttempts = 0;
-                    let uploadError = null;
-
-                    while (uploadAttempts < 3 && !uploadSuccessful) {
-                        uploadAttempts++;
-                        try {
-                            console.log(`📤 Upload attempt ${uploadAttempts}/3...`);
-                            await uploadToCloud(); // Upload everything to cloud first
-
-                            // VERIFY: Download and check that all files made it to cloud
-                            await downloadFromCloud();
-                            const cloudFiles = Object.keys(cloudDataCache);
-
-                            if (cloudFiles.length === localFiles.length) {
-                                console.log(`✅ VERIFIED: All ${localFiles.length} files uploaded successfully`);
-                                uploadSuccessful = true;
-                                pendingCloudSync.clear(); // Clear pending list after successful upload
-                            } else {
-                                throw new Error(`Upload incomplete: ${cloudFiles.length}/${localFiles.length} files in cloud`);
-                            }
-                        } catch (error) {
-                            uploadError = error;
-                            console.warn(`⚠️ Upload attempt ${uploadAttempts} failed:`, error);
-                            if (uploadAttempts < 3) {
-                                console.log('⏳ Retrying in 2 seconds...');
-                                await new Promise(resolve => setTimeout(resolve, 2000));
-                            }
+                // STEP 1: Clear ALL localStorage immediately (no questions asked)
+                console.log('🧹 Clearing ALL localStorage (cloud-master mode)...');
+                let clearedCount = 0;
+                try {
+                    const keysToRemove = [];
+                    for (let key in localStorage) {
+                        if (localStorage.hasOwnProperty(key) &&
+                            (key.startsWith('flashcards_') || key === 'practice_cache')) {
+                            keysToRemove.push(key);
                         }
                     }
 
-                    // If all attempts failed, ABORT - don't clear localStorage!
-                    if (!uploadSuccessful) {
-                        updateSyncStatus('error', '❌ Upload Failed');
-                        alert('⚠️ CLOUD SYNC FAILED\n\n' +
-                            `Could not upload your ${localFiles.length} files to cloud after 3 attempts.\n\n` +
-                            '✅ YOUR DATA IS SAFE in localStorage\n' +
-                            '❌ localStorage will NOT be cleared\n\n' +
-                            'WHAT TO DO:\n' +
-                            '1. Check your internet connection\n' +
-                            '2. Try logging in again later\n' +
-                            '3. Or export your data as CSV backup\n\n' +
-                            `Error: ${uploadError?.message || 'Unknown error'}`);
-                        throw new Error('Upload failed - localStorage NOT cleared to prevent data loss');
-                    }
-                } else {
-                    console.log('✅ No local data to upload');
-                    pendingCloudSync.clear(); // Clear any stale pending items
-                    uploadSuccessful = true; // No data to upload = success
+                    keysToRemove.forEach(key => {
+                        safeStorage.removeItem(key);
+                        clearedCount++;
+                    });
 
-                    // Still download from cloud to get any existing data
-                    await downloadFromCloud();
+                    console.log(`✅ Cleared ${clearedCount} flashcard entries from localStorage`);
+                    console.log('✅ localStorage clean - ready for cloud data');
+                } catch (e) {
+                    console.warn('⚠️ Could not clear localStorage (non-critical):', e);
                 }
 
-                // ONLY clear localStorage if upload was verified successful
-                if (uploadSuccessful) {
-                    console.log('🧹 Clearing flashcard data from localStorage (data verified in cloud + memory)...');
-                    let clearedCount = 0;
-                    try {
-                        const keysToRemove = [];
-                        for (let key in localStorage) {
-                            if (localStorage.hasOwnProperty(key) && key.startsWith('flashcards_')) {
-                                keysToRemove.push(key);
-                            }
-                        }
-
-                        keysToRemove.forEach(key => {
-                            safeStorage.removeItem(key);
-                            clearedCount++;
-                        });
-
-                        console.log(`✅ Cleared ${clearedCount} flashcard entries from localStorage`);
-                        const freedMB = (safeStorage.getStorageUsage() / (1024 * 1024)).toFixed(2);
-                        console.log(`📊 localStorage now: ${freedMB}MB (freed up space for metadata)`);
-                    } catch (e) {
-                        console.warn('Could not clear localStorage:', e);
-                    }
-                } else {
-                    console.log('⚠️ Skipping localStorage clear - upload not verified');
+                // STEP 2: Download from cloud ONLY (ignore any localStorage data)
+                console.log('📥 Downloading ALL data from cloud...');
+                try {
+                    await downloadFromCloud();
+                    pendingCloudSync.clear(); // Clear any stale pending items
+                    console.log('✅ Cloud data loaded successfully');
+                } catch (downloadError) {
+                    updateSyncStatus('error', '❌ Download Failed');
+                    console.error('❌ Failed to download from cloud:', downloadError);
+                    alert('⚠️ CLOUD DOWNLOAD FAILED\n\n' +
+                        'Could not download your data from cloud.\n\n' +
+                        'WHAT TO DO:\n' +
+                        '1. Check your internet connection\n' +
+                        '2. Try logging in again\n' +
+                        '3. Contact support if problem persists\n\n' +
+                        `Error: ${downloadError?.message || 'Unknown error'}`);
+                    throw new Error('Download failed - cannot proceed without cloud data');
                 }
 
                 // Load categories (will use cloud data if available)
@@ -7367,9 +7444,25 @@ i<!DOCTYPE html>
             // Clear local session
             safeStorage.removeItem('cloud_user');
 
+            // Clear practice cache (hybrid cloud-master mode)
+            clearPracticeCache();
+
+            // Clear all flashcard data from localStorage
+            try {
+                for (let key in localStorage) {
+                    if (key.startsWith('flashcards_') || key === 'practice_cache' || key === 'practice_cache_filename') {
+                        safeStorage.removeItem(key);
+                    }
+                }
+                console.log('🧹 All flashcard data cleared on logout');
+            } catch (e) {
+                console.warn('⚠️ Could not clear localStorage:', e);
+            }
+
             // Reset app state
             cloudUser = null;
             isCloudEnabled = false;
+            cloudDataCache = {}; // Clear memory cache too
 
             alert('✅ Logged out successfully.\n\nYou can login again anytime to access your data.');
 
@@ -7390,6 +7483,34 @@ i<!DOCTYPE html>
 
         // ===== END ACCOUNT MANAGEMENT FUNCTIONS =====
 
+        // Clean up orphaned entries (only during login/sync, NOT during regular uploads)
+        function cleanupOrphanedEntries() {
+            console.log('🧹 Checking for orphaned file entries...');
+            let cleanupNeeded = false;
+            const orphanedFiles = [];
+
+            Object.keys(fileCategories).forEach(fileName => {
+                const inLocalStorage = safeStorage.getItem(`flashcards_${fileName}`);
+                const inCloudCache = cloudDataCache && cloudDataCache[fileName];
+
+                if (!inLocalStorage && !inCloudCache) {
+                    console.log(`⚠️ Found orphaned file entry: ${fileName}`);
+                    orphanedFiles.push(fileName);
+                    delete fileCategories[fileName];
+                    cleanupNeeded = true;
+                }
+            });
+
+            if (cleanupNeeded) {
+                console.log(`✅ Cleaned up ${orphanedFiles.length} orphaned entries:`, orphanedFiles);
+                safeStorage.setItem('flashcard_file_categories', JSON.stringify(fileCategories));
+            } else {
+                console.log('✅ No orphaned entries found');
+            }
+
+            return cleanupNeeded;
+        }
+
         // Upload to Cloud
         async function uploadToCloud() {
             if (!isCloudEnabled || !cloudUser || !firebaseDB) {
@@ -7399,12 +7520,43 @@ i<!DOCTYPE html>
             try {
                 updateSyncStatus('syncing', 'Uploading...');
 
-                // Collect all flashcard data from localStorage
+                // Collect all flashcard data from localStorage and cloudDataCache
                 const allFlashcardData = {};
-                Object.keys(fileCategories).forEach(fileName => {
-                    const savedData = safeStorage.getItem(`flashcards_${fileName}`);
-                    if (savedData) {
-                        allFlashcardData[fileName] = savedData;
+
+                // CRITICAL FIX: Read from localStorage DIRECTLY, not just fileCategories
+                // This prevents data loss when fileCategories mapping is empty/corrupted
+                const storedFiles = safeStorage.getStoredFiles();
+                console.log(`🔍 Found ${storedFiles.length} files in localStorage to upload`);
+
+                // First, collect from cloudDataCache (for files already in memory)
+                if (cloudDataCache) {
+                    Object.keys(cloudDataCache).forEach(fileName => {
+                        allFlashcardData[fileName] = cloudDataCache[fileName];
+                    });
+                }
+
+                // Then, collect from localStorage (for files not yet in cloudDataCache)
+                storedFiles.forEach(fileInfo => {
+                    const fileName = fileInfo.fileName;
+                    if (!allFlashcardData[fileName]) {
+                        const savedData = safeStorage.getItem(`flashcards_${fileName}`);
+                        if (savedData) {
+                            allFlashcardData[fileName] = savedData;
+
+                            // Rebuild fileCategories mapping if missing
+                            if (!fileCategories[fileName]) {
+                                // Try to detect category from fileName
+                                let detectedCategory = 'Default';
+                                for (let cat in categories) {
+                                    if (fileName.toLowerCase().includes(cat.toLowerCase())) {
+                                        detectedCategory = cat;
+                                        break;
+                                    }
+                                }
+                                fileCategories[fileName] = detectedCategory;
+                                console.log(`🔧 Rebuilding mapping: ${fileName} → ${detectedCategory}`);
+                            }
+                        }
                     }
                 });
 
@@ -7638,12 +7790,8 @@ i<!DOCTYPE html>
                 // Restore flashcard data
                 const flashcardData = decrypted.flashcardData || {};
 
-                if (Object.keys(flashcardData).length === 0) {
-                    console.warn('⚠️ WARNING: flashcardData is empty! This may indicate:');
-                    console.warn('  1. No data was uploaded to cloud yet');
-                    console.warn('  2. Upload failed silently');
-                    console.warn('  3. Data was corrupted during upload/download');
-                }
+                // Note: Empty flashcardData on download is normal during initial sync or after cleanup
+                // Data gets populated when files are uploaded
 
                 // CLOUD-FIRST MODE: Don't save to localStorage, keep data in cloud only
                 if (isCloudFirstMode) {
@@ -7736,7 +7884,7 @@ i<!DOCTYPE html>
         // Category Browser Functions
         // Global variables for pagination and view
         let currentPage = 1;
-        let categoriesPerPage = 6;
+        let categoriesPerPage = 3;
         let allCategoryData = {};
         let filteredCategoryData = {};
         let currentViewMode = 'list'; // 'list' or 'grouped'
@@ -8219,7 +8367,7 @@ i<!DOCTYPE html>
 
             // Pagination logic
             const paginationControls = document.getElementById('categoryPagination');
-            const shouldShowPagination = totalCategoryCount > 6; // Show pagination if more than 6 categories
+            const shouldShowPagination = totalCategoryCount > 3; // Show pagination if more than 3 categories
 
             if (shouldShowPagination) {
                 paginationControls.style.display = 'block';
@@ -8674,12 +8822,31 @@ i<!DOCTYPE html>
         }
 
         function loadFileByName(fileName) {
-            // Check memory cache first (cloud-first mode), then localStorage
-            const savedData = cloudDataCache[fileName] || safeStorage.getItem(`flashcards_${fileName}`);
+            console.log(`🎯 Loading file for practice: ${fileName}`);
+
+            // STEP 1: Clear old practice cache (switching files)
+            if (currentFileName && currentFileName !== fileName) {
+                console.log(`🧹 Clearing old practice cache for: ${currentFileName}`);
+                clearPracticeCache();
+            }
+
+            // STEP 2: Load from CLOUD ONLY (cloudDataCache), never from old localStorage files
+            const savedData = cloudDataCache[fileName];
 
             if (!savedData) {
-                alert(`Vocabulary data for "${fileName}" not found. Please upload the file again.`);
+                console.error(`❌ File not found in cloud: ${fileName}`);
+                alert(`Vocabulary data for "${fileName}" not found in cloud.\n\nPlease ensure:\n1. You are connected to internet\n2. File was uploaded successfully\n3. Try refreshing the page`);
                 return;
+            }
+
+            // STEP 3: Save to practice cache for offline resilience
+            console.log(`💾 Caching ${fileName} for offline practice...`);
+            try {
+                safeStorage.setItem('practice_cache', savedData);
+                safeStorage.setItem('practice_cache_filename', fileName);
+                console.log(`✅ Practice cache ready for offline mode`);
+            } catch (cacheError) {
+                console.warn('⚠️ Could not cache for offline (non-critical):', cacheError);
             }
 
             try {
@@ -8765,6 +8932,17 @@ i<!DOCTYPE html>
             } catch (error) {
                 console.error('Error loading saved vocabulary:', error);
                 alert('Error loading vocabulary data. Please upload the file again.');
+            }
+        }
+
+        // Helper: Clear practice cache (called when switching files or logging out)
+        function clearPracticeCache() {
+            try {
+                safeStorage.removeItem('practice_cache');
+                safeStorage.removeItem('practice_cache_filename');
+                console.log('🧹 Practice cache cleared');
+            } catch (error) {
+                console.warn('⚠️ Could not clear practice cache:', error);
             }
         }
 
@@ -9039,7 +9217,19 @@ i<!DOCTYPE html>
                             console.log('✅ Cloud save successful. Updating memory cache...');
                             cloudDataCache[currentFileName] = jsonData;
                             console.log(`💾 Updated memory cache for ${currentFileName}`);
-                            console.log('☁️ Data stored in cloud + memory only (no localStorage)');
+
+                            // HYBRID MODE: Also update practice cache if this is the current practice file
+                            try {
+                                const cachedFileName = safeStorage.getItem('practice_cache_filename');
+                                if (cachedFileName === currentFileName) {
+                                    safeStorage.setItem('practice_cache', jsonData);
+                                    console.log('💾 Practice cache updated for offline resilience');
+                                }
+                            } catch (cacheError) {
+                                console.warn('⚠️ Could not update practice cache (non-critical):', cacheError);
+                            }
+
+                            console.log('☁️ Data stored: Cloud (master) + Memory (cache) + Practice cache (if active)');
 
                             // Remove from pending sync list
                             pendingCloudSync.delete(currentFileName);
@@ -9058,18 +9248,27 @@ i<!DOCTYPE html>
 
                             return; // Exit early - save is complete
                         } else {
-                            // Cloud save failed - fall back to localStorage and mark for retry
-                            console.warn('⚠️ Cloud save failed. Falling back to localStorage...');
+                            // CLOUD-MASTER MODE: No localStorage fallback - show error
+                            console.error('❌ Cloud save failed in cloud-master mode!');
                             pendingCloudSync.add(currentFileName);
                             console.warn(`📝 File marked for cloud sync. Pending files: ${pendingCloudSync.size}`);
 
                             // Update sync status to show pending uploads
                             updateSyncStatus('error', `⚠️ ${pendingCloudSync.size} Pending`);
+
+                            alert('⚠️ CLOUD SAVE FAILED\n\n' +
+                                'Your progress could not be saved to cloud.\n\n' +
+                                'The app will retry automatically.\n' +
+                                'Please ensure you have internet connection.\n\n' +
+                                '⚠️ Do not close the app until cloud save succeeds.');
+                            return; // Don't continue to localStorage save
                         }
                     }
 
-                    // FALLBACK or NON-CLOUD MODE: Save to localStorage
-                    safeStorage.setItem(`flashcards_${currentFileName}`, jsonData);
+                    // NON-CLOUD MODE: Save to localStorage only if cloud is disabled
+                    if (!isCloudEnabled) {
+                        safeStorage.setItem(`flashcards_${currentFileName}`, jsonData);
+                    }
 
                     // Check if it was stored as chunks
                     const chunkCount = localStorage.getItem(`flashcards_${currentFileName}_chunks`);
@@ -10246,6 +10445,14 @@ i<!DOCTYPE html>
             const utterance = new SpeechSynthesisUtterance(text);
             // Use source voice's language or fallback to detected language
             utterance.lang = sourceVoice ? sourceVoice.lang : detectedSourceLang;
+
+            console.log('🎤 Source Speech:', {
+                text: text.substring(0, 50) + '...',
+                lang: utterance.lang,
+                voiceName: sourceVoice ? sourceVoice.name : 'none',
+                isVirtual: sourceVoice ? sourceVoice.isVirtual : false
+            });
+
             // Only set voice if it's not virtual (virtual voices use lang code only)
             if (sourceVoice && !sourceVoice.isVirtual) {
                 utterance.voice = sourceVoice;
@@ -10257,7 +10464,7 @@ i<!DOCTYPE html>
             let completed = false;
             const safetyTimeout = setTimeout(() => {
                 if (!completed && onComplete) {
-                    console.log('⚠️ German speech safety timeout triggered');
+                    console.log('⚠️ Source speech safety timeout triggered');
                     completed = true;
                     onComplete();
                 }
@@ -10267,7 +10474,7 @@ i<!DOCTYPE html>
                 if (!completed) {
                     completed = true;
                     clearTimeout(safetyTimeout);
-                    console.log('✅ German speech completed naturally');
+                    console.log('✅ Source speech completed naturally');
                     if (onComplete) onComplete();
                 }
             };
@@ -10276,7 +10483,22 @@ i<!DOCTYPE html>
                 if (!completed) {
                     completed = true;
                     clearTimeout(safetyTimeout);
-                    console.error('❌ German speech error:', event);
+                    console.error('❌ Source speech error:', {
+                        error: event.error,
+                        message: event.message,
+                        lang: utterance.lang,
+                        voiceName: sourceVoice ? sourceVoice.name : 'none'
+                    });
+
+                    // Special warning for Persian/Farsi and other unsupported languages
+                    if (utterance.lang.startsWith('fa') || utterance.lang.startsWith('ar')) {
+                        console.warn('⚠️ WARNING: Your browser may not support ' + utterance.lang + ' text-to-speech.');
+                        console.warn('📝 Suggested solutions:');
+                        console.warn('   1. Try Chrome with Google TTS extension installed');
+                        console.warn('   2. Use Microsoft Edge with language packs installed');
+                        console.warn('   3. Consider using an online TTS service for these languages');
+                    }
+
                     if (onComplete) onComplete(); // Continue even on error
                 }
             };
@@ -10339,7 +10561,22 @@ i<!DOCTYPE html>
                 if (!completed) {
                     completed = true;
                     clearTimeout(safetyTimeout);
-                    console.error('❌ English speech error:', event);
+                    console.error('❌ Target speech error:', {
+                        error: event.error,
+                        message: event.message,
+                        lang: utterance.lang,
+                        voiceName: targetVoice ? targetVoice.name : 'none'
+                    });
+
+                    // Special warning for Persian/Farsi and other unsupported languages
+                    if (utterance.lang.startsWith('fa') || utterance.lang.startsWith('ar')) {
+                        console.warn('⚠️ WARNING: Your browser may not support ' + utterance.lang + ' text-to-speech.');
+                        console.warn('📝 Suggested solutions:');
+                        console.warn('   1. Try Chrome with Google TTS extension installed');
+                        console.warn('   2. Use Microsoft Edge with language packs installed');
+                        console.warn('   3. Consider using an online TTS service for these languages');
+                    }
+
                     if (onComplete) onComplete(); // Continue even on error
                 }
             };
@@ -10623,7 +10860,7 @@ i<!DOCTYPE html>
             }
 
             // Increment cards reviewed (only once per card, not per repeat)
-            if (currentRepeat === 0) {
+            if (currentSourceRepeat === 0 && currentTargetRepeat === 0) {
                 cardsReviewedCount++;
                 updateSessionStats();
             }
@@ -10632,47 +10869,105 @@ i<!DOCTYPE html>
             const germanText = readExtendedContent && card.lang1Extended ? card.lang1Extended : card.lang1;
             const englishText = readExtendedContent && card.lang2Extended ? card.lang2Extended : card.lang2;
 
-            // Step 1: Pronounce German and WAIT for it to complete
+            // Step 1: Pronounce source language and handle repeats
             pronounceGerman(germanText, () => {
                 if (!isAutoPlaying) return;
 
-                // Step 2: After German completes, wait user-configured delay, then pronounce English
-                autoplayTimeout = setTimeout(() => {
-                    if (!isAutoPlaying) return;
+                currentSourceRepeat++;
 
-                    if (autoplayEnglishEnabled) {
-                        // Pronounce English and WAIT for it to complete
-                        pronounceEnglish(englishText, () => {
-                            if (!isAutoPlaying) return;
+                // Check if we need to repeat source language
+                if (currentSourceRepeat < repeatSourceCount) {
+                    // Repeat source language with a short delay
+                    autoplayTimeout = setTimeout(() => {
+                        if (!isAutoPlaying) return;
+                        playSourceLanguage(germanText);
+                    }, 500);
+                } else {
+                    // Source repeats complete, move to target language
+                    autoplayTimeout = setTimeout(() => {
+                        if (!isAutoPlaying) return;
 
-                            // Step 3: After English completes, wait user-configured delay, then move to next card
+                        if (autoplayEnglishEnabled) {
+                            playTargetLanguage(englishText);
+                        } else {
+                            // If target not enabled, move to next card
                             autoplayTimeout = setTimeout(() => {
                                 if (!isAutoPlaying) return;
                                 handleCardCompletion();
                             }, delayBeforeNext);
-                        });
-                    } else {
-                        // If English not enabled, wait and move to next card
-                        autoplayTimeout = setTimeout(() => {
-                            if (!isAutoPlaying) return;
-                            handleCardCompletion();
-                        }, delayBeforeNext);
-                    }
-                }, delayBetweenLangs);
+                        }
+                    }, delayBetweenLangs);
+                }
+            });
+        }
+
+        function playSourceLanguage(germanText) {
+            if (!isAutoPlaying) return;
+
+            pronounceGerman(germanText, () => {
+                if (!isAutoPlaying) return;
+
+                currentSourceRepeat++;
+
+                if (currentSourceRepeat < repeatSourceCount) {
+                    // Continue repeating source
+                    autoplayTimeout = setTimeout(() => {
+                        if (!isAutoPlaying) return;
+                        playSourceLanguage(germanText);
+                    }, 500);
+                } else {
+                    // Source repeats complete, move to target
+                    autoplayTimeout = setTimeout(() => {
+                        if (!isAutoPlaying) return;
+
+                        const card = filteredCards[currentIndex];
+                        const englishText = readExtendedContent && card.lang2Extended ? card.lang2Extended : card.lang2;
+
+                        if (autoplayEnglishEnabled) {
+                            playTargetLanguage(englishText);
+                        } else {
+                            autoplayTimeout = setTimeout(() => {
+                                if (!isAutoPlaying) return;
+                                handleCardCompletion();
+                            }, delayBeforeNext);
+                        }
+                    }, delayBetweenLangs);
+                }
+            });
+        }
+
+        function playTargetLanguage(englishText) {
+            if (!isAutoPlaying) return;
+
+            pronounceEnglish(englishText, () => {
+                if (!isAutoPlaying) return;
+
+                currentTargetRepeat++;
+
+                if (currentTargetRepeat < repeatTargetCount) {
+                    // Continue repeating target
+                    autoplayTimeout = setTimeout(() => {
+                        if (!isAutoPlaying) return;
+                        playTargetLanguage(englishText);
+                    }, 500);
+                } else {
+                    // All repeats complete, move to next card
+                    autoplayTimeout = setTimeout(() => {
+                        if (!isAutoPlaying) return;
+                        handleCardCompletion();
+                    }, delayBeforeNext);
+                }
             });
         }
 
         function handleCardCompletion() {
             if (!isAutoPlaying) return;
 
-            // Check if repeat mode is enabled
-            if (repeatModeEnabled && currentRepeat < repeatCount - 1) {
-                currentRepeat++;
-                playCurrentCard(); // Repeat the same card
-            } else {
-                currentRepeat = 0; // Reset repeat counter
-                moveToNextCardInAutoPlay();
-            }
+            // Reset repeat counters
+            currentSourceRepeat = 0;
+            currentTargetRepeat = 0;
+
+            moveToNextCardInAutoPlay();
         }
 
         function moveToNextCardInAutoPlay() {
@@ -10992,98 +11287,113 @@ i<!DOCTYPE html>
             }
         });
 
-        // Gender-based voice selection handlers
-        document.getElementById('germanGenderSelect').addEventListener('change', (e) => {
-            const gender = e.target.value;
-            // Get voices for source voice's language
-            const sourceLang = sourceVoice ? sourceVoice.lang.split('-')[0] : 'de';
-            const languageVoices = allVoices.filter(voice => voice.lang.startsWith(sourceLang));
+        // Gender-based voice selection handlers - WRAPPED IN FUNCTION FOR DOMContentLoaded
+        function initializeVoiceSelectionHandlers() {
+            const germanGenderSelect = document.getElementById('germanGenderSelect');
+            const englishGenderSelect = document.getElementById('englishGenderSelect');
 
-            // Try to find a voice matching the gender preference
-            let selectedVoice;
-            if (gender === 'female') {
-                // Female voices often have these patterns
-                selectedVoice = languageVoices.find(v =>
-                    v.name.toLowerCase().includes('katja') ||
-                    v.name.toLowerCase().includes('hedda') ||
-                    v.name.toLowerCase().includes('female') ||
-                    v.name.toLowerCase().includes('woman')
-                ) || languageVoices.find(v => v.name.toLowerCase().includes('google')) || languageVoices[0];
-            } else {
-                // Male voices
-                selectedVoice = languageVoices.find(v =>
-                    v.name.toLowerCase().includes('stefan') ||
-                    v.name.toLowerCase().includes('male') ||
-                    v.name.toLowerCase().includes('man')
-                ) || languageVoices[1] || languageVoices[0];
-            }
+            if (germanGenderSelect) {
+                germanGenderSelect.addEventListener('change', (e) => {
+                    const gender = e.target.value;
+                    // Get voices for source voice's language
+                    const sourceLang = sourceVoice ? sourceVoice.lang.split('-')[0] : 'de';
+                    const languageVoices = allVoices.filter(voice => voice.lang.startsWith(sourceLang));
 
-            if (selectedVoice) {
-                sourceVoice = selectedVoice;
-                // Update the advanced dropdown to match
-                const sortedVoices = [...allVoices].sort((a, b) => {
-                    const aIsGoogle = a.name.toLowerCase().includes('google');
-                    const bIsGoogle = b.name.toLowerCase().includes('google');
-                    const aIsMicrosoft = a.name.toLowerCase().includes('microsoft');
-                    const bIsMicrosoft = b.name.toLowerCase().includes('microsoft');
-                    if (aIsGoogle && !bIsGoogle) return -1;
-                    if (!aIsGoogle && bIsGoogle) return 1;
-                    if (aIsMicrosoft && !bIsMicrosoft) return -1;
-                    if (!aIsMicrosoft && bIsMicrosoft) return 1;
-                    return a.lang.localeCompare(b.lang);
+                    // Try to find a voice matching the gender preference
+                    let selectedVoice;
+                    if (gender === 'female') {
+                        // Female voices often have these patterns
+                        selectedVoice = languageVoices.find(v =>
+                            v.name.toLowerCase().includes('katja') ||
+                            v.name.toLowerCase().includes('hedda') ||
+                            v.name.toLowerCase().includes('female') ||
+                            v.name.toLowerCase().includes('woman')
+                        ) || languageVoices.find(v => v.name.toLowerCase().includes('google')) || languageVoices[0];
+                    } else {
+                        // Male voices
+                        selectedVoice = languageVoices.find(v =>
+                            v.name.toLowerCase().includes('stefan') ||
+                            v.name.toLowerCase().includes('male') ||
+                            v.name.toLowerCase().includes('man')
+                        ) || languageVoices[1] || languageVoices[0];
+                    }
+
+                    if (selectedVoice) {
+                        sourceVoice = selectedVoice;
+                        // Update the advanced dropdown to match
+                        const sortedVoices = [...allVoices].sort((a, b) => {
+                            const aIsGoogle = a.name.toLowerCase().includes('google');
+                            const bIsGoogle = b.name.toLowerCase().includes('google');
+                            const aIsMicrosoft = a.name.toLowerCase().includes('microsoft');
+                            const bIsMicrosoft = b.name.toLowerCase().includes('microsoft');
+                            if (aIsGoogle && !bIsGoogle) return -1;
+                            if (!aIsGoogle && bIsGoogle) return 1;
+                            if (aIsMicrosoft && !bIsMicrosoft) return -1;
+                            if (!aIsMicrosoft && bIsMicrosoft) return 1;
+                            return a.lang.localeCompare(b.lang);
+                        });
+                        const voiceIndex = sortedVoices.indexOf(selectedVoice);
+                        const sourceVoiceSelect = document.getElementById('sourceVoiceSelect');
+                        if (sourceVoiceSelect) {
+                            sourceVoiceSelect.value = voiceIndex;
+                        }
+                        updateVoiceInfo('source', sourceVoice);
+                        console.log('Source voice changed to:', sourceVoice.name, '(Gender:', gender + ')');
+                    }
                 });
-                const voiceIndex = sortedVoices.indexOf(selectedVoice);
-                document.getElementById('sourceVoiceSelect').value = voiceIndex;
-                updateVoiceInfo('source', sourceVoice);
-                console.log('Source voice changed to:', sourceVoice.name, '(Gender:', gender + ')');
-            }
-        });
-
-        document.getElementById('englishGenderSelect').addEventListener('change', (e) => {
-            const gender = e.target.value;
-            // Get voices for target voice's language
-            const targetLang = targetVoice ? targetVoice.lang.split('-')[0] : 'en';
-            const languageVoices = allVoices.filter(voice => voice.lang.startsWith(targetLang));
-
-            // Try to find a voice matching the gender preference
-            let selectedVoice;
-            if (gender === 'male') {
-                // Male voices often have these patterns
-                selectedVoice = languageVoices.find(v =>
-                    v.name.toLowerCase().includes('david') ||
-                    v.name.toLowerCase().includes('mark') ||
-                    v.name.toLowerCase().includes('male') ||
-                    v.name.toLowerCase().includes('man')
-                ) || languageVoices.find(v => v.name.toLowerCase().includes('google')) || languageVoices[0];
-            } else {
-                // Female voices
-                selectedVoice = languageVoices.find(v =>
-                    v.name.toLowerCase().includes('zira') ||
-                    v.name.toLowerCase().includes('female') ||
-                    v.name.toLowerCase().includes('woman')
-                ) || languageVoices[1] || languageVoices[0];
             }
 
-            if (selectedVoice) {
-                targetVoice = selectedVoice;
-                // Update the advanced dropdown to match
-                const sortedVoices = [...allVoices].sort((a, b) => {
-                    const aIsGoogle = a.name.toLowerCase().includes('google');
-                    const bIsGoogle = b.name.toLowerCase().includes('google');
-                    const aIsMicrosoft = a.name.toLowerCase().includes('microsoft');
-                    const bIsMicrosoft = b.name.toLowerCase().includes('microsoft');
-                    if (aIsGoogle && !bIsGoogle) return -1;
-                    if (!aIsGoogle && bIsGoogle) return 1;
-                    if (aIsMicrosoft && !bIsMicrosoft) return -1;
-                    if (!aIsMicrosoft && bIsMicrosoft) return 1;
-                    return a.lang.localeCompare(b.lang);
+            if (englishGenderSelect) {
+                englishGenderSelect.addEventListener('change', (e) => {
+                    const gender = e.target.value;
+                    // Get voices for target voice's language
+                    const targetLang = targetVoice ? targetVoice.lang.split('-')[0] : 'en';
+                    const languageVoices = allVoices.filter(voice => voice.lang.startsWith(targetLang));
+
+                    // Try to find a voice matching the gender preference
+                    let selectedVoice;
+                    if (gender === 'male') {
+                        // Male voices often have these patterns
+                        selectedVoice = languageVoices.find(v =>
+                            v.name.toLowerCase().includes('david') ||
+                            v.name.toLowerCase().includes('mark') ||
+                            v.name.toLowerCase().includes('male') ||
+                            v.name.toLowerCase().includes('man')
+                        ) || languageVoices.find(v => v.name.toLowerCase().includes('google')) || languageVoices[0];
+                    } else {
+                        // Female voices
+                        selectedVoice = languageVoices.find(v =>
+                            v.name.toLowerCase().includes('zira') ||
+                            v.name.toLowerCase().includes('female') ||
+                            v.name.toLowerCase().includes('woman')
+                        ) || languageVoices[1] || languageVoices[0];
+                    }
+
+                    if (selectedVoice) {
+                        targetVoice = selectedVoice;
+                        // Update the advanced dropdown to match
+                        const sortedVoices = [...allVoices].sort((a, b) => {
+                            const aIsGoogle = a.name.toLowerCase().includes('google');
+                            const bIsGoogle = b.name.toLowerCase().includes('google');
+                            const aIsMicrosoft = a.name.toLowerCase().includes('microsoft');
+                            const bIsMicrosoft = b.name.toLowerCase().includes('microsoft');
+                            if (aIsGoogle && !bIsGoogle) return -1;
+                            if (!aIsGoogle && bIsGoogle) return 1;
+                            if (aIsMicrosoft && !bIsMicrosoft) return -1;
+                            if (!aIsMicrosoft && bIsMicrosoft) return 1;
+                            return a.lang.localeCompare(b.lang);
+                        });
+                        const voiceIndex = sortedVoices.indexOf(selectedVoice);
+                        const targetVoiceSelect = document.getElementById('targetVoiceSelect');
+                        if (targetVoiceSelect) {
+                            targetVoiceSelect.value = voiceIndex;
+                        }
+                        updateVoiceInfo('target', targetVoice);
+                        console.log('Target voice changed to:', targetVoice.name, '(Gender:', gender + ')');
+                    }
                 });
-                const voiceIndex = sortedVoices.indexOf(selectedVoice);
-                document.getElementById('targetVoiceSelect').value = voiceIndex;
-                updateVoiceInfo('target', targetVoice);
-                console.log('Target voice changed to:', targetVoice.name, '(Gender:', gender + ')');
             }
-        });
+        }
 
         // Speech rate handler
         document.getElementById('speechRate').addEventListener('input', (e) => {
@@ -11097,32 +11407,55 @@ i<!DOCTYPE html>
             document.getElementById('speechPitchValue').textContent = speechPitch.toFixed(1);
         });
 
-        // Advanced features event listeners
-        document.getElementById('loopMode').addEventListener('change', (e) => {
-            loopModeEnabled = e.target.checked;
-        });
+        // Advanced features event listeners - WRAPPED IN FUNCTION FOR DOMContentLoaded
+        function initializeAdvancedFeatures() {
+            const loopModeCheckbox = document.getElementById('loopMode');
+            const repeatSourceSelect = document.getElementById('repeatSourceCount');
+            const repeatTargetSelect = document.getElementById('repeatTargetCount');
+            const studyTimerCheckbox = document.getElementById('studyTimer');
+            const sleepTimerCheckbox = document.getElementById('sleepTimer');
 
-        document.getElementById('repeatMode').addEventListener('change', (e) => {
-            repeatModeEnabled = e.target.checked;
-        });
-
-        document.getElementById('repeatCount').addEventListener('change', (e) => {
-            repeatCount = parseInt(e.target.value);
-        });
-
-        document.getElementById('studyTimer').addEventListener('change', (e) => {
-            studyTimerEnabled = e.target.checked;
-            if (!e.target.checked && timerInterval) {
-                stopAllTimers();
+            if (loopModeCheckbox) {
+                loopModeCheckbox.addEventListener('change', (e) => {
+                    loopModeEnabled = e.target.checked;
+                    console.log('Loop Mode:', loopModeEnabled);
+                });
             }
-        });
 
-        document.getElementById('sleepTimer').addEventListener('change', (e) => {
-            sleepTimerEnabled = e.target.checked;
-            if (!e.target.checked && timerInterval) {
-                stopAllTimers();
+            if (repeatSourceSelect) {
+                repeatSourceSelect.addEventListener('change', (e) => {
+                    repeatSourceCount = parseInt(e.target.value);
+                    console.log('Repeat Source Count:', repeatSourceCount);
+                });
             }
-        });
+
+            if (repeatTargetSelect) {
+                repeatTargetSelect.addEventListener('change', (e) => {
+                    repeatTargetCount = parseInt(e.target.value);
+                    console.log('Repeat Target Count:', repeatTargetCount);
+                });
+            }
+
+            if (studyTimerCheckbox) {
+                studyTimerCheckbox.addEventListener('change', (e) => {
+                    studyTimerEnabled = e.target.checked;
+                    console.log('Study Timer:', studyTimerEnabled);
+                    if (!e.target.checked && timerInterval) {
+                        stopAllTimers();
+                    }
+                });
+            }
+
+            if (sleepTimerCheckbox) {
+                sleepTimerCheckbox.addEventListener('change', (e) => {
+                    sleepTimerEnabled = e.target.checked;
+                    console.log('Sleep Timer:', sleepTimerEnabled);
+                    if (!e.target.checked && timerInterval) {
+                        stopAllTimers();
+                    }
+                });
+            }
+        }
 
         // Accordion toggle function
         function toggleAccordion(header) {
@@ -11773,6 +12106,12 @@ i<!DOCTYPE html>
             }
 
             checkExistingLogin();
+
+            // Initialize all event listeners that depend on DOM elements
+            console.log('🚀 Initializing advanced features and voice selection handlers...');
+            initializeAdvancedFeatures();
+            initializeVoiceSelectionHandlers();
+            console.log('✅ All event listeners initialized successfully!');
 
             // Note: Auto-load will run ONLY after successful login (not on page load)
         });

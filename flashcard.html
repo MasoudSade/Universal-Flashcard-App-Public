@@ -3670,10 +3670,20 @@
                         <input type="checkbox" id="loopMode">
                         <span>🔁 Loop Mode - Restart automatically when finished</span>
                     </label>
-                    <label>
-                        <input type="checkbox" id="repeatMode">
-                        <span>🗣️ Repeat Each Card:</span>
-                        <select id="repeatCount" style="margin-left: 10px; padding: 4px;">
+                    <label style="display: block; margin-bottom: 10px;">
+                        <span style="font-weight: 600; display: block; margin-bottom: 5px;">🗣️ Repeat Source Language:</span>
+                        <select id="repeatSourceCount" style="margin-left: 10px; padding: 4px; min-width: 100px;">
+                            <option value="1">1 time</option>
+                            <option value="2">2 times</option>
+                            <option value="3">3 times</option>
+                            <option value="4">4 times</option>
+                            <option value="5">5 times</option>
+                        </select>
+                    </label>
+                    <label style="display: block; margin-bottom: 10px;">
+                        <span style="font-weight: 600; display: block; margin-bottom: 5px;">🗣️ Repeat Target Language:</span>
+                        <select id="repeatTargetCount" style="margin-left: 10px; padding: 4px; min-width: 100px;">
+                            <option value="1">1 time</option>
                             <option value="2">2 times</option>
                             <option value="3">3 times</option>
                             <option value="4">4 times</option>
@@ -3877,9 +3887,10 @@
 
         // Advanced feature variables
         let loopModeEnabled = false;
-        let repeatModeEnabled = false;
-        let repeatCount = 2;
-        let currentRepeat = 0;
+        let repeatSourceCount = 1;
+        let repeatTargetCount = 1;
+        let currentSourceRepeat = 0;
+        let currentTargetRepeat = 0;
         let studyTimerEnabled = false;
         let sleepTimerEnabled = false;
         let timerInterval = null;
@@ -10434,6 +10445,14 @@
             const utterance = new SpeechSynthesisUtterance(text);
             // Use source voice's language or fallback to detected language
             utterance.lang = sourceVoice ? sourceVoice.lang : detectedSourceLang;
+
+            console.log('🎤 Source Speech:', {
+                text: text.substring(0, 50) + '...',
+                lang: utterance.lang,
+                voiceName: sourceVoice ? sourceVoice.name : 'none',
+                isVirtual: sourceVoice ? sourceVoice.isVirtual : false
+            });
+
             // Only set voice if it's not virtual (virtual voices use lang code only)
             if (sourceVoice && !sourceVoice.isVirtual) {
                 utterance.voice = sourceVoice;
@@ -10445,7 +10464,7 @@
             let completed = false;
             const safetyTimeout = setTimeout(() => {
                 if (!completed && onComplete) {
-                    console.log('⚠️ German speech safety timeout triggered');
+                    console.log('⚠️ Source speech safety timeout triggered');
                     completed = true;
                     onComplete();
                 }
@@ -10455,7 +10474,7 @@
                 if (!completed) {
                     completed = true;
                     clearTimeout(safetyTimeout);
-                    console.log('✅ German speech completed naturally');
+                    console.log('✅ Source speech completed naturally');
                     if (onComplete) onComplete();
                 }
             };
@@ -10464,7 +10483,22 @@
                 if (!completed) {
                     completed = true;
                     clearTimeout(safetyTimeout);
-                    console.error('❌ German speech error:', event);
+                    console.error('❌ Source speech error:', {
+                        error: event.error,
+                        message: event.message,
+                        lang: utterance.lang,
+                        voiceName: sourceVoice ? sourceVoice.name : 'none'
+                    });
+
+                    // Special warning for Persian/Farsi and other unsupported languages
+                    if (utterance.lang.startsWith('fa') || utterance.lang.startsWith('ar')) {
+                        console.warn('⚠️ WARNING: Your browser may not support ' + utterance.lang + ' text-to-speech.');
+                        console.warn('📝 Suggested solutions:');
+                        console.warn('   1. Try Chrome with Google TTS extension installed');
+                        console.warn('   2. Use Microsoft Edge with language packs installed');
+                        console.warn('   3. Consider using an online TTS service for these languages');
+                    }
+
                     if (onComplete) onComplete(); // Continue even on error
                 }
             };
@@ -10527,7 +10561,22 @@
                 if (!completed) {
                     completed = true;
                     clearTimeout(safetyTimeout);
-                    console.error('❌ English speech error:', event);
+                    console.error('❌ Target speech error:', {
+                        error: event.error,
+                        message: event.message,
+                        lang: utterance.lang,
+                        voiceName: targetVoice ? targetVoice.name : 'none'
+                    });
+
+                    // Special warning for Persian/Farsi and other unsupported languages
+                    if (utterance.lang.startsWith('fa') || utterance.lang.startsWith('ar')) {
+                        console.warn('⚠️ WARNING: Your browser may not support ' + utterance.lang + ' text-to-speech.');
+                        console.warn('📝 Suggested solutions:');
+                        console.warn('   1. Try Chrome with Google TTS extension installed');
+                        console.warn('   2. Use Microsoft Edge with language packs installed');
+                        console.warn('   3. Consider using an online TTS service for these languages');
+                    }
+
                     if (onComplete) onComplete(); // Continue even on error
                 }
             };
@@ -10811,7 +10860,7 @@
             }
 
             // Increment cards reviewed (only once per card, not per repeat)
-            if (currentRepeat === 0) {
+            if (currentSourceRepeat === 0 && currentTargetRepeat === 0) {
                 cardsReviewedCount++;
                 updateSessionStats();
             }
@@ -10820,47 +10869,105 @@
             const germanText = readExtendedContent && card.lang1Extended ? card.lang1Extended : card.lang1;
             const englishText = readExtendedContent && card.lang2Extended ? card.lang2Extended : card.lang2;
 
-            // Step 1: Pronounce German and WAIT for it to complete
+            // Step 1: Pronounce source language and handle repeats
             pronounceGerman(germanText, () => {
                 if (!isAutoPlaying) return;
 
-                // Step 2: After German completes, wait user-configured delay, then pronounce English
-                autoplayTimeout = setTimeout(() => {
-                    if (!isAutoPlaying) return;
+                currentSourceRepeat++;
 
-                    if (autoplayEnglishEnabled) {
-                        // Pronounce English and WAIT for it to complete
-                        pronounceEnglish(englishText, () => {
-                            if (!isAutoPlaying) return;
+                // Check if we need to repeat source language
+                if (currentSourceRepeat < repeatSourceCount) {
+                    // Repeat source language with a short delay
+                    autoplayTimeout = setTimeout(() => {
+                        if (!isAutoPlaying) return;
+                        playSourceLanguage(germanText);
+                    }, 500);
+                } else {
+                    // Source repeats complete, move to target language
+                    autoplayTimeout = setTimeout(() => {
+                        if (!isAutoPlaying) return;
 
-                            // Step 3: After English completes, wait user-configured delay, then move to next card
+                        if (autoplayEnglishEnabled) {
+                            playTargetLanguage(englishText);
+                        } else {
+                            // If target not enabled, move to next card
                             autoplayTimeout = setTimeout(() => {
                                 if (!isAutoPlaying) return;
                                 handleCardCompletion();
                             }, delayBeforeNext);
-                        });
-                    } else {
-                        // If English not enabled, wait and move to next card
-                        autoplayTimeout = setTimeout(() => {
-                            if (!isAutoPlaying) return;
-                            handleCardCompletion();
-                        }, delayBeforeNext);
-                    }
-                }, delayBetweenLangs);
+                        }
+                    }, delayBetweenLangs);
+                }
+            });
+        }
+
+        function playSourceLanguage(germanText) {
+            if (!isAutoPlaying) return;
+
+            pronounceGerman(germanText, () => {
+                if (!isAutoPlaying) return;
+
+                currentSourceRepeat++;
+
+                if (currentSourceRepeat < repeatSourceCount) {
+                    // Continue repeating source
+                    autoplayTimeout = setTimeout(() => {
+                        if (!isAutoPlaying) return;
+                        playSourceLanguage(germanText);
+                    }, 500);
+                } else {
+                    // Source repeats complete, move to target
+                    autoplayTimeout = setTimeout(() => {
+                        if (!isAutoPlaying) return;
+
+                        const card = filteredCards[currentIndex];
+                        const englishText = readExtendedContent && card.lang2Extended ? card.lang2Extended : card.lang2;
+
+                        if (autoplayEnglishEnabled) {
+                            playTargetLanguage(englishText);
+                        } else {
+                            autoplayTimeout = setTimeout(() => {
+                                if (!isAutoPlaying) return;
+                                handleCardCompletion();
+                            }, delayBeforeNext);
+                        }
+                    }, delayBetweenLangs);
+                }
+            });
+        }
+
+        function playTargetLanguage(englishText) {
+            if (!isAutoPlaying) return;
+
+            pronounceEnglish(englishText, () => {
+                if (!isAutoPlaying) return;
+
+                currentTargetRepeat++;
+
+                if (currentTargetRepeat < repeatTargetCount) {
+                    // Continue repeating target
+                    autoplayTimeout = setTimeout(() => {
+                        if (!isAutoPlaying) return;
+                        playTargetLanguage(englishText);
+                    }, 500);
+                } else {
+                    // All repeats complete, move to next card
+                    autoplayTimeout = setTimeout(() => {
+                        if (!isAutoPlaying) return;
+                        handleCardCompletion();
+                    }, delayBeforeNext);
+                }
             });
         }
 
         function handleCardCompletion() {
             if (!isAutoPlaying) return;
 
-            // Check if repeat mode is enabled
-            if (repeatModeEnabled && currentRepeat < repeatCount - 1) {
-                currentRepeat++;
-                playCurrentCard(); // Repeat the same card
-            } else {
-                currentRepeat = 0; // Reset repeat counter
-                moveToNextCardInAutoPlay();
-            }
+            // Reset repeat counters
+            currentSourceRepeat = 0;
+            currentTargetRepeat = 0;
+
+            moveToNextCardInAutoPlay();
         }
 
         function moveToNextCardInAutoPlay() {
@@ -11180,98 +11287,113 @@
             }
         });
 
-        // Gender-based voice selection handlers
-        document.getElementById('germanGenderSelect').addEventListener('change', (e) => {
-            const gender = e.target.value;
-            // Get voices for source voice's language
-            const sourceLang = sourceVoice ? sourceVoice.lang.split('-')[0] : 'de';
-            const languageVoices = allVoices.filter(voice => voice.lang.startsWith(sourceLang));
+        // Gender-based voice selection handlers - WRAPPED IN FUNCTION FOR DOMContentLoaded
+        function initializeVoiceSelectionHandlers() {
+            const germanGenderSelect = document.getElementById('germanGenderSelect');
+            const englishGenderSelect = document.getElementById('englishGenderSelect');
 
-            // Try to find a voice matching the gender preference
-            let selectedVoice;
-            if (gender === 'female') {
-                // Female voices often have these patterns
-                selectedVoice = languageVoices.find(v =>
-                    v.name.toLowerCase().includes('katja') ||
-                    v.name.toLowerCase().includes('hedda') ||
-                    v.name.toLowerCase().includes('female') ||
-                    v.name.toLowerCase().includes('woman')
-                ) || languageVoices.find(v => v.name.toLowerCase().includes('google')) || languageVoices[0];
-            } else {
-                // Male voices
-                selectedVoice = languageVoices.find(v =>
-                    v.name.toLowerCase().includes('stefan') ||
-                    v.name.toLowerCase().includes('male') ||
-                    v.name.toLowerCase().includes('man')
-                ) || languageVoices[1] || languageVoices[0];
-            }
+            if (germanGenderSelect) {
+                germanGenderSelect.addEventListener('change', (e) => {
+                    const gender = e.target.value;
+                    // Get voices for source voice's language
+                    const sourceLang = sourceVoice ? sourceVoice.lang.split('-')[0] : 'de';
+                    const languageVoices = allVoices.filter(voice => voice.lang.startsWith(sourceLang));
 
-            if (selectedVoice) {
-                sourceVoice = selectedVoice;
-                // Update the advanced dropdown to match
-                const sortedVoices = [...allVoices].sort((a, b) => {
-                    const aIsGoogle = a.name.toLowerCase().includes('google');
-                    const bIsGoogle = b.name.toLowerCase().includes('google');
-                    const aIsMicrosoft = a.name.toLowerCase().includes('microsoft');
-                    const bIsMicrosoft = b.name.toLowerCase().includes('microsoft');
-                    if (aIsGoogle && !bIsGoogle) return -1;
-                    if (!aIsGoogle && bIsGoogle) return 1;
-                    if (aIsMicrosoft && !bIsMicrosoft) return -1;
-                    if (!aIsMicrosoft && bIsMicrosoft) return 1;
-                    return a.lang.localeCompare(b.lang);
+                    // Try to find a voice matching the gender preference
+                    let selectedVoice;
+                    if (gender === 'female') {
+                        // Female voices often have these patterns
+                        selectedVoice = languageVoices.find(v =>
+                            v.name.toLowerCase().includes('katja') ||
+                            v.name.toLowerCase().includes('hedda') ||
+                            v.name.toLowerCase().includes('female') ||
+                            v.name.toLowerCase().includes('woman')
+                        ) || languageVoices.find(v => v.name.toLowerCase().includes('google')) || languageVoices[0];
+                    } else {
+                        // Male voices
+                        selectedVoice = languageVoices.find(v =>
+                            v.name.toLowerCase().includes('stefan') ||
+                            v.name.toLowerCase().includes('male') ||
+                            v.name.toLowerCase().includes('man')
+                        ) || languageVoices[1] || languageVoices[0];
+                    }
+
+                    if (selectedVoice) {
+                        sourceVoice = selectedVoice;
+                        // Update the advanced dropdown to match
+                        const sortedVoices = [...allVoices].sort((a, b) => {
+                            const aIsGoogle = a.name.toLowerCase().includes('google');
+                            const bIsGoogle = b.name.toLowerCase().includes('google');
+                            const aIsMicrosoft = a.name.toLowerCase().includes('microsoft');
+                            const bIsMicrosoft = b.name.toLowerCase().includes('microsoft');
+                            if (aIsGoogle && !bIsGoogle) return -1;
+                            if (!aIsGoogle && bIsGoogle) return 1;
+                            if (aIsMicrosoft && !bIsMicrosoft) return -1;
+                            if (!aIsMicrosoft && bIsMicrosoft) return 1;
+                            return a.lang.localeCompare(b.lang);
+                        });
+                        const voiceIndex = sortedVoices.indexOf(selectedVoice);
+                        const sourceVoiceSelect = document.getElementById('sourceVoiceSelect');
+                        if (sourceVoiceSelect) {
+                            sourceVoiceSelect.value = voiceIndex;
+                        }
+                        updateVoiceInfo('source', sourceVoice);
+                        console.log('Source voice changed to:', sourceVoice.name, '(Gender:', gender + ')');
+                    }
                 });
-                const voiceIndex = sortedVoices.indexOf(selectedVoice);
-                document.getElementById('sourceVoiceSelect').value = voiceIndex;
-                updateVoiceInfo('source', sourceVoice);
-                console.log('Source voice changed to:', sourceVoice.name, '(Gender:', gender + ')');
-            }
-        });
-
-        document.getElementById('englishGenderSelect').addEventListener('change', (e) => {
-            const gender = e.target.value;
-            // Get voices for target voice's language
-            const targetLang = targetVoice ? targetVoice.lang.split('-')[0] : 'en';
-            const languageVoices = allVoices.filter(voice => voice.lang.startsWith(targetLang));
-
-            // Try to find a voice matching the gender preference
-            let selectedVoice;
-            if (gender === 'male') {
-                // Male voices often have these patterns
-                selectedVoice = languageVoices.find(v =>
-                    v.name.toLowerCase().includes('david') ||
-                    v.name.toLowerCase().includes('mark') ||
-                    v.name.toLowerCase().includes('male') ||
-                    v.name.toLowerCase().includes('man')
-                ) || languageVoices.find(v => v.name.toLowerCase().includes('google')) || languageVoices[0];
-            } else {
-                // Female voices
-                selectedVoice = languageVoices.find(v =>
-                    v.name.toLowerCase().includes('zira') ||
-                    v.name.toLowerCase().includes('female') ||
-                    v.name.toLowerCase().includes('woman')
-                ) || languageVoices[1] || languageVoices[0];
             }
 
-            if (selectedVoice) {
-                targetVoice = selectedVoice;
-                // Update the advanced dropdown to match
-                const sortedVoices = [...allVoices].sort((a, b) => {
-                    const aIsGoogle = a.name.toLowerCase().includes('google');
-                    const bIsGoogle = b.name.toLowerCase().includes('google');
-                    const aIsMicrosoft = a.name.toLowerCase().includes('microsoft');
-                    const bIsMicrosoft = b.name.toLowerCase().includes('microsoft');
-                    if (aIsGoogle && !bIsGoogle) return -1;
-                    if (!aIsGoogle && bIsGoogle) return 1;
-                    if (aIsMicrosoft && !bIsMicrosoft) return -1;
-                    if (!aIsMicrosoft && bIsMicrosoft) return 1;
-                    return a.lang.localeCompare(b.lang);
+            if (englishGenderSelect) {
+                englishGenderSelect.addEventListener('change', (e) => {
+                    const gender = e.target.value;
+                    // Get voices for target voice's language
+                    const targetLang = targetVoice ? targetVoice.lang.split('-')[0] : 'en';
+                    const languageVoices = allVoices.filter(voice => voice.lang.startsWith(targetLang));
+
+                    // Try to find a voice matching the gender preference
+                    let selectedVoice;
+                    if (gender === 'male') {
+                        // Male voices often have these patterns
+                        selectedVoice = languageVoices.find(v =>
+                            v.name.toLowerCase().includes('david') ||
+                            v.name.toLowerCase().includes('mark') ||
+                            v.name.toLowerCase().includes('male') ||
+                            v.name.toLowerCase().includes('man')
+                        ) || languageVoices.find(v => v.name.toLowerCase().includes('google')) || languageVoices[0];
+                    } else {
+                        // Female voices
+                        selectedVoice = languageVoices.find(v =>
+                            v.name.toLowerCase().includes('zira') ||
+                            v.name.toLowerCase().includes('female') ||
+                            v.name.toLowerCase().includes('woman')
+                        ) || languageVoices[1] || languageVoices[0];
+                    }
+
+                    if (selectedVoice) {
+                        targetVoice = selectedVoice;
+                        // Update the advanced dropdown to match
+                        const sortedVoices = [...allVoices].sort((a, b) => {
+                            const aIsGoogle = a.name.toLowerCase().includes('google');
+                            const bIsGoogle = b.name.toLowerCase().includes('google');
+                            const aIsMicrosoft = a.name.toLowerCase().includes('microsoft');
+                            const bIsMicrosoft = b.name.toLowerCase().includes('microsoft');
+                            if (aIsGoogle && !bIsGoogle) return -1;
+                            if (!aIsGoogle && bIsGoogle) return 1;
+                            if (aIsMicrosoft && !bIsMicrosoft) return -1;
+                            if (!aIsMicrosoft && bIsMicrosoft) return 1;
+                            return a.lang.localeCompare(b.lang);
+                        });
+                        const voiceIndex = sortedVoices.indexOf(selectedVoice);
+                        const targetVoiceSelect = document.getElementById('targetVoiceSelect');
+                        if (targetVoiceSelect) {
+                            targetVoiceSelect.value = voiceIndex;
+                        }
+                        updateVoiceInfo('target', targetVoice);
+                        console.log('Target voice changed to:', targetVoice.name, '(Gender:', gender + ')');
+                    }
                 });
-                const voiceIndex = sortedVoices.indexOf(selectedVoice);
-                document.getElementById('targetVoiceSelect').value = voiceIndex;
-                updateVoiceInfo('target', targetVoice);
-                console.log('Target voice changed to:', targetVoice.name, '(Gender:', gender + ')');
             }
-        });
+        }
 
         // Speech rate handler
         document.getElementById('speechRate').addEventListener('input', (e) => {
@@ -11285,32 +11407,55 @@
             document.getElementById('speechPitchValue').textContent = speechPitch.toFixed(1);
         });
 
-        // Advanced features event listeners
-        document.getElementById('loopMode').addEventListener('change', (e) => {
-            loopModeEnabled = e.target.checked;
-        });
+        // Advanced features event listeners - WRAPPED IN FUNCTION FOR DOMContentLoaded
+        function initializeAdvancedFeatures() {
+            const loopModeCheckbox = document.getElementById('loopMode');
+            const repeatSourceSelect = document.getElementById('repeatSourceCount');
+            const repeatTargetSelect = document.getElementById('repeatTargetCount');
+            const studyTimerCheckbox = document.getElementById('studyTimer');
+            const sleepTimerCheckbox = document.getElementById('sleepTimer');
 
-        document.getElementById('repeatMode').addEventListener('change', (e) => {
-            repeatModeEnabled = e.target.checked;
-        });
-
-        document.getElementById('repeatCount').addEventListener('change', (e) => {
-            repeatCount = parseInt(e.target.value);
-        });
-
-        document.getElementById('studyTimer').addEventListener('change', (e) => {
-            studyTimerEnabled = e.target.checked;
-            if (!e.target.checked && timerInterval) {
-                stopAllTimers();
+            if (loopModeCheckbox) {
+                loopModeCheckbox.addEventListener('change', (e) => {
+                    loopModeEnabled = e.target.checked;
+                    console.log('Loop Mode:', loopModeEnabled);
+                });
             }
-        });
 
-        document.getElementById('sleepTimer').addEventListener('change', (e) => {
-            sleepTimerEnabled = e.target.checked;
-            if (!e.target.checked && timerInterval) {
-                stopAllTimers();
+            if (repeatSourceSelect) {
+                repeatSourceSelect.addEventListener('change', (e) => {
+                    repeatSourceCount = parseInt(e.target.value);
+                    console.log('Repeat Source Count:', repeatSourceCount);
+                });
             }
-        });
+
+            if (repeatTargetSelect) {
+                repeatTargetSelect.addEventListener('change', (e) => {
+                    repeatTargetCount = parseInt(e.target.value);
+                    console.log('Repeat Target Count:', repeatTargetCount);
+                });
+            }
+
+            if (studyTimerCheckbox) {
+                studyTimerCheckbox.addEventListener('change', (e) => {
+                    studyTimerEnabled = e.target.checked;
+                    console.log('Study Timer:', studyTimerEnabled);
+                    if (!e.target.checked && timerInterval) {
+                        stopAllTimers();
+                    }
+                });
+            }
+
+            if (sleepTimerCheckbox) {
+                sleepTimerCheckbox.addEventListener('change', (e) => {
+                    sleepTimerEnabled = e.target.checked;
+                    console.log('Sleep Timer:', sleepTimerEnabled);
+                    if (!e.target.checked && timerInterval) {
+                        stopAllTimers();
+                    }
+                });
+            }
+        }
 
         // Accordion toggle function
         function toggleAccordion(header) {
@@ -11961,6 +12106,12 @@
             }
 
             checkExistingLogin();
+
+            // Initialize all event listeners that depend on DOM elements
+            console.log('🚀 Initializing advanced features and voice selection handlers...');
+            initializeAdvancedFeatures();
+            initializeVoiceSelectionHandlers();
+            console.log('✅ All event listeners initialized successfully!');
 
             // Note: Auto-load will run ONLY after successful login (not on page load)
         });
