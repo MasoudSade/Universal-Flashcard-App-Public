@@ -38,7 +38,23 @@ docs/
 *_backup*.html
 *_OLD*.html
 *_FINAL*.html
+*backup*.html
 !flashcard.html
+
+# Test files
+test_*.csv
+check_*.html
+*_test.html
+
+# Screenshots and images (except favicon)
+Screenshot*.png
+*.jpg
+*.jpeg
+!favicon.*
+
+# Firebase configuration files
+*firebase*.json
+*rules*.json
 
 # Development scripts
 transform_to_universal.sh
