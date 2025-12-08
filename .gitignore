@@ -31,6 +31,9 @@ npm-debug.log*
 archive_old_versions/
 Universal-Flashcard-PWA-v3.0/
 
+# Documentation folder (not for GitHub)
+docs/
+
 # Backup HTML files
 *_backup*.html
 *_OLD*.html

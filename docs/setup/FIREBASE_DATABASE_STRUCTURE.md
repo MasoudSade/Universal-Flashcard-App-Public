@@ -14,7 +14,7 @@ The Firebase Realtime Database is organized to keep each app's data completely s
 ```
 flashcard-sync-15835-default-rtdb/
 ├── users/                          ← German Flashcard App Data
-│   ├── {username}/
+│   ├── masoud/
 │   │   ├── data: "encrypted_data"
 │   │   ├── passwordHash: "hash123"
 │   │   └── lastModified: 1234567890
@@ -25,7 +25,7 @@ flashcard-sync-15835-default-rtdb/
 │   └── ...
 │
 └── users-universal/                ← Universal Flashcard App Data
-    ├── {username}/
+    ├── masoud/
     │   ├── data: "encrypted_data"
     │   ├── passwordHash: "hash789"
     │   └── lastModified: 1234567892
@@ -42,14 +42,14 @@ flashcard-sync-15835-default-rtdb/
 
 ### German Flashcard App
 - **Database Path:** `users/`
-- **Full Path Example:** `users/{username}/data`
+- **Full Path Example:** `users/masoud/data`
 - **Data Stored:** German-English vocabulary categories
 - **Code Location:** German-Flashcard-App/flashcard.html
 - **Path References:** 5 instances (all use `users/`)
 
 ### Universal Flashcard App
 - **Database Path:** `users-universal/`
-- **Full Path Example:** `users-universal/{username}/data`
+- **Full Path Example:** `users-universal/masoud/data`
 - **Data Stored:** Any-language vocabulary categories
 - **Code Location:** Universal-Flashcard-App-Public/flashcard.html
 - **Path References:** 5 instances (all use `users-universal/`)
@@ -89,9 +89,9 @@ All 5 references use `users-universal/` path:
    - Zero risk of data mixing or conflicts
 
 3. **Same Username, Different Data**
-   - User "{username}" can exist in both apps
-   - `users/{username}` = German vocabulary
-   - `users-universal/{username}` = Universal vocabulary
+   - User "masoud" can exist in both apps
+   - `users/masoud` = German vocabulary
+   - `users-universal/masoud` = Universal vocabulary
    - Completely independent datasets
 
 4. **Easy Filtering in Firebase Console**
@@ -182,7 +182,7 @@ firebase.database().ref('users-universal').once('value')
 ```json
 {
   "users": {
-    "{username}": {
+    "masoud": {
       "data": "base64_encrypted_data_here",
       "passwordHash": "a1b2c3d4e5f6...",
       "lastModified": 1700000000000
@@ -212,7 +212,7 @@ firebase.database().ref('users-universal').once('value')
 ```json
 {
   "users-universal": {
-    "{username}": {
+    "masoud": {
       "data": "base64_encrypted_data_here",
       "passwordHash": "g7h8i9j0k1l2...",
       "lastModified": 1700000001000

@@ -4022,6 +4022,7 @@
                     <div class="repeat-dropdown-item" data-action="current">🔊 Replay Current Card</div>
                 </div>
             </div>
+            <button class="quick-action-btn" id="resetCardBtn" style="background: #06b6d4; color: white;" onclick="resetToBeginning('card')" title="Reset to first card">↺ Reset</button>
             <button class="quick-action-btn" id="minimizeBtn" style="background: #06b6d4; color: white;" onclick="window.toggleMinimizeMode()" title="Minimize flashcard to corner">⬇️ Minimize</button>
             <button class="quick-action-btn" id="deleteRecordBtn" style="background: #ef4444; color: white;">🗑️ Delete</button>
         </div>
@@ -4078,9 +4079,36 @@
                 <button class="transcript-btn" onclick="remapTranscriptColumns()">
                     🎯 Remap Columns
                 </button>
+                <div class="repeat-dropdown" style="display: inline-block;">
+                    <button class="transcript-btn" id="transcriptRepeatBtn" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                        🔁 Repeat
+                    </button>
+                    <div class="repeat-dropdown-menu" id="transcriptRepeatDropdown">
+                        <div class="repeat-dropdown-item" data-action="all">🔄 Repeat All Cards</div>
+                        <div class="repeat-dropdown-item" data-action="learned">✓ Repeat Learned Only</div>
+                        <div class="repeat-dropdown-item" data-action="unlearned">✗ Repeat Unlearned Only</div>
+                        <div class="repeat-dropdown-item" data-action="current">🔊 Replay Current Card</div>
+                    </div>
+                </div>
+                <button class="transcript-btn" onclick="resetToBeginning('transcript')" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);" title="Reset to first card">
+                    ↺ Reset
+                </button>
                 <button class="transcript-btn" onclick="deleteCurrentTranscriptCard()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
                     🗑️ Delete Current
                 </button>
+            </div>
+
+            <!-- Transcript Navigation -->
+            <div class="navigation" id="transcriptNavigation">
+                <button class="nav-button" id="transcriptPrevBtn">← Previous</button>
+                <div class="progress" id="transcriptProgressNav">
+                    <input type="number" id="transcriptCurrentInput" min="1" value="1"
+                           style="width: 60px; text-align: center; font-size: 1.1em; font-weight: bold; border: 2px solid #667eea; border-radius: 5px; padding: 5px; background: white;"
+                           title="Enter card number to jump to" />
+                    <span style="font-weight: bold;"> / </span>
+                    <span id="transcriptTotalCards">1</span>
+                </div>
+                <button class="nav-button" id="transcriptNextBtn">Next →</button>
             </div>
 
             <!-- Transcript Progress -->
@@ -4186,6 +4214,7 @@
         let isCloudFirstMode = false; // When true, saves directly to cloud instead of localStorage
         let cloudDataCache = {}; // In-memory cache of flashcard data (for cloud-first mode)
         let pendingCloudSync = new Set(); // Track files that need to be synced to cloud (for retry logic)
+        let progressDataCache = {}; // Track position for each file (synced with Firebase)
 
         // ========================================
         // TRANSCRIPT MODE VARIABLES (New Feature)
@@ -8209,6 +8238,7 @@
                     categories: categories,
                     fileCategories: fileCategories,
                     flashcardData: allFlashcardData,
+                    progressData: progressDataCache, // Include position tracking
                     lastSync: Date.now()
                 };
 
@@ -8461,6 +8491,7 @@
                     categories: categories,
                     fileCategories: fileCategories,
                     flashcardData: allFlashcardData,
+                    progressData: progressDataCache, // Include position tracking
                     lastSync: Date.now()
                 };
 
@@ -8545,6 +8576,8 @@
                 // Update local data
                 categories = decrypted.categories || {};
                 fileCategories = decrypted.fileCategories || {};
+                progressDataCache = decrypted.progressData || {}; // Restore progress positions from cloud
+                console.log(`📂 Restored ${Object.keys(progressDataCache).length} progress entries from Firebase`);
 
                 // Restore flashcard data
                 const flashcardData = decrypted.flashcardData || {};
@@ -9655,16 +9688,24 @@
 
                 // Update UI
                 const dueCount = flashcards.filter(isDueForReview).length;
-                fileInfo.innerHTML = `<strong>📂 ${currentFileName}</strong><br>✅ Loaded ${flashcards.length} cards (${dueCount} due for review) from saved data`;
+                document.getElementById('fileInfo').innerHTML = `<strong>📂 ${currentFileName}</strong><br>✅ Loaded ${flashcards.length} cards (${dueCount} due for review) from saved data`;
 
                 updateStats();
-                showFlashcard();
                 updateCurrentFileDisplay();
 
+                // Load saved progress to resume from where user left off
+                // Note: loadProgress() calls showFlashcard() internally via applyProgress()
+                const progressLoaded = loadProgress();
+
+                // If no saved progress, show first card
+                if (!progressLoaded) {
+                    showFlashcard();
+                }
+
                 // Show main UI elements
-                flashcardContainer.style.display = 'block';
-                navigation.style.display = 'flex';
-                stats.style.display = 'block';
+                document.getElementById('flashcardContainer').style.display = 'block';
+                document.getElementById('navigation').style.display = 'flex';
+                document.getElementById('stats').style.display = 'block';
                 document.getElementById('quickActions').style.display = 'grid';
                 document.getElementById('practiceModeBtn').style.display = 'block';
                 document.getElementById('settingsToggleBtn').style.display = 'flex';
@@ -9687,7 +9728,7 @@
                 console.log('   ✅ Category Browser, Settings, and Upload Section auto-hidden for clean practice view');
 
                 // Scroll to flashcard
-                flashcardContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.getElementById('flashcardContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
             } catch (error) {
                 console.error('Error loading saved vocabulary:', error);
@@ -9944,7 +9985,7 @@
         });
 
         // LocalStorage functions
-        async function saveProgress() {
+        async function saveFlashcardsToCloud() {
             if (currentFileName && flashcards.length > 0) {
                 try {
                     const progressData = flashcards.map(card => ({
@@ -11191,8 +11232,6 @@
             learnedCount.textContent = learned;
             remainingCount.textContent = remaining;
             totalCount.textContent = total;
-
-            saveProgress(); // Save whenever stats update
         }
 
         // Pronounce source language word
@@ -11471,6 +11510,9 @@
             // Update button states
             prevBtn.disabled = currentIndex === 0;
             nextBtn.disabled = currentIndex === filteredCards.length - 1;
+
+            // Save progress after displaying card
+            saveProgress();
         }
 
         // Toggle English meaning visibility
@@ -11751,6 +11793,143 @@
                     // Stop auto-play with 'complete' reason to auto-save recording
                     stopAutoPlay('complete', true);
                 }
+            }
+        }
+
+        // ============================================
+        // PROGRESS TRACKING & RESET FUNCTIONS
+        // ============================================
+
+        // Save current practice progress (position in cards)
+        // Saves to memory + localStorage (small data, no quota issues)
+        function saveProgress() {
+            if (!currentFileName) return;
+
+            const progressData = {
+                cardIndex: currentIndex,
+                transcriptIndex: transcriptCurrentIndex,
+                timestamp: Date.now(),
+                totalCards: filteredCards.length
+            };
+
+            // Update in-memory progress cache
+            progressDataCache[currentFileName] = progressData;
+
+            // Also save to localStorage as backup (survives page refresh)
+            // Progress is tiny data (<1KB), won't cause quota issues
+            try {
+                localStorage.setItem(`progress_${currentFileName}`, JSON.stringify(progressData));
+            } catch (e) {
+                // Silently fail if localStorage is full
+            }
+
+            // Progress also syncs to Firebase when flashcard data is saved
+            // (progressDataCache is included in Firebase sync structure)
+        }
+
+        // Load saved progress for current file
+        function loadProgress() {
+            if (!currentFileName) return null;
+
+            let progressData = null;
+
+            // 1. Check in-memory cache first (fastest)
+            if (progressDataCache[currentFileName]) {
+                progressData = progressDataCache[currentFileName];
+                console.log('📂 Progress loaded from memory:', progressData);
+            }
+            // 2. Fall back to localStorage (page refresh)
+            else {
+                try {
+                    const saved = localStorage.getItem(`progress_${currentFileName}`);
+                    if (saved) {
+                        progressData = JSON.parse(saved);
+                        progressDataCache[currentFileName] = progressData; // Update memory cache
+                        console.log('📂 Progress loaded from localStorage:', progressData);
+                    }
+                } catch (e) {
+                    // Ignore corrupted data
+                }
+            }
+
+            if (progressData) {
+                applyProgress(progressData);
+                return progressData;
+            }
+
+            console.log('No saved progress found for', currentFileName);
+            return null;
+        }
+
+        // Apply progress data to current session
+        function applyProgress(progressData) {
+            if (!progressData) return;
+
+            // Restore card mode position
+            if (typeof progressData.cardIndex === 'number' && progressData.cardIndex >= 0) {
+                currentIndex = Math.min(progressData.cardIndex, filteredCards.length - 1);
+                console.log('✓ Restored card position:', currentIndex);
+            }
+
+            // Restore transcript mode position
+            if (typeof progressData.transcriptIndex === 'number' && progressData.transcriptIndex >= 0) {
+                transcriptCurrentIndex = Math.min(progressData.transcriptIndex, filteredCards.length - 1);
+                console.log('✓ Restored transcript position:', transcriptCurrentIndex);
+            }
+
+            // Update UI to reflect restored position
+            if (flashcardViewMode === 'card') {
+                showFlashcard();
+            } else if (flashcardViewMode === 'transcript') {
+                // Update transcript navigation and highlight
+                updateTranscriptProgress();
+                highlightTranscriptPair(transcriptCurrentIndex);
+            }
+        }
+
+        // Reset to beginning - works for both card and transcript modes
+        function resetToBeginning(mode) {
+            if (mode === 'card') {
+                currentIndex = 0;
+                showFlashcard();
+                console.log('↺ Card mode reset to beginning');
+
+                // Stop autoplay if running
+                if (isAutoPlaying) {
+                    stopAutoPlay('manual');
+                }
+            } else if (mode === 'transcript') {
+                transcriptCurrentIndex = 0;
+                updateTranscriptDisplay();
+                console.log('↺ Transcript mode reset to beginning');
+
+                // Stop transcript playback if running
+                if (transcriptPlaying) {
+                    stopTranscriptPlayback();
+                }
+            }
+
+            // Save the reset progress
+            saveProgress();
+
+            // Show feedback
+            const message = mode === 'card' ?
+                'Reset to first card' :
+                'Reset to first transcript item';
+
+            // Update progress display if it exists
+            const progressEl = mode === 'card' ?
+                document.getElementById('progress') :
+                document.getElementById('transcriptProgress');
+
+            if (progressEl) {
+                const originalText = progressEl.textContent;
+                progressEl.textContent = `↺ ${message}`;
+                progressEl.style.color = '#06b6d4';
+                setTimeout(() => {
+                    progressEl.textContent = originalText;
+                    progressEl.style.color = '';
+                }, 2000);
             }
         }
 
@@ -12682,17 +12861,27 @@
 
             switch(e.key) {
                 case 'ArrowLeft':
-                    stopAutoPlay(); // Stop auto-play on manual navigation
-                    if (currentIndex > 0) {
-                        currentIndex--;
-                        showFlashcard();
+                    // Handle based on current mode
+                    if (flashcardViewMode === 'transcript') {
+                        previousTranscriptCard();
+                    } else {
+                        stopAutoPlay(); // Stop auto-play on manual navigation
+                        if (currentIndex > 0) {
+                            currentIndex--;
+                            showFlashcard();
+                        }
                     }
                     break;
                 case 'ArrowRight':
-                    stopAutoPlay(); // Stop auto-play on manual navigation
-                    if (currentIndex < filteredCards.length - 1) {
-                        currentIndex++;
-                        showFlashcard();
+                    // Handle based on current mode
+                    if (flashcardViewMode === 'transcript') {
+                        nextTranscriptCard();
+                    } else {
+                        stopAutoPlay(); // Stop auto-play on manual navigation
+                        if (currentIndex < filteredCards.length - 1) {
+                            currentIndex++;
+                            showFlashcard();
+                        }
                     }
                     break;
                 case ' ':
@@ -12915,6 +13104,7 @@
 
                 // Hide transcript view
                 transcriptView.style.display = 'none';
+                document.getElementById('transcriptNavigation').style.display = 'none';
 
                 // Update button states
                 cardModeBtn.classList.add('active');
@@ -12922,6 +13112,9 @@
 
                 // Stop any transcript playback
                 stopTranscriptPlayback();
+
+                // Show the current card (uses saved currentIndex)
+                showFlashcard();
 
             } else if (mode === 'transcript') {
                 // Hide card view
@@ -12931,6 +13124,7 @@
 
                 // Show transcript view
                 transcriptView.style.display = 'block';
+                document.getElementById('transcriptNavigation').style.display = 'flex';
 
                 // Update button states
                 cardModeBtn.classList.remove('active');
@@ -12938,6 +13132,10 @@
 
                 // Generate transcript from current flashcards
                 generateTranscriptView();
+
+                // Update transcript navigation numbers and highlight current position (uses saved transcriptCurrentIndex)
+                updateTranscriptProgress();
+                highlightTranscriptPair(transcriptCurrentIndex);
             }
         }
 
@@ -12976,9 +13174,10 @@
 
             // Add all flashcard pairs (using filteredCards to respect current filter)
             filteredCards.forEach((card, index) => {
+                const learnedBadge = card.learned ? '<span style="color: #10b981; font-weight: bold; margin-right: 5px;">✓</span>' : '';
                 html += `
                     <div class="transcript-pair" data-index="${index}" onclick="jumpToTranscriptSentence(${index})">
-                        <div class="transcript-text source">${card.lang1 || ''}</div>
+                        <div class="transcript-text source">${learnedBadge}${card.lang1 || ''}</div>
                         <div class="transcript-text target">${card.lang2 || ''}</div>
                     </div>
                 `;
@@ -13179,6 +13378,9 @@
             // Move to next card
             transcriptCurrentIndex++;
 
+            // Save progress after moving to next card
+            saveProgress();
+
             // Continue with next sentence
             playNextTranscriptSentence();
         }
@@ -13221,7 +13423,10 @@
             };
 
             utterance.onerror = (event) => {
-                console.error('❌ Transcript speech error:', event);
+                // "interrupted" error is normal when pausing/stopping, so don't log it as error
+                if (event.error !== 'interrupted') {
+                    console.error('❌ Transcript speech error:', event);
+                }
                 if (callback) callback();
             };
 
@@ -13276,7 +13481,6 @@
             console.log('⏹️ Stopping transcript playback...');
 
             transcriptPlaying = false;
-            transcriptCurrentIndex = 0;
             synth.cancel();
 
             // Clear any pending timeouts
@@ -13335,6 +13539,22 @@
                 return;
             }
 
+            // Update navigation numbers (matching card mode)
+            const currentInputEl = document.getElementById('transcriptCurrentInput');
+            const totalCardsEl = document.getElementById('transcriptTotalCards');
+            const prevBtn = document.getElementById('transcriptPrevBtn');
+            const nextBtn = document.getElementById('transcriptNextBtn');
+
+            if (currentInputEl) {
+                currentInputEl.value = transcriptCurrentIndex + 1;
+                currentInputEl.max = filteredCards.length;
+            }
+            if (totalCardsEl) totalCardsEl.textContent = filteredCards.length;
+
+            // Update button states
+            if (prevBtn) prevBtn.disabled = transcriptCurrentIndex === 0;
+            if (nextBtn) nextBtn.disabled = transcriptCurrentIndex === filteredCards.length - 1;
+
             if (transcriptPlaying) {
                 progressEl.textContent = `Playing: ${transcriptCurrentIndex + 1} / ${filteredCards.length}`;
             } else if (transcriptCurrentIndex > 0) {
@@ -13342,6 +13562,102 @@
             } else {
                 progressEl.textContent = `Ready to play ${filteredCards.length} sentences - Press Space or click Play`;
             }
+        }
+
+        // Navigate to previous transcript card
+        function previousTranscriptCard() {
+            if (transcriptCurrentIndex > 0) {
+                transcriptCurrentIndex--;
+                updateTranscriptProgress();
+                highlightTranscriptPair(transcriptCurrentIndex);
+                saveProgress();
+                console.log('← Previous transcript card:', transcriptCurrentIndex + 1);
+            }
+        }
+
+        // Navigate to next transcript card
+        function nextTranscriptCard() {
+            if (transcriptCurrentIndex < filteredCards.length - 1) {
+                transcriptCurrentIndex++;
+                updateTranscriptProgress();
+                highlightTranscriptPair(transcriptCurrentIndex);
+                saveProgress();
+                console.log('→ Next transcript card:', transcriptCurrentIndex + 1);
+            }
+        }
+
+        // Event listeners for transcript navigation buttons
+        const transcriptPrevBtn = document.getElementById('transcriptPrevBtn');
+        const transcriptNextBtn = document.getElementById('transcriptNextBtn');
+
+        if (transcriptPrevBtn) {
+            transcriptPrevBtn.addEventListener('click', () => {
+                if (transcriptPlaying) stopTranscriptPlayback(); // Stop playback on manual navigation
+                previousTranscriptCard();
+            });
+        }
+
+        if (transcriptNextBtn) {
+            transcriptNextBtn.addEventListener('click', () => {
+                if (transcriptPlaying) stopTranscriptPlayback(); // Stop playback on manual navigation
+                nextTranscriptCard();
+            });
+        }
+
+        // Jump to specific card by entering card number in transcript mode
+        const transcriptCurrentInput = document.getElementById('transcriptCurrentInput');
+        let transcriptJumpTimeout = null;
+
+        if (transcriptCurrentInput) {
+            const jumpToTranscriptCard = () => {
+                if (transcriptPlaying) stopTranscriptPlayback(); // Stop playback on manual navigation
+                const cardNumber = parseInt(transcriptCurrentInput.value);
+
+                // Validate input
+                if (isNaN(cardNumber) || cardNumber < 1) {
+                    transcriptCurrentInput.value = transcriptCurrentIndex + 1;
+                    alert('⚠️ Please enter a valid card number (minimum: 1)');
+                    return;
+                }
+
+                if (cardNumber > filteredCards.length) {
+                    transcriptCurrentInput.value = transcriptCurrentIndex + 1;
+                    alert(`⚠️ Card number cannot exceed ${filteredCards.length}`);
+                    return;
+                }
+
+                // Jump to the card (convert to 0-based index)
+                transcriptCurrentIndex = cardNumber - 1;
+                updateTranscriptProgress();
+                highlightTranscriptPair(transcriptCurrentIndex);
+                saveProgress();
+                console.log('🎯 Jumped to transcript card:', transcriptCurrentIndex + 1);
+            };
+
+            // Auto-update as you type (with 800ms delay after you stop typing)
+            transcriptCurrentInput.addEventListener('input', () => {
+                // Clear previous timeout
+                if (transcriptJumpTimeout) clearTimeout(transcriptJumpTimeout);
+
+                // Set new timeout - updates 800ms after you stop typing
+                transcriptJumpTimeout = setTimeout(() => {
+                    jumpToTranscriptCard();
+                }, 800);
+            });
+
+            // Also handle Enter key for immediate jump
+            transcriptCurrentInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    if (transcriptJumpTimeout) clearTimeout(transcriptJumpTimeout);
+                    jumpToTranscriptCard();
+                }
+            });
+
+            // Handle blur (clicking outside) for immediate jump
+            transcriptCurrentInput.addEventListener('blur', () => {
+                if (transcriptJumpTimeout) clearTimeout(transcriptJumpTimeout);
+                jumpToTranscriptCard();
+            });
         }
 
         /**
@@ -13528,6 +13844,38 @@
                     if (!transcriptPlaying) {
                         transcriptCurrentIndex = Math.max(transcriptCurrentIndex - 1, 0);
                         jumpToTranscriptSentence(transcriptCurrentIndex);
+                    }
+                    break;
+
+                case 'KeyL':
+                    e.preventDefault();
+                    // Mark current transcript card as learned/unlearned
+                    if (filteredCards.length > 0) {
+                        const card = filteredCards[transcriptCurrentIndex];
+                        if (!card.learned) {
+                            // Mark as learned and apply spaced repetition
+                            const reviewData = calculateNextReview(card, 4);
+                            card.learned = true;
+                            card.repetitions = reviewData.repetitions;
+                            card.easeFactor = reviewData.easeFactor;
+                            card.interval = reviewData.interval;
+                            card.reviewDate = reviewData.reviewDate;
+                            console.log(`✓ Card ${transcriptCurrentIndex + 1} marked as learned`);
+                        } else {
+                            // Unmark as learned
+                            card.learned = false;
+                            card.repetitions = 0;
+                            card.interval = 1;
+                            card.reviewDate = null;
+                            console.log(`✗ Card ${transcriptCurrentIndex + 1} unmarked as learned`);
+                        }
+                        updateStats();
+                        saveProgress(); // Save position
+                        saveFlashcardsToCloud(); // Save flashcard data to cloud
+                        // Regenerate transcript to show updated learned status
+                        generateTranscriptView();
+                        updateTranscriptProgress();
+                        highlightTranscriptPair(transcriptCurrentIndex);
                     }
                     break;
 
