@@ -2968,6 +2968,184 @@
             color: #ef4444;
             border-left: 4px solid #ef4444;
         }
+
+        /* ============================================ */
+        /* VIEW MODE TOGGLE - Card vs Transcript Mode */
+        /* ============================================ */
+        .view-mode-toggle {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .view-mode-btn {
+            padding: 12px 24px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .view-mode-btn:hover {
+            background: #f0f4ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .view-mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* ============================================ */
+        /* TRANSCRIPT VIEW - Conversation Mode */
+        /* ============================================ */
+        .transcript-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .transcript-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            font-size: 1.1em;
+            text-align: center;
+        }
+
+        .transcript-pair {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .transcript-pair:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .transcript-pair.playing {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .transcript-text {
+            padding: 10px;
+            line-height: 1.6;
+            font-size: 1.1em;
+        }
+
+        .transcript-text.source {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .transcript-text.target {
+            color: #666;
+        }
+
+        .transcript-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .transcript-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .transcript-btn.play {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .transcript-btn.pause {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .transcript-btn.stop {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .transcript-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .transcript-progress {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 1.1em;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .transcript-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            font-size: 1.2em;
+        }
+
+        /* Mobile responsive for transcript */
+        @media (max-width: 768px) {
+            .transcript-header,
+            .transcript-pair {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .transcript-text {
+                font-size: 1em;
+            }
+
+            .view-mode-btn {
+                font-size: 0.9em;
+                padding: 10px 18px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -3741,6 +3919,44 @@
                 </div>
             </div>
 
+            <!-- Export & Backup Accordion -->
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>💾 Export & Backup</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div style="background: #f0fdf4; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 0.9em; border-left: 3px solid #10b981;">
+                        <strong>📦 Backup & Restore Your Data</strong><br>
+                        <span style="color: #666;">Export all categories to ZIP with full metadata, or restore from backup.</span>
+                    </div>
+
+                    <button onclick="exportAllCategories()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em; transition: all 0.3s; margin-bottom: 10px;">
+                        📥 Export All Categories as ZIP
+                    </button>
+
+                    <label for="importZipInput" style="display: block; width: 100%; padding: 14px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em; text-align: center; transition: all 0.3s; margin-bottom: 10px;">
+                        📤 Import from ZIP Backup
+                    </label>
+                    <input type="file" id="importZipInput" accept=".zip" style="display: none;" onchange="importBackupZip(this.files[0])">
+
+                    <!-- Compress & Re-upload Data Button (Only shown when logged in) -->
+                    <button id="compressDataBtn" onclick="compressAndReuploadData()" style="display: none; width: 100%; padding: 14px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em; transition: all 0.3s; margin-bottom: 10px;">
+                        🗜️ Compress & Re-upload Cloud Data
+                    </button>
+
+                    <div style="font-size: 0.85em; color: #888; margin-top: 10px;">
+                        <strong>✨ Full Backup Includes:</strong><br>
+                        • Categories & Subcategories<br>
+                        • Groups & Custom Names<br>
+                        • Progress (Learned status)<br>
+                        • Complete metadata structure<br>
+                        <br>
+                        <strong>💡 Tip:</strong> Export before major changes for easy recovery!
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <!-- Timer Display (Shows During Auto-Play) -->
@@ -3778,6 +3994,16 @@
         <button class="practice-mode-btn" id="practiceModeBtn" onclick="togglePracticeMode()">
             🎯 Start Practice Mode - Focus Only on Flashcards
         </button>
+
+        <!-- View Mode Toggle - Card vs Transcript (hidden until flashcards loaded) -->
+        <div class="view-mode-toggle" id="viewModeToggle" style="display: none;">
+            <button class="view-mode-btn active" id="cardModeBtn" onclick="switchViewMode('card')">
+                🃏 Card Mode
+            </button>
+            <button class="view-mode-btn" id="transcriptModeBtn" onclick="switchViewMode('transcript')">
+                📜 Transcript Mode
+            </button>
+        </div>
 
         <!-- Quick Actions (Control buttons) -->
         <div class="quick-actions" id="quickActions" style="margin: 20px 0;">
@@ -3833,6 +4059,44 @@
             <div class="hint">👆 Click "Show Target Meaning" or Space to reveal | 🔊 P for Source | E for Target pronunciation</div>
         </div>
 
+        <!-- Transcript View Container (Conversation Mode) -->
+        <div id="transcriptView" style="display: none;">
+            <!-- Transcript Controls -->
+            <div class="transcript-controls">
+                <button class="transcript-btn play" id="transcriptPlayBtn" onclick="toggleTranscriptPlayback()">
+                    ▶️ Play All
+                </button>
+                <button class="transcript-btn pause" id="transcriptPauseBtn" onclick="pauseTranscriptPlayback()" style="display: none;">
+                    ⏸️ Pause
+                </button>
+                <button class="transcript-btn stop" id="transcriptStopBtn" onclick="stopTranscriptPlayback()">
+                    ⏹️ Stop
+                </button>
+                <button class="transcript-btn" onclick="shuffleTranscript()">
+                    🔀 Shuffle
+                </button>
+                <button class="transcript-btn" onclick="remapTranscriptColumns()">
+                    🎯 Remap Columns
+                </button>
+                <button class="transcript-btn" onclick="deleteCurrentTranscriptCard()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                    🗑️ Delete Current
+                </button>
+            </div>
+
+            <!-- Transcript Progress -->
+            <div class="transcript-progress" id="transcriptProgress">
+                Ready to play - Press Space or click Play
+            </div>
+
+            <!-- Transcript Container -->
+            <div class="transcript-container" id="transcriptContainer">
+                <div class="transcript-empty">
+                    📜 Load a CSV file to see transcript mode<br>
+                    <small style="color: #ccc;">Switch to Transcript Mode to see all sentences at once</small>
+                </div>
+            </div>
+        </div>
+
         <div class="navigation" id="navigation">
             <button class="nav-button" id="prevBtn">← Previous</button>
             <div class="progress" id="progress">
@@ -3852,6 +4116,12 @@
 
     <!-- CryptoJS for encryption (Must load BEFORE main script) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <!-- Pako for compression (Must load BEFORE main script) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+
+    <!-- JSZip for creating ZIP files (Must load BEFORE main script) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <script>
         let flashcards = [];
@@ -3916,6 +4186,17 @@
         let isCloudFirstMode = false; // When true, saves directly to cloud instead of localStorage
         let cloudDataCache = {}; // In-memory cache of flashcard data (for cloud-first mode)
         let pendingCloudSync = new Set(); // Track files that need to be synced to cloud (for retry logic)
+
+        // ========================================
+        // TRANSCRIPT MODE VARIABLES (New Feature)
+        // ========================================
+        let flashcardViewMode = 'card'; // 'card' or 'transcript' (renamed to avoid conflict with category browser)
+        let transcriptPlaying = false;
+        let transcriptCurrentIndex = 0;
+        let transcriptUtterance = null;
+        let transcriptSourceRepeat = 0; // Track current source repeat count
+        let transcriptTargetRepeat = 0; // Track current target repeat count
+        let transcriptTimeout = null; // For delays between languages and cards
 
         // ===== FIREBASE CONFIGURATION =====
         // 🔒 SECURITY NOTE: This API key is SAFE to be public!
@@ -6079,6 +6360,318 @@
             alert(`✅ Exported ${filteredCards.length} flashcards to ${filename}`);
         }
 
+        /**
+         * Export all categories as separate CSV files in a ZIP with full metadata
+         */
+        async function exportAllCategories() {
+            if (!flashcards || flashcards.length === 0) {
+                alert('No flashcards to export!');
+                return;
+            }
+
+            console.log('📦 Starting export of all categories with metadata...');
+
+            try {
+                // Create a new JSZip instance
+                const zip = new JSZip();
+
+                // Group flashcards by category
+                const categorizedCards = {};
+                flashcards.forEach(card => {
+                    const category = card.category || 'Default';
+                    const subcategory = card.subcategory || '';
+                    const key = subcategory ? `${category}/${subcategory}` : category;
+
+                    if (!categorizedCards[key]) {
+                        categorizedCards[key] = [];
+                    }
+                    categorizedCards[key].push(card);
+                });
+
+                // Check if there are any categories
+                const categoryKeys = Object.keys(categorizedCards);
+                if (categoryKeys.length === 0) {
+                    alert('No categories found to export!');
+                    return;
+                }
+
+                console.log(`📁 Found ${categoryKeys.length} categories to export`);
+
+                // Create metadata file with full structure
+                const metadata = {
+                    exportDate: new Date().toISOString(),
+                    version: '3.1',
+                    totalCards: flashcards.length,
+                    totalCategories: categoryKeys.length,
+                    categories: categories, // Full category structure
+                    categoryGroups: categoryGroups, // Group names
+                    fileCategories: fileCategories, // File-to-category mappings
+                    categoryStructure: {} // Detailed structure
+                };
+
+                // Build detailed category structure
+                categoryKeys.forEach(key => {
+                    const parts = key.split('/');
+                    const category = parts[0];
+                    const subcategory = parts[1] || null;
+
+                    if (!metadata.categoryStructure[category]) {
+                        metadata.categoryStructure[category] = {
+                            name: category,
+                            group: categoryGroups[category] || category,
+                            subcategories: [],
+                            cardCount: 0
+                        };
+                    }
+
+                    if (subcategory) {
+                        metadata.categoryStructure[category].subcategories.push({
+                            name: subcategory,
+                            cardCount: categorizedCards[key].length
+                        });
+                    }
+
+                    metadata.categoryStructure[category].cardCount += categorizedCards[key].length;
+                });
+
+                // Add metadata.json to ZIP
+                zip.file('_metadata.json', JSON.stringify(metadata, null, 2));
+                console.log('  ✅ Added _metadata.json');
+
+                // Create CSV for each category and add to ZIP
+                let totalCards = 0;
+                categoryKeys.forEach(key => {
+                    const cards = categorizedCards[key];
+                    totalCards += cards.length;
+
+                    // Create CSV content with metadata header
+                    const parts = key.split('/');
+                    const category = parts[0];
+                    const subcategory = parts[1] || '';
+                    const group = categoryGroups[category] || category;
+
+                    let csv = `# Category: ${category}\n`;
+                    csv += `# Subcategory: ${subcategory}\n`;
+                    csv += `# Group: ${group}\n`;
+                    csv += `# Cards: ${cards.length}\n`;
+                    csv += `# Export Date: ${new Date().toISOString()}\n`;
+                    csv += `Source,Source Example,Target,Target Example,Learned\n`;
+
+                    cards.forEach(card => {
+                        const row = [
+                            card.lang1 || '',
+                            card.lang1Extended || '',
+                            card.lang2 || '',
+                            card.lang2Extended || '',
+                            card.learned ? 'true' : 'false'
+                        ].map(field => `"${field.replace(/"/g, '""')}"`).join(',');
+                        csv += row + '\n';
+                    });
+
+                    // Add file to ZIP
+                    const filename = key.replace(/\//g, '_') + '.csv';
+                    zip.file(filename, csv);
+                    console.log(`  ✅ Added ${filename} (${cards.length} cards)`);
+                });
+
+                // Generate ZIP file
+                console.log('🗜️  Generating ZIP file...');
+                const blob = await zip.generateAsync({ type: 'blob' });
+
+                // Download ZIP
+                const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+                const zipFilename = `flashcards_backup_${timestamp}.zip`;
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = zipFilename;
+                link.click();
+
+                console.log('✅ Export complete!');
+                alert(`✅ Successfully exported with full metadata!\n\n` +
+                      `📦 ${categoryKeys.length} categories\n` +
+                      `🃏 ${totalCards} total flashcards\n` +
+                      `🏷️  Groups: ${Object.keys(categoryGroups).length}\n` +
+                      `📁 File: ${zipFilename}\n\n` +
+                      `✨ Includes: Categories, Subcategories, Groups, Progress`);
+
+            } catch (error) {
+                console.error('❌ Export failed:', error);
+                alert('❌ Export failed! Please check the console for details.');
+            }
+        }
+
+        /**
+         * Import flashcards from ZIP backup (restores full structure)
+         */
+        async function importBackupZip(file) {
+            if (!file) {
+                alert('Please select a ZIP file to import');
+                return;
+            }
+
+            console.log('📥 Starting import from ZIP backup...');
+
+            try {
+                // Read ZIP file
+                const zip = await JSZip.loadAsync(file);
+                console.log('✅ ZIP file loaded');
+
+                // Read metadata first
+                const metadataFile = zip.file('_metadata.json');
+                let metadata = null;
+
+                if (metadataFile) {
+                    const metadataText = await metadataFile.async('text');
+                    metadata = JSON.parse(metadataText);
+                    console.log('📋 Metadata loaded:', metadata);
+
+                    // Restore category structure
+                    if (metadata.categories) {
+                        Object.assign(categories, metadata.categories);
+                    }
+                    if (metadata.categoryGroups) {
+                        Object.assign(categoryGroups, metadata.categoryGroups);
+                    }
+                    if (metadata.fileCategories) {
+                        Object.assign(fileCategories, metadata.fileCategories);
+                    }
+                }
+
+                // Import all CSV files
+                const csvFiles = Object.keys(zip.files).filter(name => name.endsWith('.csv'));
+                console.log(`📄 Found ${csvFiles.length} CSV files to import`);
+
+                let totalImported = 0;
+                const importedCategories = new Set();
+
+                for (const filename of csvFiles) {
+                    const file = zip.file(filename);
+                    const csvText = await file.async('text');
+
+                    // Parse CSV (skip comment lines starting with #)
+                    const lines = csvText.split('\n').filter(line => !line.startsWith('#') && line.trim());
+                    if (lines.length <= 1) continue; // Skip if only header
+
+                    // Extract metadata from comments if present
+                    const commentLines = csvText.split('\n').filter(line => line.startsWith('#'));
+                    let category = 'Default';
+                    let subcategory = '';
+                    let group = 'Default';
+
+                    commentLines.forEach(line => {
+                        if (line.includes('# Category:')) category = line.split(':')[1].trim();
+                        if (line.includes('# Subcategory:')) subcategory = line.split(':')[1].trim();
+                        if (line.includes('# Group:')) group = line.split(':')[1].trim();
+                    });
+
+                    // Parse CSV data (skip header)
+                    const dataLines = lines.slice(1);
+                    const newCards = [];
+
+                    dataLines.forEach((line, index) => {
+                        if (!line.trim()) return;
+
+                        // Simple CSV parser (handles quoted fields)
+                        const fields = [];
+                        let currentField = '';
+                        let inQuotes = false;
+
+                        for (let i = 0; i < line.length; i++) {
+                            const char = line[i];
+                            if (char === '"') {
+                                if (inQuotes && line[i + 1] === '"') {
+                                    currentField += '"';
+                                    i++;
+                                } else {
+                                    inQuotes = !inQuotes;
+                                }
+                            } else if (char === ',' && !inQuotes) {
+                                fields.push(currentField);
+                                currentField = '';
+                            } else {
+                                currentField += char;
+                            }
+                        }
+                        fields.push(currentField);
+
+                        if (fields.length >= 4) {
+                            const card = {
+                                id: Date.now() + index + totalImported,
+                                lang1: fields[0],
+                                lang1Extended: fields[1],
+                                lang2: fields[2],
+                                lang2Extended: fields[3],
+                                learned: fields[4] === 'true',
+                                lastReviewed: null,
+                                reviewCount: 0,
+                                category: category,
+                                subcategory: subcategory,
+                                fileName: filename.replace('.csv', '')
+                            };
+                            newCards.push(card);
+                        }
+                    });
+
+                    // Add to flashcards array
+                    flashcards.push(...newCards);
+                    totalImported += newCards.length;
+                    importedCategories.add(category);
+
+                    // Ensure category exists
+                    if (!categories[category]) {
+                        categories[category] = {
+                            name: category,
+                            created: Date.now(),
+                            subcategories: []
+                        };
+                    }
+
+                    // Add subcategory if exists
+                    if (subcategory && !categories[category].subcategories.includes(subcategory)) {
+                        categories[category].subcategories.push(subcategory);
+                    }
+
+                    // Set group
+                    if (group && group !== 'Default') {
+                        categoryGroups[category] = group;
+                    }
+
+                    console.log(`  ✅ Imported ${filename}: ${newCards.length} cards (${category}${subcategory ? '/' + subcategory : ''})`);
+                }
+
+                // Update UI
+                currentFileName = 'Imported Backup';
+                applyFilters();
+                showFlashcard();
+                updateStats();
+                updateCategoryBrowser();
+
+                // Save to localStorage
+                saveProgress();
+                saveCategories();
+
+                // Show success message
+                console.log('✅ Import complete!');
+                alert(`✅ Import successful!\n\n` +
+                      `🃏 ${totalImported} flashcards imported\n` +
+                      `📦 ${importedCategories.size} categories restored\n` +
+                      `🏷️  ${Object.keys(categoryGroups).length} groups restored\n\n` +
+                      `Your data has been restored with full structure!`);
+
+                // Show flashcard UI
+                document.getElementById('flashcardContainer').style.display = 'block';
+                document.getElementById('navigation').style.display = 'flex';
+                document.getElementById('stats').style.display = 'block';
+                document.getElementById('quickActions').style.display = 'grid';
+                document.getElementById('viewModeToggle').style.display = 'flex';
+
+            } catch (error) {
+                console.error('❌ Import failed:', error);
+                alert(`❌ Import failed!\n\nError: ${error.message}\n\nPlease check the console for details.`);
+            }
+        }
+
         // ==============================
         // END FILE MANAGER FUNCTIONALITY
         // ==============================
@@ -6536,6 +7129,22 @@
                 const encoder = new TextEncoder();
                 const dataStr = JSON.stringify(data);
 
+                // Log original size
+                const originalSize = new Blob([dataStr]).size;
+                console.log(`📦 Original data size: ${(originalSize / 1024 / 1024).toFixed(2)}MB`);
+
+                // COMPRESS data using pako (gzip compression)
+                const compressed = pako.deflate(dataStr, { level: 9 }); // level 9 = maximum compression
+                const compressedSize = compressed.byteLength;
+                const compressionRatio = ((1 - compressedSize / originalSize) * 100).toFixed(1);
+                console.log(`🗜️  Compressed size: ${(compressedSize / 1024 / 1024).toFixed(2)}MB (${compressionRatio}% reduction)`);
+
+                // Add version marker (0x01 = compressed version)
+                const versionMarker = new Uint8Array([0x01]);
+                const dataWithVersion = new Uint8Array(versionMarker.length + compressed.length);
+                dataWithVersion.set(versionMarker, 0);
+                dataWithVersion.set(compressed, versionMarker.length);
+
                 // Generate key from password
                 const passwordKey = await crypto.subtle.importKey(
                     'raw',
@@ -6548,17 +7157,21 @@
                 // Generate random IV
                 const iv = crypto.getRandomValues(new Uint8Array(12));
 
-                // Encrypt
+                // Encrypt (compressed data)
                 const encrypted = await crypto.subtle.encrypt(
                     { name: 'AES-GCM', iv: iv },
                     passwordKey,
-                    encoder.encode(dataStr)
+                    dataWithVersion
                 );
 
                 // Combine IV and encrypted data
                 const combined = new Uint8Array(iv.length + encrypted.byteLength);
                 combined.set(iv, 0);
                 combined.set(new Uint8Array(encrypted), iv.length);
+
+                const finalSize = combined.byteLength;
+                console.log(`🔒 Encrypted size: ${(finalSize / 1024 / 1024).toFixed(2)}MB`);
+                console.log(`✅ Total size reduction: ${((1 - finalSize / originalSize) * 100).toFixed(1)}%`);
 
                 // Convert to base64 (process in chunks to avoid call stack overflow)
                 let binary = '';
@@ -6574,9 +7187,11 @@
             }
         }
 
-        // Decrypt data with password
+        // Decrypt data with password (supports both compressed and uncompressed)
         async function decryptData(encryptedBase64, password) {
             try {
+                console.log('🔓 Starting decryption...');
+
                 // Decode base64
                 const combined = new Uint8Array(atob(encryptedBase64).split('').map(c => c.charCodeAt(0)));
 
@@ -6601,9 +7216,32 @@
                     encrypted
                 );
 
-                const decoder = new TextDecoder();
-                const dataStr = decoder.decode(decrypted);
-                return JSON.parse(dataStr);
+                const decryptedArray = new Uint8Array(decrypted);
+
+                // Check for version marker (first byte)
+                const version = decryptedArray[0];
+
+                if (version === 0x01) {
+                    // NEW FORMAT: Compressed data
+                    console.log('🗜️  Detected compressed data, decompressing...');
+
+                    // Extract compressed data (skip version marker)
+                    const compressedData = decryptedArray.slice(1);
+
+                    // DECOMPRESS using pako
+                    const decompressed = pako.inflate(compressedData, { to: 'string' });
+
+                    console.log(`✅ Decompressed successfully (${(decompressed.length / 1024).toFixed(2)}KB)`);
+
+                    return JSON.parse(decompressed);
+                } else {
+                    // OLD FORMAT: Uncompressed data (backward compatible)
+                    console.log('📄 Detected uncompressed data (legacy format)');
+
+                    const decoder = new TextDecoder();
+                    const dataStr = decoder.decode(decrypted);
+                    return JSON.parse(dataStr);
+                }
             } catch (error) {
                 console.error('Decryption error:', error);
                 throw error;
@@ -6710,6 +7348,7 @@
                 // Show account button in hamburger panel and sync status
                 document.getElementById('accountButtonPanel').style.display = 'block';
                 document.getElementById('syncStatus').style.display = 'block';
+                document.getElementById('compressDataBtn').style.display = 'block'; // Show compress button
                 updateSyncStatus('syncing', 'Syncing...');
 
                 // ========================================================
@@ -6859,6 +7498,7 @@
                 // Show account button in hamburger panel and sync status
                 document.getElementById('accountButtonPanel').style.display = 'block';
                 document.getElementById('syncStatus').style.display = 'block';
+                document.getElementById('compressDataBtn').style.display = 'block'; // Show compress button
                 updateSyncStatus('syncing', 'Syncing...');
 
                 // Load categories (will be empty for new user, or from localStorage if migrating)
@@ -7224,6 +7864,7 @@
         window.cloudLogin = cloudLogin;
         window.cloudSignup = cloudSignup;
         window.skipLogin = skipLogin;
+        window.compressAndReuploadData = compressAndReuploadData;
 
         // Skip Login (Local Only)
         function skipLogin() {
@@ -7581,22 +8222,22 @@
                 const encryptedSizeMB = (encrypted.length / (1024 * 1024)).toFixed(2);
                 console.log(`🔐 Encrypted data size: ${encryptedSizeMB}MB`);
 
-                // Check Firebase limits (10MB per node)
-                if (encrypted.length > 10 * 1024 * 1024) {
+                // Check Firebase limits (25MB with compression - safe for Blaze plan)
+                if (encrypted.length > 25 * 1024 * 1024) {
                     updateSyncStatus('error', '❌ Too Large');
                     alert(`⚠️ CLOUD SYNC FAILED\n\n` +
-                        `Your flashcard data (${encryptedSizeMB}MB) exceeds Firebase's 10MB limit.\n\n` +
+                        `Your flashcard data (${encryptedSizeMB}MB) exceeds the 25MB limit.\n\n` +
                         `SOLUTIONS:\n` +
                         `1. Delete unused categories/files\n` +
                         `2. Split large files into smaller files\n` +
                         `3. Export important data as CSV backups\n\n` +
                         `Your data is still saved locally, but cannot sync to cloud.`);
-                    throw new Error(`Data exceeds Firebase size limit (${encryptedSizeMB}MB / 10MB max)`);
+                    throw new Error(`Data exceeds Firebase size limit (${encryptedSizeMB}MB / 25MB max)`);
                 }
 
-                // Warn if getting close to limit (8MB = 80% of 10MB)
-                if (encrypted.length > 8 * 1024 * 1024) {
-                    console.warn(`⚠️ Warning: Data size (${encryptedSizeMB}MB) is approaching Firebase 10MB limit. Consider reducing data.`);
+                // Warn if getting close to limit (20MB = 80% of 25MB)
+                if (encrypted.length > 20 * 1024 * 1024) {
+                    console.warn(`⚠️ Warning: Data size (${encryptedSizeMB}MB) is approaching 25MB limit. Consider reducing data.`);
                 }
 
                 // Upload to Firebase
@@ -7621,6 +8262,124 @@
                 // CRITICAL: Re-throw the error so caller knows upload failed!
                 // This prevents data loss by stopping the process before localStorage is cleared
                 throw error;
+            }
+        }
+
+        // Compress and Re-upload Data (Triggered by user)
+        async function compressAndReuploadData() {
+            if (!isCloudEnabled || !cloudUser || !firebaseDB) {
+                alert('⚠️ Not logged in to cloud sync.\n\nPlease login first to use compression.');
+                return;
+            }
+
+            // Show confirmation dialog
+            const confirmed = confirm(
+                '🗜️ COMPRESS & RE-UPLOAD CLOUD DATA\n\n' +
+                'This will:\n' +
+                '• Re-upload all your data with compression\n' +
+                '• Reduce storage size by 70-75%\n' +
+                '• Take a few seconds depending on data size\n\n' +
+                'Your data is safe and will remain intact.\n\n' +
+                'Continue?'
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                console.log('🗜️ Starting compression and re-upload...');
+
+                // Show progress
+                updateSyncStatus('syncing', '🗜️ Compressing...');
+
+                // Collect all flashcard data (same as uploadToCloud)
+                const allFlashcardData = {};
+
+                // Read from localStorage DIRECTLY
+                const storedFiles = safeStorage.getStoredFiles();
+                console.log(`🔍 Found ${storedFiles.length} files in localStorage`);
+
+                // First, collect from cloudDataCache
+                if (cloudDataCache) {
+                    Object.keys(cloudDataCache).forEach(fileName => {
+                        allFlashcardData[fileName] = cloudDataCache[fileName];
+                    });
+                }
+
+                // Then, collect from localStorage
+                storedFiles.forEach(fileInfo => {
+                    const fileName = fileInfo.fileName;
+                    if (!allFlashcardData[fileName]) {
+                        const savedData = safeStorage.getItem(`flashcards_${fileName}`);
+                        if (savedData) {
+                            allFlashcardData[fileName] = savedData;
+                        }
+                    }
+                });
+
+                console.log(`📦 Preparing ${Object.keys(allFlashcardData).length} files for compression`);
+
+                // Prepare data
+                const dataToSync = {
+                    categories: categories,
+                    fileCategories: fileCategories,
+                    flashcardData: allFlashcardData,
+                    lastSync: Date.now()
+                };
+
+                // Calculate original size
+                const originalSize = JSON.stringify(dataToSync).length;
+                const originalSizeMB = (originalSize / (1024 * 1024)).toFixed(2);
+                console.log(`📊 Original size: ${originalSizeMB}MB (unencrypted)`);
+
+                updateSyncStatus('syncing', '🔐 Encrypting...');
+
+                // Encrypt data (compression happens automatically in encryptData)
+                const encrypted = await encryptData(dataToSync, cloudUser.password);
+                const encryptedSizeMB = (encrypted.length / (1024 * 1024)).toFixed(2);
+                console.log(`🔐 Encrypted + compressed size: ${encryptedSizeMB}MB`);
+
+                // Calculate compression ratio
+                const compressionRatio = ((1 - (encrypted.length / originalSize)) * 100).toFixed(1);
+                console.log(`🗜️ Total compression: ${compressionRatio}% reduction`);
+
+                // Check Firebase limits
+                if (encrypted.length > 25 * 1024 * 1024) {
+                    updateSyncStatus('error', '❌ Too Large');
+                    alert(`⚠️ Data still too large after compression!\n\n` +
+                        `Size: ${encryptedSizeMB}MB (limit: 25MB)\n\n` +
+                        `Please reduce your data by deleting unused categories.`);
+                    return;
+                }
+
+                updateSyncStatus('syncing', '☁️ Uploading...');
+
+                // Upload to Firebase
+                const userPath = `users-universal/${cloudUser.username}`;
+                await firebaseDB.ref(userPath).set({
+                    data: encrypted,
+                    passwordHash: cloudUser.passwordHash,
+                    lastModified: Date.now()
+                });
+
+                updateSyncStatus('synced', '✅ Compressed!');
+
+                // Show success message
+                alert(
+                    '✅ COMPRESSION COMPLETE!\n\n' +
+                    `Original size: ${originalSizeMB}MB\n` +
+                    `Compressed size: ${encryptedSizeMB}MB\n` +
+                    `Compression ratio: ${compressionRatio}%\n\n` +
+                    'Your data is now compressed in Firebase.\n' +
+                    'Check Firebase Console to see the reduced storage!'
+                );
+
+                console.log('✅ Compression and re-upload completed successfully');
+            } catch (error) {
+                console.error('❌ Compression error:', error);
+                updateSyncStatus('error', '❌ Failed');
+                alert('⚠️ Compression failed.\n\nError: ' + (error.message || 'Unknown error'));
             }
         }
 
@@ -7709,11 +8468,11 @@
                 const encrypted = await encryptData(dataToSync, cloudUser.password);
                 const encryptedSizeMB = (encrypted.length / (1024 * 1024)).toFixed(2);
 
-                // Check Firebase limits (10MB per node)
-                if (encrypted.length > 10 * 1024 * 1024) {
-                    console.error(`❌ Cloud data too large: ${encryptedSizeMB}MB (max 10MB)`);
+                // Check Firebase limits (25MB with compression - safe for Blaze plan)
+                if (encrypted.length > 25 * 1024 * 1024) {
+                    console.error(`❌ Cloud data too large: ${encryptedSizeMB}MB (max 25MB)`);
                     alert(`⚠️ CLOUD SAVE FAILED\n\n` +
-                        `Your flashcard data (${encryptedSizeMB}MB) exceeds Firebase's 10MB limit.\n\n` +
+                        `Your flashcard data (${encryptedSizeMB}MB) exceeds the 25MB limit.\n\n` +
                         `SOLUTIONS:\n` +
                         `1. Delete unused categories/files\n` +
                         `2. Split large files into smaller files\n` +
@@ -8910,6 +9669,7 @@
                 document.getElementById('practiceModeBtn').style.display = 'block';
                 document.getElementById('settingsToggleBtn').style.display = 'flex';
                 document.getElementById('clearFileBtn').style.display = 'inline-block';
+                document.getElementById('viewModeToggle').style.display = 'flex'; // Show view mode toggle
                 document.getElementById('instructions').style.display = 'none';
 
                 // NOTE: Auto-show management sections is ONLY for new file uploads, not for loading existing files
@@ -9158,6 +9918,7 @@
                 document.getElementById('settingsToggleBtn').style.display = 'none';
                 document.getElementById('settingsMenu').style.display = 'none';
                 document.getElementById('clearFileBtn').style.display = 'none';
+                document.getElementById('viewModeToggle').style.display = 'none'; // Hide view mode toggle
                 document.getElementById('sessionStats').style.display = 'none';
                 document.getElementById('timerDisplay').style.display = 'none';
 
@@ -10349,6 +11110,7 @@
                     document.getElementById('quickActions').style.display = 'grid';
                     document.getElementById('settingsToggleBtn').style.display = 'flex';
                     document.getElementById('clearFileBtn').style.display = 'inline-block';
+                    document.getElementById('viewModeToggle').style.display = 'flex'; // Show view mode toggle
 
                     // Hide instructions after successful load
                     document.getElementById('instructions').style.display = 'none';
@@ -11001,7 +11763,12 @@
             timerInterval = setInterval(() => {
                 updateTimerDisplay();
                 if (Date.now() >= timerEndTime) {
-                    stopAutoPlay('timer', true); // Auto-save recording
+                    // Stop either card mode or transcript mode
+                    if (flashcardViewMode === 'transcript') {
+                        stopTranscriptPlayback();
+                    } else {
+                        stopAutoPlay('timer', true); // Auto-save recording
+                    }
                 }
             }, 1000);
         }
@@ -11014,7 +11781,12 @@
             timerInterval = setInterval(() => {
                 updateTimerDisplay();
                 if (Date.now() >= timerEndTime) {
-                    stopAutoPlay('sleep', true); // Auto-save recording
+                    // Stop either card mode or transcript mode
+                    if (flashcardViewMode === 'transcript') {
+                        stopTranscriptPlayback();
+                    } else {
+                        stopAutoPlay('sleep', true); // Auto-save recording
+                    }
                 }
             }, 1000);
         }
@@ -12115,6 +12887,658 @@
 
             // Note: Auto-load will run ONLY after successful login (not on page load)
         });
+
+        // ========================================
+        // TRANSCRIPT MODE FUNCTIONS (New Feature)
+        // ========================================
+
+        /**
+         * Switch between Card Mode and Transcript Mode
+         */
+        function switchViewMode(mode) {
+            console.log(`🔄 Switching to ${mode} mode`);
+
+            flashcardViewMode = mode;
+
+            const cardModeBtn = document.getElementById('cardModeBtn');
+            const transcriptModeBtn = document.getElementById('transcriptModeBtn');
+            const flashcardContainer = document.getElementById('flashcardContainer');
+            const transcriptView = document.getElementById('transcriptView');
+            const navigation = document.getElementById('navigation');
+            const quickActions = document.getElementById('quickActions');
+
+            if (mode === 'card') {
+                // Show card view
+                flashcardContainer.style.display = 'block';
+                navigation.style.display = 'flex';
+                quickActions.style.display = 'block';
+
+                // Hide transcript view
+                transcriptView.style.display = 'none';
+
+                // Update button states
+                cardModeBtn.classList.add('active');
+                transcriptModeBtn.classList.remove('active');
+
+                // Stop any transcript playback
+                stopTranscriptPlayback();
+
+            } else if (mode === 'transcript') {
+                // Hide card view
+                flashcardContainer.style.display = 'none';
+                navigation.style.display = 'none';
+                quickActions.style.display = 'none';
+
+                // Show transcript view
+                transcriptView.style.display = 'block';
+
+                // Update button states
+                cardModeBtn.classList.remove('active');
+                transcriptModeBtn.classList.add('active');
+
+                // Generate transcript from current flashcards
+                generateTranscriptView();
+            }
+        }
+
+        /**
+         * Generate transcript view from loaded flashcards
+         */
+        function generateTranscriptView() {
+            console.log('📜 Generating transcript view...');
+            console.log('📊 filteredCards:', filteredCards);
+            console.log('📊 filteredCards.length:', filteredCards ? filteredCards.length : 'undefined');
+
+            const transcriptContainer = document.getElementById('transcriptContainer');
+            console.log('📦 transcriptContainer element:', transcriptContainer);
+
+            // Check if we have flashcards loaded (use filteredCards like the main display)
+            if (!filteredCards || filteredCards.length === 0) {
+                console.warn('⚠️ No filteredCards available!');
+                transcriptContainer.innerHTML = `
+                    <div class="transcript-empty">
+                        📜 No flashcards loaded<br>
+                        <small style="color: #ccc;">Load a CSV file first, then switch to Transcript Mode</small>
+                    </div>
+                `;
+                return;
+            }
+
+            console.log('✅ filteredCards found, generating HTML...');
+
+            // Create transcript header (use simple labels since lang1Label/lang2Label don't exist)
+            let html = `
+                <div class="transcript-header">
+                    <div>📖 Source Language</div>
+                    <div>🎯 Target Language</div>
+                </div>
+            `;
+
+            // Add all flashcard pairs (using filteredCards to respect current filter)
+            filteredCards.forEach((card, index) => {
+                html += `
+                    <div class="transcript-pair" data-index="${index}" onclick="jumpToTranscriptSentence(${index})">
+                        <div class="transcript-text source">${card.lang1 || ''}</div>
+                        <div class="transcript-text target">${card.lang2 || ''}</div>
+                    </div>
+                `;
+            });
+
+            console.log('📝 Generated HTML length:', html.length);
+            console.log('🔧 Setting innerHTML...');
+            transcriptContainer.innerHTML = html;
+            console.log('✅ innerHTML set!');
+
+            console.log(`✅ Transcript generated with ${filteredCards.length} pairs`);
+
+            // Update progress
+            updateTranscriptProgress();
+        }
+
+        /**
+         * Toggle transcript playback
+         */
+        function toggleTranscriptPlayback() {
+            if (transcriptPlaying) {
+                pauseTranscriptPlayback();
+            } else {
+                startTranscriptPlayback();
+            }
+        }
+
+        /**
+         * Start sequential playback of transcript
+         */
+        function startTranscriptPlayback() {
+            console.log('▶️ Starting transcript playback...');
+
+            if (!filteredCards || filteredCards.length === 0) {
+                alert('No flashcards loaded!');
+                return;
+            }
+
+            // Log all active settings
+            console.log('📋 Active Settings:', {
+                totalCards: filteredCards.length,
+                speechRate: speechRate,
+                speechPitch: speechPitch,
+                pronounceTarget: autoplayEnglishEnabled,
+                delayBetweenLangs: delayBetweenLangs + 'ms',
+                delayBeforeNext: delayBeforeNext + 'ms',
+                repeatSource: repeatSourceCount + ' times',
+                repeatTarget: repeatTargetCount + ' times',
+                loopMode: loopModeEnabled,
+                studyTimer: studyTimerEnabled ? document.getElementById('studyDuration').value + ' min' : 'off',
+                sleepTimer: sleepTimerEnabled ? document.getElementById('sleepDuration').value + ' min' : 'off'
+            });
+
+            transcriptPlaying = true;
+
+            // Update button states
+            document.getElementById('transcriptPlayBtn').style.display = 'none';
+            document.getElementById('transcriptPauseBtn').style.display = 'inline-flex';
+
+            // Start timers if enabled
+            if (studyTimerEnabled && !timerInterval) {
+                startStudyTimer();
+            }
+            if (sleepTimerEnabled && !timerInterval) {
+                startSleepTimer();
+            }
+
+            // Start from current index or beginning
+            playNextTranscriptSentence();
+        }
+
+        /**
+         * Play next sentence in transcript (entry point)
+         */
+        function playNextTranscriptSentence() {
+            // Check if we should stop (end reached or timers)
+            if (!transcriptPlaying) {
+                stopTranscriptPlayback();
+                return;
+            }
+
+            // Check if reached end
+            if (transcriptCurrentIndex >= filteredCards.length) {
+                if (loopModeEnabled) {
+                    // Loop back to beginning
+                    transcriptCurrentIndex = 0;
+                    console.log('🔁 Loop Mode: Restarting transcript from beginning');
+                } else {
+                    // Stop playback
+                    console.log('✅ Transcript completed!');
+                    stopTranscriptPlayback();
+                    return;
+                }
+            }
+
+            const card = filteredCards[transcriptCurrentIndex];
+
+            console.log(`\n📝 Card ${transcriptCurrentIndex + 1}/${filteredCards.length}:`);
+            console.log(`   Source: ${card.lang1.substring(0, 50)}...`);
+            console.log(`   Target: ${card.lang2.substring(0, 50)}...`);
+
+            // Highlight current pair
+            highlightTranscriptPair(transcriptCurrentIndex);
+
+            // Update progress
+            updateTranscriptProgress();
+
+            // Reset repeat counters for this card
+            transcriptSourceRepeat = 0;
+            transcriptTargetRepeat = 0;
+
+            // Start playing source language (with repeats)
+            playTranscriptSourceLanguage(card);
+        }
+
+        /**
+         * Play source language with repeat support
+         */
+        function playTranscriptSourceLanguage(card) {
+            if (!transcriptPlaying) return;
+
+            console.log(`   🗣️ Source repeat ${transcriptSourceRepeat + 1}/${repeatSourceCount}`);
+
+            // Play source language once
+            speakTranscriptLanguage(card.lang1, sourceVoice, detectedSourceLang, () => {
+                if (!transcriptPlaying) return;
+
+                transcriptSourceRepeat++;
+
+                if (transcriptSourceRepeat < repeatSourceCount) {
+                    // Continue repeating source
+                    console.log(`   ⏱️ Waiting 500ms before next source repeat...`);
+                    transcriptTimeout = setTimeout(() => {
+                        if (!transcriptPlaying) return;
+                        playTranscriptSourceLanguage(card);
+                    }, 500);
+                } else {
+                    // Source repeats complete, add delay before target
+                    console.log(`   ⏱️ Waiting ${delayBetweenLangs}ms before target language...`);
+                    transcriptTimeout = setTimeout(() => {
+                        if (!transcriptPlaying) return;
+
+                        // Check if target language should be played
+                        if (autoplayEnglishEnabled) {
+                            playTranscriptTargetLanguage(card);
+                        } else {
+                            console.log(`   ⏭️ Skipping target language`);
+                            console.log(`   ⏱️ Waiting ${delayBeforeNext}ms before next card...`);
+                            // Skip target, move to next card after delay
+                            transcriptTimeout = setTimeout(() => {
+                                if (!transcriptPlaying) return;
+                                handleTranscriptCardCompletion();
+                            }, delayBeforeNext);
+                        }
+                    }, delayBetweenLangs);
+                }
+            });
+        }
+
+        /**
+         * Play target language with repeat support
+         */
+        function playTranscriptTargetLanguage(card) {
+            if (!transcriptPlaying) return;
+
+            console.log(`   🗣️ Target repeat ${transcriptTargetRepeat + 1}/${repeatTargetCount}`);
+
+            // Play target language once
+            speakTranscriptLanguage(card.lang2, targetVoice, detectedTargetLang, () => {
+                if (!transcriptPlaying) return;
+
+                transcriptTargetRepeat++;
+
+                if (transcriptTargetRepeat < repeatTargetCount) {
+                    // Continue repeating target
+                    console.log(`   ⏱️ Waiting 500ms before next target repeat...`);
+                    transcriptTimeout = setTimeout(() => {
+                        if (!transcriptPlaying) return;
+                        playTranscriptTargetLanguage(card);
+                    }, 500);
+                } else {
+                    // All repeats complete, move to next card after delay
+                    console.log(`   ⏱️ Waiting ${delayBeforeNext}ms before next card...`);
+                    transcriptTimeout = setTimeout(() => {
+                        if (!transcriptPlaying) return;
+                        handleTranscriptCardCompletion();
+                    }, delayBeforeNext);
+                }
+            });
+        }
+
+        /**
+         * Handle card completion - move to next card
+         */
+        function handleTranscriptCardCompletion() {
+            if (!transcriptPlaying) return;
+
+            // Move to next card
+            transcriptCurrentIndex++;
+
+            // Continue with next sentence
+            playNextTranscriptSentence();
+        }
+
+        /**
+         * Speak a single language in transcript mode
+         * @param {string} text - Text to speak
+         * @param {SpeechSynthesisVoice} voice - Voice to use
+         * @param {string} fallbackLang - Fallback language code
+         * @param {Function} callback - Called when speech completes
+         */
+        function speakTranscriptLanguage(text, voice, fallbackLang, callback) {
+            // Cancel any ongoing speech
+            synth.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+
+            // Set language code
+            utterance.lang = voice ? voice.lang : fallbackLang;
+
+            // Only set voice if it's not virtual (virtual voices use lang code only)
+            if (voice && !voice.isVirtual) {
+                utterance.voice = voice;
+            }
+
+            // Apply user settings
+            utterance.rate = speechRate;
+            utterance.pitch = speechPitch;
+
+            console.log('🎤 Transcript Speech:', {
+                text: text.substring(0, 30) + '...',
+                lang: utterance.lang,
+                rate: utterance.rate,
+                pitch: utterance.pitch,
+                voice: utterance.voice ? utterance.voice.name : 'default'
+            });
+
+            utterance.onend = () => {
+                if (callback) callback();
+            };
+
+            utterance.onerror = (event) => {
+                console.error('❌ Transcript speech error:', event);
+                if (callback) callback();
+            };
+
+            synth.speak(utterance);
+        }
+
+        /**
+         * Highlight a transcript pair during playback
+         */
+        function highlightTranscriptPair(index) {
+            // Remove all existing highlights
+            const allPairs = document.querySelectorAll('.transcript-pair');
+            allPairs.forEach(pair => pair.classList.remove('playing'));
+
+            // Add highlight to current pair
+            const currentPair = document.querySelector(`.transcript-pair[data-index="${index}"]`);
+            if (currentPair) {
+                currentPair.classList.add('playing');
+
+                // Scroll into view
+                currentPair.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        }
+
+        /**
+         * Pause transcript playback
+         */
+        function pauseTranscriptPlayback() {
+            console.log('⏸️ Pausing transcript playback...');
+
+            transcriptPlaying = false;
+            synth.cancel();
+
+            // Clear any pending timeouts
+            if (transcriptTimeout) {
+                clearTimeout(transcriptTimeout);
+                transcriptTimeout = null;
+            }
+
+            // Update button states
+            document.getElementById('transcriptPlayBtn').style.display = 'inline-flex';
+            document.getElementById('transcriptPauseBtn').style.display = 'none';
+        }
+
+        /**
+         * Stop transcript playback
+         */
+        function stopTranscriptPlayback() {
+            console.log('⏹️ Stopping transcript playback...');
+
+            transcriptPlaying = false;
+            transcriptCurrentIndex = 0;
+            synth.cancel();
+
+            // Clear any pending timeouts
+            if (transcriptTimeout) {
+                clearTimeout(transcriptTimeout);
+                transcriptTimeout = null;
+            }
+
+            // Stop timers
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                timerEndTime = null;
+                document.getElementById('timerDisplay').style.display = 'none';
+            }
+
+            // Update button states
+            document.getElementById('transcriptPlayBtn').style.display = 'inline-flex';
+            document.getElementById('transcriptPauseBtn').style.display = 'none';
+
+            // Remove all highlights
+            const allPairs = document.querySelectorAll('.transcript-pair');
+            allPairs.forEach(pair => pair.classList.remove('playing'));
+
+            // Update progress
+            updateTranscriptProgress();
+        }
+
+        /**
+         * Jump to specific sentence in transcript
+         */
+        function jumpToTranscriptSentence(index) {
+            console.log(`⏭️ Jumping to sentence ${index + 1}`);
+
+            transcriptCurrentIndex = index;
+
+            // If playing, continue from this point
+            if (transcriptPlaying) {
+                synth.cancel();
+                playNextTranscriptSentence();
+            } else {
+                // Just highlight
+                highlightTranscriptPair(index);
+                updateTranscriptProgress();
+            }
+        }
+
+        /**
+         * Update transcript progress display
+         */
+        function updateTranscriptProgress() {
+            const progressEl = document.getElementById('transcriptProgress');
+
+            if (!filteredCards || filteredCards.length === 0) {
+                progressEl.textContent = 'No flashcards loaded';
+                return;
+            }
+
+            if (transcriptPlaying) {
+                progressEl.textContent = `Playing: ${transcriptCurrentIndex + 1} / ${filteredCards.length}`;
+            } else if (transcriptCurrentIndex > 0) {
+                progressEl.textContent = `Paused at: ${transcriptCurrentIndex + 1} / ${filteredCards.length}`;
+            } else {
+                progressEl.textContent = `Ready to play ${filteredCards.length} sentences - Press Space or click Play`;
+            }
+        }
+
+        /**
+         * Shuffle transcript order
+         */
+        function shuffleTranscript() {
+            console.log('🔀 Shuffling transcript...');
+
+            // Stop playback if playing
+            if (transcriptPlaying) {
+                pauseTranscriptPlayback();
+            }
+
+            // Shuffle filteredCards using Fisher-Yates algorithm
+            for (let i = filteredCards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [filteredCards[i], filteredCards[j]] = [filteredCards[j], filteredCards[i]];
+            }
+
+            // Reset to beginning
+            transcriptCurrentIndex = 0;
+
+            // Regenerate transcript view with new order
+            generateTranscriptView();
+
+            console.log('✅ Transcript shuffled!');
+        }
+
+        /**
+         * Remap columns - swap source and target languages in transcript
+         */
+        function remapTranscriptColumns() {
+            console.log('🎯 Remapping columns in transcript...');
+
+            // Stop playback if playing
+            if (transcriptPlaying) {
+                pauseTranscriptPlayback();
+            }
+
+            // Swap lang1 and lang2 for all filtered cards
+            filteredCards.forEach(card => {
+                const temp = card.lang1;
+                card.lang1 = card.lang2;
+                card.lang2 = temp;
+
+                // Also swap extended content if exists
+                if (card.lang1Extended || card.lang2Extended) {
+                    const tempExt = card.lang1Extended;
+                    card.lang1Extended = card.lang2Extended;
+                    card.lang2Extended = tempExt;
+                }
+            });
+
+            // Also need to swap in the main flashcards array for the same files
+            Object.keys(allFlashcards).forEach(filename => {
+                allFlashcards[filename].forEach(card => {
+                    const temp = card.lang1;
+                    card.lang1 = card.lang2;
+                    card.lang2 = temp;
+
+                    if (card.lang1Extended || card.lang2Extended) {
+                        const tempExt = card.lang1Extended;
+                        card.lang1Extended = card.lang2Extended;
+                        card.lang2Extended = tempExt;
+                    }
+                });
+            });
+
+            // Swap voices
+            const tempVoice = sourceVoice;
+            sourceVoice = targetVoice;
+            targetVoice = tempVoice;
+
+            // Swap detected languages
+            const tempLang = detectedSourceLang;
+            detectedSourceLang = detectedTargetLang;
+            detectedTargetLang = tempLang;
+
+            // Regenerate transcript view with swapped columns
+            generateTranscriptView();
+
+            // Save changes
+            saveProgress();
+
+            console.log('✅ Columns remapped! Source ↔ Target');
+        }
+
+        /**
+         * Delete currently highlighted card in transcript mode
+         */
+        function deleteCurrentTranscriptCard() {
+            if (!filteredCards || filteredCards.length === 0) {
+                alert('No cards to delete!');
+                return;
+            }
+
+            // Use transcriptCurrentIndex or find the playing card
+            let indexToDelete = transcriptCurrentIndex;
+
+            // If nothing is highlighted, default to first card
+            if (indexToDelete >= filteredCards.length) {
+                indexToDelete = 0;
+            }
+
+            const cardToDelete = filteredCards[indexToDelete];
+
+            // Confirm deletion
+            const confirmMsg = `Delete this card?\n\nSource: ${cardToDelete.lang1}\nTarget: ${cardToDelete.lang2}`;
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+
+            console.log('🗑️ Deleting card from transcript:', cardToDelete);
+
+            // Stop playback if playing
+            if (transcriptPlaying) {
+                pauseTranscriptPlayback();
+            }
+
+            // Remove from filteredCards
+            filteredCards.splice(indexToDelete, 1);
+
+            // Remove from main flashcards array
+            // Find the card in flashcards array by matching lang1 and lang2
+            const mainIndex = flashcards.findIndex(c =>
+                c.lang1 === cardToDelete.lang1 && c.lang2 === cardToDelete.lang2
+            );
+
+            if (mainIndex !== -1) {
+                flashcards.splice(mainIndex, 1);
+                console.log(`   Removed from flashcards array at index ${mainIndex}`);
+            }
+
+            // Check if we have any cards left
+            if (flashcards.length === 0) {
+                console.log('   No more cards, clearing file...');
+                clearFile();
+                return;
+            }
+
+            // Adjust current index if needed
+            if (transcriptCurrentIndex >= filteredCards.length) {
+                transcriptCurrentIndex = Math.max(0, filteredCards.length - 1);
+            }
+
+            // Update stats
+            updateStats();
+
+            // Regenerate transcript view
+            generateTranscriptView();
+
+            // Save changes
+            saveProgress();
+
+            console.log(`✅ Card deleted! Remaining: ${flashcards.length} total, ${filteredCards.length} filtered`);
+        }
+
+        /**
+         * Enhanced keyboard shortcuts for transcript mode
+         */
+        document.addEventListener('keydown', function(e) {
+            // Only handle when in transcript mode
+            if (flashcardViewMode !== 'transcript') return;
+
+            // Don't interfere with input fields
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            switch(e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    toggleTranscriptPlayback();
+                    break;
+
+                case 'ArrowRight':
+                    e.preventDefault();
+                    if (!transcriptPlaying) {
+                        transcriptCurrentIndex = Math.min(transcriptCurrentIndex + 1, filteredCards.length - 1);
+                        jumpToTranscriptSentence(transcriptCurrentIndex);
+                    }
+                    break;
+
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    if (!transcriptPlaying) {
+                        transcriptCurrentIndex = Math.max(transcriptCurrentIndex - 1, 0);
+                        jumpToTranscriptSentence(transcriptCurrentIndex);
+                    }
+                    break;
+
+                case 'Escape':
+                    e.preventDefault();
+                    stopTranscriptPlayback();
+                    break;
+            }
+        });
+
+        console.log('✅ Transcript mode functions initialized!');
     </script>
 
     <!-- Focus Mode Overlay -->
