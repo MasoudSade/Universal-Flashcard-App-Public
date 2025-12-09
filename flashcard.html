@@ -10528,7 +10528,7 @@
          * Debounced to avoid excessive writes
          */
         async function saveUserSettings() {
-            if (!isCloudEnabled || !currentUser) {
+            if (!isCloudEnabled || !cloudUser) {
                 console.log('⚠️ Settings not saved - cloud disabled or user not logged in');
                 return;
             }
@@ -10548,7 +10548,7 @@
                     showSettingsSaveIndicator('saving');
 
                     const settingsData = JSON.stringify(userSettings);
-                    const userRef = firebase.database().ref(`users/${currentUser}/settings`);
+                    const userRef = firebase.database().ref(`users-universal/${cloudUser.username}/settings`);
                     await userRef.set(settingsData);
 
                     console.log('✅ User settings saved to cloud');
@@ -10564,7 +10564,7 @@
          * Load user settings from cloud
          */
         async function loadUserSettings() {
-            if (!isCloudEnabled || !currentUser) {
+            if (!isCloudEnabled || !cloudUser) {
                 console.log('⚠️ Settings not loaded - cloud disabled or user not logged in');
                 return false;
             }
@@ -10573,7 +10573,7 @@
                 console.log('📥 Loading user settings from cloud...');
                 showSettingsSaveIndicator('loading');
 
-                const userRef = firebase.database().ref(`users/${currentUser}/settings`);
+                const userRef = firebase.database().ref(`users-universal/${cloudUser.username}/settings`);
                 const snapshot = await userRef.once('value');
 
                 if (snapshot.exists()) {
