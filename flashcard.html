@@ -4410,6 +4410,48 @@
         let transcriptTargetRepeat = 0; // Track current target repeat count
         let transcriptTimeout = null; // For delays between languages and cards
 
+        // ========================================
+        // USER SETTINGS STORAGE (Cloud-synced)
+        // ========================================
+        let userSettings = {
+            cardMode: {
+                speechRate: 1.0,
+                speechPitch: 1.0,
+                sourceVoiceName: null,
+                targetVoiceName: null,
+                autoplayEnglishEnabled: false,
+                delayBetweenLangs: 4000,
+                delayBeforeNext: 4000,
+                repeatSourceCount: 1,
+                repeatTargetCount: 1,
+                readExtendedContent: false,
+                loopModeEnabled: false,
+                studyTimerEnabled: false,
+                sleepTimerEnabled: false,
+                studyDuration: 25,
+                sleepDuration: 30,
+                filterMode: 'all'
+            },
+            transcriptMode: {
+                speechRate: 1.0,
+                speechPitch: 1.0,
+                sourceVoiceName: null,
+                targetVoiceName: null,
+                autoplayEnglishEnabled: false,
+                delayBetweenLangs: 4000,
+                delayBeforeNext: 4000,
+                repeatSourceCount: 1,
+                repeatTargetCount: 1,
+                readExtendedContent: false,
+                loopModeEnabled: false,
+                studyTimerEnabled: false,
+                sleepTimerEnabled: false,
+                studyDuration: 25,
+                sleepDuration: 30
+            }
+        };
+        let settingsSaveTimeout = null; // Debounce timer for auto-save
+
         // ===== FIREBASE CONFIGURATION =====
         // 🔒 SECURITY NOTE: This API key is SAFE to be public!
         //
@@ -10322,6 +10364,268 @@
         // Save to storage function (used by file manager)
         function saveToStorage() {
             saveProgress();
+        }
+
+        // ========================================
+        // USER SETTINGS SAVE/LOAD FUNCTIONS
+        // ========================================
+
+        /**
+         * Capture current settings from UI into the userSettings object
+         * @param {string} mode - 'cardMode' or 'transcriptMode'
+         */
+        function captureCurrentSettings(mode) {
+            console.log(`📸 Capturing ${mode} settings...`);
+
+            const settings = userSettings[mode];
+
+            // Capture speech settings
+            settings.speechRate = speechRate;
+            settings.speechPitch = speechPitch;
+            settings.sourceVoiceName = sourceVoice ? sourceVoice.name : null;
+            settings.targetVoiceName = targetVoice ? targetVoice.name : null;
+
+            // Capture autoplay and timing settings
+            settings.autoplayEnglishEnabled = autoplayEnglishEnabled;
+            settings.delayBetweenLangs = delayBetweenLangs;
+            settings.delayBeforeNext = delayBeforeNext;
+            settings.repeatSourceCount = repeatSourceCount;
+            settings.repeatTargetCount = repeatTargetCount;
+
+            // Capture other settings
+            settings.readExtendedContent = readExtendedContent;
+            settings.loopModeEnabled = loopModeEnabled;
+            settings.studyTimerEnabled = studyTimerEnabled;
+            settings.sleepTimerEnabled = sleepTimerEnabled;
+
+            // Capture timer durations from UI
+            const studyDurationEl = document.getElementById('studyDuration');
+            const sleepDurationEl = document.getElementById('sleepDuration');
+            if (studyDurationEl) settings.studyDuration = parseInt(studyDurationEl.value);
+            if (sleepDurationEl) settings.sleepDuration = parseInt(sleepDurationEl.value);
+
+            // Capture filter mode (card mode only)
+            if (mode === 'cardMode') {
+                settings.filterMode = currentFilterMode || 'all';
+            }
+
+            console.log(`✅ Captured ${mode} settings:`, settings);
+        }
+
+        /**
+         * Apply settings from userSettings object to current UI and variables
+         * @param {string} mode - 'cardMode' or 'transcriptMode'
+         */
+        function applySettingsToUI(mode) {
+            console.log(`🎨 Applying ${mode} settings to UI...`);
+
+            const settings = userSettings[mode];
+
+            // Apply speech settings
+            speechRate = settings.speechRate;
+            speechPitch = settings.speechPitch;
+
+            // Update UI controls
+            const speechRateEl = document.getElementById('speechRate');
+            const speechPitchEl = document.getElementById('speechPitch');
+            if (speechRateEl) {
+                speechRateEl.value = settings.speechRate;
+                document.getElementById('speechRateValue').textContent = settings.speechRate.toFixed(1) + 'x';
+            }
+            if (speechPitchEl) {
+                speechPitchEl.value = settings.speechPitch;
+                document.getElementById('speechPitchValue').textContent = settings.speechPitch.toFixed(1) + 'x';
+            }
+
+            // Apply voice selections
+            if (settings.sourceVoiceName && allVoices.length > 0) {
+                const foundVoice = allVoices.find(v => v.name === settings.sourceVoiceName);
+                if (foundVoice) sourceVoice = foundVoice;
+            }
+            if (settings.targetVoiceName && allVoices.length > 0) {
+                const foundVoice = allVoices.find(v => v.name === settings.targetVoiceName);
+                if (foundVoice) targetVoice = foundVoice;
+            }
+
+            // Apply autoplay and timing settings
+            autoplayEnglishEnabled = settings.autoplayEnglishEnabled;
+            delayBetweenLangs = settings.delayBetweenLangs;
+            delayBeforeNext = settings.delayBeforeNext;
+            repeatSourceCount = settings.repeatSourceCount;
+            repeatTargetCount = settings.repeatTargetCount;
+
+            // Update UI controls for timing
+            const autoplayCheckbox = document.getElementById('autoplayEnglish');
+            const delayBetweenEl = document.getElementById('delayBetween');
+            const delayNextEl = document.getElementById('delayNext');
+            const repeatSourceEl = document.getElementById('repeatSourceCount');
+            const repeatTargetEl = document.getElementById('repeatTargetCount');
+
+            if (autoplayCheckbox) autoplayCheckbox.checked = settings.autoplayEnglishEnabled;
+            if (delayBetweenEl) {
+                delayBetweenEl.value = settings.delayBetweenLangs;
+                document.getElementById('delayBetweenValue').textContent = (settings.delayBetweenLangs / 1000).toFixed(1) + 's';
+            }
+            if (delayNextEl) {
+                delayNextEl.value = settings.delayBeforeNext;
+                document.getElementById('delayNextValue').textContent = (settings.delayBeforeNext / 1000).toFixed(1) + 's';
+            }
+            if (repeatSourceEl) repeatSourceEl.value = settings.repeatSourceCount;
+            if (repeatTargetEl) repeatTargetEl.value = settings.repeatTargetCount;
+
+            // Apply other settings
+            readExtendedContent = settings.readExtendedContent;
+            loopModeEnabled = settings.loopModeEnabled;
+            studyTimerEnabled = settings.studyTimerEnabled;
+            sleepTimerEnabled = settings.sleepTimerEnabled;
+
+            // Update loop mode checkbox
+            const loopModeCheckbox = document.getElementById('loopMode');
+            if (loopModeCheckbox) loopModeCheckbox.checked = settings.loopModeEnabled;
+
+            // Apply timer durations
+            const studyDurationEl = document.getElementById('studyDuration');
+            const sleepDurationEl = document.getElementById('sleepDuration');
+            if (studyDurationEl) studyDurationEl.value = settings.studyDuration;
+            if (sleepDurationEl) sleepDurationEl.value = settings.sleepDuration;
+
+            console.log(`✅ Applied ${mode} settings to UI`);
+        }
+
+        /**
+         * Save user settings to cloud
+         * Debounced to avoid excessive writes
+         */
+        async function saveUserSettings() {
+            if (!isCloudEnabled || !currentUser) {
+                console.log('⚠️ Settings not saved - cloud disabled or user not logged in');
+                return;
+            }
+
+            // Capture current mode settings before saving
+            const currentMode = flashcardViewMode === 'transcript' ? 'transcriptMode' : 'cardMode';
+            captureCurrentSettings(currentMode);
+
+            // Debounce: Clear existing timeout and set new one
+            if (settingsSaveTimeout) {
+                clearTimeout(settingsSaveTimeout);
+            }
+
+            settingsSaveTimeout = setTimeout(async () => {
+                try {
+                    console.log('💾 Saving user settings to cloud...');
+                    showSettingsSaveIndicator('saving');
+
+                    const settingsData = JSON.stringify(userSettings);
+                    const userRef = firebase.database().ref(`users/${currentUser}/settings`);
+                    await userRef.set(settingsData);
+
+                    console.log('✅ User settings saved to cloud');
+                    showSettingsSaveIndicator('saved');
+                } catch (error) {
+                    console.error('❌ Error saving user settings:', error);
+                    showSettingsSaveIndicator('error');
+                }
+            }, 1000); // Wait 1 second after last change before saving
+        }
+
+        /**
+         * Load user settings from cloud
+         */
+        async function loadUserSettings() {
+            if (!isCloudEnabled || !currentUser) {
+                console.log('⚠️ Settings not loaded - cloud disabled or user not logged in');
+                return false;
+            }
+
+            try {
+                console.log('📥 Loading user settings from cloud...');
+                showSettingsSaveIndicator('loading');
+
+                const userRef = firebase.database().ref(`users/${currentUser}/settings`);
+                const snapshot = await userRef.once('value');
+
+                if (snapshot.exists()) {
+                    const loadedSettings = JSON.parse(snapshot.val());
+
+                    // Merge loaded settings with defaults (in case new settings were added)
+                    userSettings.cardMode = { ...userSettings.cardMode, ...loadedSettings.cardMode };
+                    userSettings.transcriptMode = { ...userSettings.transcriptMode, ...loadedSettings.transcriptMode };
+
+                    console.log('✅ User settings loaded from cloud');
+
+                    // Apply settings for current mode
+                    const currentMode = flashcardViewMode === 'transcript' ? 'transcriptMode' : 'cardMode';
+                    applySettingsToUI(currentMode);
+
+                    showSettingsSaveIndicator('loaded');
+                    return true;
+                } else {
+                    console.log('ℹ️ No saved settings found - using defaults');
+                    showSettingsSaveIndicator('');
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Error loading user settings:', error);
+                showSettingsSaveIndicator('error');
+                return false;
+            }
+        }
+
+        /**
+         * Show visual indicator for settings save/load status
+         */
+        function showSettingsSaveIndicator(status) {
+            const statsEl = document.getElementById('stats');
+            if (!statsEl) return;
+
+            // Remove existing indicator
+            let indicator = document.getElementById('settingsSaveIndicator');
+            if (indicator) indicator.remove();
+
+            if (!status) return; // Empty status = remove indicator
+
+            // Create new indicator
+            indicator = document.createElement('div');
+            indicator.id = 'settingsSaveIndicator';
+            indicator.style.cssText = `
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                padding: 8px 12px;
+                border-radius: 5px;
+                font-size: 12px;
+                font-weight: bold;
+                z-index: 10000;
+                transition: opacity 0.3s;
+            `;
+
+            if (status === 'saving') {
+                indicator.textContent = '💾 Saving settings...';
+                indicator.style.background = '#667eea';
+                indicator.style.color = 'white';
+            } else if (status === 'saved') {
+                indicator.textContent = '✅ Settings saved';
+                indicator.style.background = '#10b981';
+                indicator.style.color = 'white';
+                setTimeout(() => indicator.remove(), 2000);
+            } else if (status === 'loading') {
+                indicator.textContent = '📥 Loading settings...';
+                indicator.style.background = '#667eea';
+                indicator.style.color = 'white';
+            } else if (status === 'loaded') {
+                indicator.textContent = '✅ Settings loaded';
+                indicator.style.background = '#10b981';
+                indicator.style.color = 'white';
+                setTimeout(() => indicator.remove(), 2000);
+            } else if (status === 'error') {
+                indicator.textContent = '❌ Settings save failed';
+                indicator.style.background = '#ef4444';
+                indicator.style.color = 'white';
+                setTimeout(() => indicator.remove(), 3000);
+            }
+
+            document.body.appendChild(indicator);
         }
 
         function loadProgress(fileName) {
