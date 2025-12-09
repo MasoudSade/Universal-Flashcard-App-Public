@@ -11753,13 +11753,14 @@
                     showFlashcard();
                     updateCurrentFileDisplay();
 
-                    // CLOUD-FIRST MODE: Cache flashcard data in memory immediately
-                    if (isCloudFirstMode) {
+                    // CLOUD MODE: Cache flashcard data in memory only (no localStorage)
+                    if (isCloudEnabled) {
                         const jsonData = JSON.stringify(flashcards);
                         cloudDataCache[currentFileName] = jsonData;
                         console.log(`☁️ Cached ${currentFileName} in memory (${flashcards.length} cards, ${(jsonData.length / 1024).toFixed(2)}KB)`);
+                        console.log('   Data stored in cloudDataCache (will sync to cloud on next save)');
                     } else {
-                        // NON-CLOUD-FIRST: Save to localStorage
+                        // NO CLOUD: Save to localStorage only
                         const jsonData = JSON.stringify(flashcards);
                         safeStorage.setItem(`flashcards_${currentFileName}`, jsonData);
                         console.log('💾 Flashcards saved to localStorage:', currentFileName, flashcards.length, 'cards');
