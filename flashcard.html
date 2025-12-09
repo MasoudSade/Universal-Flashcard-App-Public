@@ -9811,6 +9811,8 @@
 
         function loadFileByName(fileName) {
             console.log(`🎯 Loading file for practice: ${fileName}`);
+            console.log(`📊 BEFORE LOAD - flashcards.length: ${flashcards ? flashcards.length : 0}`);
+            console.log(`📊 BEFORE LOAD - filteredCards.length: ${filteredCards ? filteredCards.length : 0}`);
 
             // STEP 1: Clear old practice cache (switching files)
             if (currentFileName && currentFileName !== fileName) {
@@ -9898,11 +9900,30 @@
                     showFlashcard();
                 }
 
-                // Show main UI elements
-                document.getElementById('flashcardContainer').style.display = 'block';
-                document.getElementById('navigation').style.display = 'flex';
+                // IMPORTANT: If currently in transcript mode, regenerate the transcript view with new cards
+                if (flashcardViewMode === 'transcript') {
+                    console.log('🔄 Regenerating transcript view for new file...');
+                    generateTranscriptView();
+                    updateTranscriptProgress();
+                    highlightTranscriptPair(transcriptCurrentIndex);
+
+                    // Keep transcript mode UI visible, hide card mode UI
+                    document.getElementById('flashcardContainer').style.display = 'none';
+                    document.getElementById('navigation').style.display = 'none';
+                    document.getElementById('quickActions').style.display = 'none';
+                    document.getElementById('transcriptView').style.display = 'block';
+                    document.getElementById('transcriptNavigation').style.display = 'flex';
+                } else {
+                    // Show card mode UI, hide transcript mode UI
+                    document.getElementById('flashcardContainer').style.display = 'block';
+                    document.getElementById('navigation').style.display = 'flex';
+                    document.getElementById('quickActions').style.display = 'grid';
+                    document.getElementById('transcriptView').style.display = 'none';
+                    document.getElementById('transcriptNavigation').style.display = 'none';
+                }
+
+                // Show common UI elements
                 document.getElementById('stats').style.display = 'block';
-                document.getElementById('quickActions').style.display = 'grid';
                 document.getElementById('practiceModeBtn').style.display = 'block';
                 document.getElementById('settingsToggleBtn').style.display = 'flex';
                 document.getElementById('clearFileBtn').style.display = 'inline-block';
@@ -13614,16 +13635,35 @@
                 voice: utterance.voice ? utterance.voice.name : 'default'
             });
 
+            // Event-driven completion: prevent double callbacks
+            let completed = false;
+            const safetyTimeout = setTimeout(() => {
+                if (!completed && callback) {
+                    console.log('⚠️ Transcript speech safety timeout triggered');
+                    completed = true;
+                    callback();
+                }
+            }, 30000); // 30 second safety timeout for very long text
+
             utterance.onend = () => {
-                if (callback) callback();
+                if (!completed) {
+                    completed = true;
+                    clearTimeout(safetyTimeout);
+                    console.log('✅ Transcript speech completed naturally');
+                    if (callback) callback();
+                }
             };
 
             utterance.onerror = (event) => {
-                // "interrupted" error is normal when pausing/stopping, so don't log it as error
-                if (event.error !== 'interrupted') {
-                    console.error('❌ Transcript speech error:', event);
+                if (!completed) {
+                    completed = true;
+                    clearTimeout(safetyTimeout);
+                    // "interrupted" error is normal when pausing/stopping, so don't log it as error
+                    if (event.error !== 'interrupted') {
+                        console.error('❌ Transcript speech error:', event);
+                    }
+                    if (callback) callback();
                 }
-                if (callback) callback();
             };
 
             synth.speak(utterance);
