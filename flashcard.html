@@ -10443,11 +10443,41 @@
             // Apply voice selections
             if (settings.sourceVoiceName && allVoices.length > 0) {
                 const foundVoice = allVoices.find(v => v.name === settings.sourceVoiceName);
-                if (foundVoice) sourceVoice = foundVoice;
+                if (foundVoice) {
+                    sourceVoice = foundVoice;
+                    // Update dropdown UI to reflect loaded voice
+                    const sortedVoices = [...allVoices].sort((a, b) => {
+                        if (a.name.includes('Google') && !b.name.includes('Google')) return -1;
+                        if (!a.name.includes('Google') && b.name.includes('Google')) return 1;
+                        return a.name.localeCompare(b.name);
+                    });
+                    const voiceIndex = sortedVoices.indexOf(foundVoice);
+                    const sourceVoiceSelect = document.getElementById('sourceVoiceSelect');
+                    if (sourceVoiceSelect && voiceIndex >= 0) {
+                        sourceVoiceSelect.value = voiceIndex;
+                        updateVoiceInfo('source', foundVoice);
+                        console.log(`✅ Restored source voice: ${foundVoice.name}`);
+                    }
+                }
             }
             if (settings.targetVoiceName && allVoices.length > 0) {
                 const foundVoice = allVoices.find(v => v.name === settings.targetVoiceName);
-                if (foundVoice) targetVoice = foundVoice;
+                if (foundVoice) {
+                    targetVoice = foundVoice;
+                    // Update dropdown UI to reflect loaded voice
+                    const sortedVoices = [...allVoices].sort((a, b) => {
+                        if (a.name.includes('Google') && !b.name.includes('Google')) return -1;
+                        if (!a.name.includes('Google') && b.name.includes('Google')) return 1;
+                        return a.name.localeCompare(b.name);
+                    });
+                    const voiceIndex = sortedVoices.indexOf(foundVoice);
+                    const targetVoiceSelect = document.getElementById('targetVoiceSelect');
+                    if (targetVoiceSelect && voiceIndex >= 0) {
+                        targetVoiceSelect.value = voiceIndex;
+                        updateVoiceInfo('target', foundVoice);
+                        console.log(`✅ Restored target voice: ${foundVoice.name}`);
+                    }
+                }
             }
 
             // Apply autoplay and timing settings
