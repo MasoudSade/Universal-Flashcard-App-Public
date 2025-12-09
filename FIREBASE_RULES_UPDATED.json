@@ -1,0 +1,50 @@
+{
+  "rules": {
+    "users": {
+      "$username": {
+        ".read": true,
+        ".write": "!data.exists() || (data.child('passwordHash').exists() && data.child('passwordHash').val() === newData.child('passwordHash').val())",
+        "passwordHash": {
+          ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/)"
+        },
+        "lastSync": {
+          ".validate": "newData.isNumber() && newData.val() > 0"
+        },
+        "encryptedData": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        },
+        "settings": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "users-universal": {
+      "$username": {
+        ".read": true,
+        ".write": "!data.exists() || (data.child('passwordHash').exists() && data.child('passwordHash').val() === newData.child('passwordHash').val())",
+        "passwordHash": {
+          ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/)"
+        },
+        "lastModified": {
+          ".validate": "newData.isNumber() && newData.val() > 0"
+        },
+        "data": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        },
+        "settings": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}
