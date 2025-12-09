@@ -7682,6 +7682,9 @@
 
                 console.log('Cloud login successful');
 
+                // Load user settings from cloud
+                await loadUserSettings();
+
                 // Auto-load all flashcards from all categories
                 autoLoadAllCategories();
             } catch (error) {
@@ -10406,7 +10409,7 @@
 
             // Capture filter mode (card mode only)
             if (mode === 'cardMode') {
-                settings.filterMode = currentFilterMode || 'all';
+                settings.filterMode = filterMode || 'all';
             }
 
             console.log(`✅ Captured ${mode} settings:`, settings);
@@ -10488,6 +10491,34 @@
             const sleepDurationEl = document.getElementById('sleepDuration');
             if (studyDurationEl) studyDurationEl.value = settings.studyDuration;
             if (sleepDurationEl) sleepDurationEl.value = settings.sleepDuration;
+
+            // Apply filter mode (card mode only)
+            if (mode === 'cardMode' && settings.filterMode) {
+                filterMode = settings.filterMode;
+                // Update the button appearance to match the filter mode
+                const showLearnedBtn = document.getElementById('showLearnedBtn');
+                if (showLearnedBtn) {
+                    if (filterMode === 'unlearned') {
+                        showOnlyUnlearned = true;
+                        showLearnedBtn.textContent = '👁 Unlearned Only';
+                        showLearnedBtn.style.background = '#ef4444';
+                        showLearnedBtn.style.color = 'white';
+                        showLearnedBtn.classList.add('active');
+                    } else if (filterMode === 'learned') {
+                        showOnlyUnlearned = false;
+                        showLearnedBtn.textContent = '👁 Learned Only';
+                        showLearnedBtn.style.background = '#10b981';
+                        showLearnedBtn.style.color = 'white';
+                        showLearnedBtn.classList.add('active');
+                    } else {
+                        showOnlyUnlearned = false;
+                        showLearnedBtn.textContent = '👁 Show All';
+                        showLearnedBtn.style.background = '';
+                        showLearnedBtn.style.color = '';
+                        showLearnedBtn.classList.remove('active');
+                    }
+                }
+            }
 
             console.log(`✅ Applied ${mode} settings to UI`);
         }
@@ -12687,6 +12718,7 @@
         // Read extended content checkbox
         document.getElementById('readExtendedContent').addEventListener('change', (e) => {
             readExtendedContent = e.target.checked;
+            saveUserSettings(); // Auto-save settings
         });
 
         // Auto-play button
@@ -12701,17 +12733,20 @@
         // Auto-play English checkbox
         autoplayEnglishCheckbox.addEventListener('change', (e) => {
             autoplayEnglishEnabled = e.target.checked;
+            saveUserSettings(); // Auto-save settings
         });
 
         // Delay sliders
         delayBetweenSlider.addEventListener('input', (e) => {
             delayBetweenLangs = parseInt(e.target.value);
             delayBetweenValue.textContent = (delayBetweenLangs / 1000).toFixed(1) + 's';
+            saveUserSettings(); // Auto-save settings
         });
 
         delayNextSlider.addEventListener('input', (e) => {
             delayBeforeNext = parseInt(e.target.value);
             delayNextValue.textContent = (delayBeforeNext / 1000).toFixed(1) + 's';
+            saveUserSettings(); // Auto-save settings
         });
 
         // Voice selection handlers
@@ -12735,6 +12770,7 @@
             } else {
                 console.error('❌ Source voice not found at index:', e.target.value);
             }
+            saveUserSettings(); // Auto-save settings
         });
 
         document.getElementById('targetVoiceSelect').addEventListener('change', (e) => {
@@ -12757,6 +12793,7 @@
             } else {
                 console.error('❌ Target voice not found at index:', e.target.value);
             }
+            saveUserSettings(); // Auto-save settings
         });
 
         // Gender-based voice selection handlers - WRAPPED IN FUNCTION FOR DOMContentLoaded
@@ -12811,6 +12848,7 @@
                         }
                         updateVoiceInfo('source', sourceVoice);
                         console.log('Source voice changed to:', sourceVoice.name, '(Gender:', gender + ')');
+                        saveUserSettings(); // Auto-save settings
                     }
                 });
             }
@@ -12862,6 +12900,7 @@
                         }
                         updateVoiceInfo('target', targetVoice);
                         console.log('Target voice changed to:', targetVoice.name, '(Gender:', gender + ')');
+                        saveUserSettings(); // Auto-save settings
                     }
                 });
             }
@@ -12871,12 +12910,14 @@
         document.getElementById('speechRate').addEventListener('input', (e) => {
             speechRate = parseFloat(e.target.value);
             document.getElementById('speechRateValue').textContent = speechRate.toFixed(1) + 'x';
+            saveUserSettings(); // Auto-save settings
         });
 
         // Pitch handler
         document.getElementById('speechPitch').addEventListener('input', (e) => {
             speechPitch = parseFloat(e.target.value);
             document.getElementById('speechPitchValue').textContent = speechPitch.toFixed(1);
+            saveUserSettings(); // Auto-save settings
         });
 
         // Advanced features event listeners - WRAPPED IN FUNCTION FOR DOMContentLoaded
@@ -12891,6 +12932,7 @@
                 loopModeCheckbox.addEventListener('change', (e) => {
                     loopModeEnabled = e.target.checked;
                     console.log('Loop Mode:', loopModeEnabled);
+                    saveUserSettings(); // Auto-save settings
                 });
             }
 
@@ -12898,6 +12940,7 @@
                 repeatSourceSelect.addEventListener('change', (e) => {
                     repeatSourceCount = parseInt(e.target.value);
                     console.log('Repeat Source Count:', repeatSourceCount);
+                    saveUserSettings(); // Auto-save settings
                 });
             }
 
@@ -12905,6 +12948,7 @@
                 repeatTargetSelect.addEventListener('change', (e) => {
                     repeatTargetCount = parseInt(e.target.value);
                     console.log('Repeat Target Count:', repeatTargetCount);
+                    saveUserSettings(); // Auto-save settings
                 });
             }
 
@@ -12912,6 +12956,7 @@
                 studyTimerCheckbox.addEventListener('change', (e) => {
                     studyTimerEnabled = e.target.checked;
                     console.log('Study Timer:', studyTimerEnabled);
+                    saveUserSettings(); // Auto-save settings
                     if (!e.target.checked && timerInterval) {
                         stopAllTimers();
                     }
@@ -12922,9 +12967,28 @@
                 sleepTimerCheckbox.addEventListener('change', (e) => {
                     sleepTimerEnabled = e.target.checked;
                     console.log('Sleep Timer:', sleepTimerEnabled);
+                    saveUserSettings(); // Auto-save settings
                     if (!e.target.checked && timerInterval) {
                         stopAllTimers();
                     }
+                });
+            }
+
+            // Timer duration selects
+            const studyDurationSelect = document.getElementById('studyDuration');
+            const sleepDurationSelect = document.getElementById('sleepDuration');
+
+            if (studyDurationSelect) {
+                studyDurationSelect.addEventListener('change', (e) => {
+                    console.log('Study Duration changed to:', e.target.value, 'minutes');
+                    saveUserSettings(); // Auto-save settings
+                });
+            }
+
+            if (sleepDurationSelect) {
+                sleepDurationSelect.addEventListener('change', (e) => {
+                    console.log('Sleep Duration changed to:', e.target.value, 'minutes');
+                    saveUserSettings(); // Auto-save settings
                 });
             }
         }
@@ -13351,6 +13415,7 @@
 
             currentIndex = 0;
             showFlashcard();
+            saveUserSettings(); // Auto-save settings
         });
 
         // Remap columns button - show format selector again
@@ -13608,7 +13673,16 @@
         function switchViewMode(mode) {
             console.log(`🔄 Switching to ${mode} mode`);
 
+            // IMPORTANT: Save current mode settings before switching
+            const oldMode = flashcardViewMode === 'transcript' ? 'transcriptMode' : 'cardMode';
+            captureCurrentSettings(oldMode);
+
+            // Switch to new mode
             flashcardViewMode = mode;
+
+            // Apply new mode settings
+            const newMode = mode === 'transcript' ? 'transcriptMode' : 'cardMode';
+            applySettingsToUI(newMode);
 
             const cardModeBtn = document.getElementById('cardModeBtn');
             const transcriptModeBtn = document.getElementById('transcriptModeBtn');
@@ -13658,6 +13732,9 @@
                 updateTranscriptProgress();
                 highlightTranscriptPair(transcriptCurrentIndex);
             }
+
+            // Save settings after mode switch
+            saveUserSettings();
         }
 
         /**
